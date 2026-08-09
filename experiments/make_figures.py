@@ -261,9 +261,76 @@ def fig4():
     print("wrote", os.path.join("paper/figures", "fig4_lambda_tradeoff.svg"))
 
 
+# ---- Figure 5: fitness-distance correlation (landscape probe) ---------------
+def fig5():
+    """Gap-vs-distance scatter of random-start local optima, coloured by size."""
+    import json
+    src = os.path.join(os.path.dirname(__file__), "..", "outputs",
+                       "landscape.jsonl")
+    fdc_src = os.path.join(os.path.dirname(__file__), "..", "outputs",
+                           "landscape_fdc.json")
+    if not os.path.exists(src):
+        print("skip fig5: outputs/landscape.jsonl not found "
+              "(run experiments/landscape_analysis.py first)")
+        return
+    recs = [json.loads(l) for l in open(src) if l.strip()]
+    fdc = json.load(open(fdc_src)) if os.path.exists(fdc_src) else {}
+    sizes = ["S", "M", "L"]
+    ymax = max((r["gap_to_best"] for r in recs), default=1.0)
+    ymax = max(ymax, 0.5)
+    xmax = max((r["dist_to_best"] for r in recs), default=1.0)
+    xmax = max(xmax, 0.1)
+    W, H = 580, 400
+    L, R, T, B = 62, 150, 34, 55
+    pw, ph = W - L - R, H - T - B
+
+    def X(v):
+        return L + v / xmax * pw
+
+    def Y(v):
+        return T + (1 - v / ymax) * ph
+
+    body = ""
+    gy_step = ymax / 4
+    for i in range(5):
+        gv = i * gy_step
+        body += _line(L, Y(gv), L + pw, Y(gv), GRID, 1)
+        body += _txt(L - 8, Y(gv) + 4, f"{gv:.1f}", 10.5, "end", AXIS)
+    for i in range(5):
+        gv = i * xmax / 4
+        body += _line(X(gv), T + ph, X(gv), T + ph + 5, AXIS, 1)
+        body += _txt(X(gv), T + ph + 18, f"{gv:.2f}", 10.5, "middle", AXIS)
+    body += _line(L, T, L, T + ph, AXIS, 1.2)
+    body += _line(L, T + ph, L + pw, T + ph, AXIS, 1.2)
+    body += _txt(L + pw / 2, H - 10,
+                 "Assignment distance to best local optimum", 12.5, "middle", INK)
+    body += _txt(16, T + ph / 2, "Gap to best local optimum (%)", 12.5,
+                 "middle", INK, rot=-90)
+    for si, size in enumerate(sizes):
+        col = C_FILL[si]
+        for r in recs:
+            if r["size"] != size:
+                continue
+            body += (f'<circle cx="{X(r["dist_to_best"]):.1f}" '
+                     f'cy="{Y(r["gap_to_best"]):.1f}" r="2.1" fill="{col}" '
+                     f'fill-opacity="0.5"/>\n')
+        ly = T + 6 + si * 18
+        f = fdc.get(size, {}).get("fdc")
+        lab = f"{size}: FDC={f:+.2f}" if f is not None else size
+        body += f'<circle cx="{L + pw + 18}" cy="{ly}" r="4" fill="{col}"/>\n'
+        body += _txt(L + pw + 28, ly + 4, lab, 11, "start", INK)
+    body += _txt(L, T - 14, "Better local optima sit closer to the best: "
+                 "big-valley / single-funnel structure", 11.5, "start", "#555",
+                 weight="bold")
+    with open(os.path.join(OUT, "fig5_landscape_fdc.svg"), "w") as f:
+        f.write(_svg(W, H, body))
+    print("wrote", os.path.join("paper/figures", "fig5_landscape_fdc.svg"))
+
+
 if __name__ == "__main__":
     fig1(); fig2(); fig3()
     for fn in ("fig1_selector_budget", "fig2_operator_pool",
                "fig3_component_ablation"):
         print("wrote", os.path.join("paper/figures", fn + ".svg"))
     fig4()
+    fig5()

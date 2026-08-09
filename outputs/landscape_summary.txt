@@ -1,0 +1,10 @@
+=== Fitness-landscape probe (tuning pool, medium TW) ===
+120 random-start descents x 3 instances per size
+ size      FDC  mean gap%  max gap%  pairwise dist
+    S   +0.433       1.85      8.06          0.719
+    M   +0.508       0.79      1.74          0.816
+    L   +0.420       0.31      0.70          0.860
+
+Interpretation: FDC near +1 with small gaps and modest distance-to-best
+=> big valley / single funnel (TSP-like). FDC near 0 with large
+dispersion => rugged multi-funnel (QAP-like).

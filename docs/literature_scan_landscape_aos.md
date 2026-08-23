@@ -52,6 +52,35 @@
 - 정합점: 도메인도 "고전 메타휴리스틱(ILS/GRASP/IG) + 학습" 결합이 주류 →
   우리 프레이밍(강한 결정론 엔진 + 학습은 ablation)이 시의적절.
 
+### 1.5 TSP·QAP에 AI를 넣는 흐름과, 우리를 뒷받침하는 반류
+- **TSP(최대 격전지)**: 두 패러다임.
+  - *learn-to-construct*(해 생성): Attention/POMO/Transformer(INViT ICML'24,
+    hierarchical KDD'24), heatmap+search(DIMES, DIFUSCO diffusion), 대규모
+    divide-and-conquer(UDC'24). 프런티어 = **크기·분포 일반화**.
+  - *learn-to-improve*(개선) — **우리와 같은 계열**: neural LNS(learned
+    destroy/repair), learned k-opt/NeuOpt(신경망이 지역탐색 이동 선택). 벤치마크
+    표준화(RL4CO ICLR'24), 신경 TSP solver 해석연구('25)로 자기비판 단계 진입.
+- **QAP**: 시도는 있으나 적고·약함 — DRL+pointer(2023), Two-Stage Graph
+  Pointer Networks(2024), GNN 그래프매칭(Lawler's QAP). rugged라 학습에도 난제,
+  크기 30↑ 정확해도 없음.
+- **granularity 구분**: 위는 대부분 "TSP/QAP *코어*를 학습으로 푼다". 우리는
+  "스케줄링 메타휴리스틱 *안의 연산자 선택 메타층*을 학습" → 더 얇은 층. 우리
+  negative-RL은 learn-to-improve 흐름의 *통제된 반례*.
+- **우리를 뒷받침하는 counter-current**(정합점, 강함):
+  1. *일반화 실패가 공통 난제* → 우리 transfer DQN zero-shot 열세와 정합.
+  2. *약한 baseline·불공정 예산 비교 논란*(Bengio/Lodi/Prouvost 유효) → 우리
+     동일예산·동일구조 통제가 그 처방.
+  3. *"언제 학습이 값을 하나"가 열린 질문* → TSP처럼 구조 풍부+투자 크면 이득,
+     우리처럼 평평 big-valley+저렴평가+포화예산이면 무익(§7 조건과 일치).
+- **한 줄**: "AI를 넣는 게 대세인 건 맞지만, 값을 하는지는 landscape·예산에
+  달렸다"가 분야의 성숙한 시각. 우리 논문은 크로스도킹에서 *무익 쪽 경계 사례*를
+  통제 실험으로 제시.
+- 근거(링크): awesome-ml4co(종합); RL4CO(ICLR 2024, arXiv:2407.00312);
+  Flexible Neural k-Opt(arXiv:2310.18264); Solving QAP with Deep RL
+  (arXiv:2310.01604); Two-Stage Graph Pointer Networks for QAP
+  (arXiv:2404.00539); Mechanistic Interpretability for Neural TSP Solvers
+  (arXiv:2510.21693).
+
 ---
 
 ## 2. 우리 실험/논문에 넣을 것 (일관성 있는 것만, 우선순위)

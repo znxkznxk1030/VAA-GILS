@@ -26,15 +26,15 @@
 **모든 셀에서 generic ≥ critical ≥ full** (단조). 유도 연산자를 더할수록
 목적함수가 낮아진다.
 
-## Paired Wilcoxon (양측, 상대 목적함수 차)
+## Paired Wilcoxon (인스턴스별 반복 평균, 양측)
 
 | 전환 | 범위 | n | 개선 mean% | p | 판정 |
 |---|---|---:|---:|---:|---|
-| generic → critical (g1,g2 추가) | 전체 | 136 | +0.114 | <10⁻⁴ | 유의 |
-| critical → full (g3,g4 추가) | 전체 | 172 | +0.048 | <10⁻⁴ | 유의 |
-| critical → full | TW 셀만 | 116 | +0.045 | 0.0004 | 유의 |
-| critical → full | none 셀만 | 56 | +0.053 | 0.0014 | 유의 |
-| generic → full (전체 유도) | 전체 | 166 | +0.161 | <10⁻⁴ | 유의 |
+| generic → critical (g1,g2 추가) | 전체 | 40 | +0.114 | <10⁻⁴ | 유의 |
+| critical → full (g3,g4 추가) | 전체 | 42 | +0.047 | 0.0001 | 유의 |
+| critical → full | TW 셀만 | 28 | +0.045 | 0.0003 | 유의 |
+| critical → full | none 셀만 | 14 | +0.053 | 0.0353 | 유의 |
+| generic → full (전체 유도) | 전체 | 43 | +0.161 | <10⁻⁴ | 유의 |
 
 (+ 값 = 더 풍부한 풀이 더 낮은 목적함수)
 

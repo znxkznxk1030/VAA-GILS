@@ -51,18 +51,22 @@ def load() -> dict:
 
 
 def paired_diffs(by_run, pool_a, pool_b, *, tw_filter=None) -> list[float]:
-    """Per-(instance, rep) relative diff (b - a)/a * 100 for two pools."""
+    """Per-instance relative diff of replication means for two pools."""
 
     method_a, method_b = METHOD[pool_a], METHOD[pool_b]
-    diffs = []
-    for (method, size, tw, index, rep), value_a in by_run.items():
-        if method != method_a:
-            continue
+    grouped: dict[tuple, dict[str, list[float]]] = defaultdict(lambda: defaultdict(list))
+    for (method, size, tw, index, rep), value in by_run.items():
         if tw_filter is not None and tw not in tw_filter:
             continue
-        key_b = (method_b, size, tw, index, rep)
-        if key_b in by_run:
-            diffs.append(100.0 * (by_run[key_b] - value_a) / value_a)
+        if method in (method_a, method_b):
+            grouped[(size, tw, index)][method].append(value)
+
+    diffs = []
+    for methods in grouped.values():
+        if method_a in methods and method_b in methods:
+            value_a = statistics.mean(methods[method_a])
+            value_b = statistics.mean(methods[method_b])
+            diffs.append(100.0 * (value_b - value_a) / value_a)
     return diffs
 
 
@@ -97,7 +101,7 @@ def main() -> None:
         print(f"{label:<12}{cells}")
 
     print()
-    print("=== Paired Wilcoxon (two-sided); mean%% = improvement from adding ops ===")
+    print("=== Paired Wilcoxon on instance replication means (two-sided) ===")
     print("(pool_b -> pool_a where pool_a is the richer pool; +mean%% = richer is better)")
     print(f"{'contrast':<34}{'scope':<10}{'n':>5}{'mean%':>9}{'p':>10}{'verdict':>14}")
 

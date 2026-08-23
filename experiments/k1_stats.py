@@ -115,7 +115,12 @@ def paired_diffs(by_run, method_a, method_b, *, tw_filter=None) -> list[float]:
 
 
 def instance_mean_diffs(by_run, method_a, method_b, *, tw_filter=None) -> list[float]:
-    """Per-instance paired relative differences using rep means (for VAA pairing)."""
+    """Per-instance paired relative differences using replication means.
+
+    The generated instance, rather than each stochastic replication, is the
+    independent experimental unit. Replications are averaged before testing to
+    avoid pseudo-replication.
+    """
 
     values: dict[tuple, dict[str, list[float]]] = defaultdict(lambda: defaultdict(list))
     for (method, size, tw, index, rep), value in by_run.items():
@@ -140,10 +145,10 @@ def main() -> None:
 
     comparisons = [
         ("GILS-1000", "VAA", None, "instance"),
-        ("GILS-1000", "Paper-SA-RL5-1000", (None,), "run"),
-        ("GILS-1000", "GILS-uniform-1000", None, "run"),
-        ("GILS-1000", "GILS-dqn-1000", None, "run"),
-        ("GILS-uniform-1000", "GILS-dqn-1000", None, "run"),
+        ("GILS-1000", "Paper-SA-RL5-1000", (None,), "instance"),
+        ("GILS-1000", "GILS-uniform-1000", None, "instance"),
+        ("GILS-1000", "GILS-dqn-1000", None, "instance"),
+        ("GILS-uniform-1000", "GILS-dqn-1000", None, "instance"),
     ]
     for method_a, method_b, tw_filter, mode in comparisons:
         if mode == "run":

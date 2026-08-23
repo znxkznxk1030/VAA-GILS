@@ -45,18 +45,22 @@ def load() -> dict:
 
 
 def degradation(by_run, drop, *, tw_filter=None) -> list[float]:
-    """Per-(instance, rep) relative degradation (drop - none)/none * 100."""
+    """Per-instance degradation from replication means: (drop-none)/none."""
 
     method = METHOD[drop]
-    diffs = []
+    grouped: dict[tuple, dict[str, list[float]]] = defaultdict(lambda: defaultdict(list))
     for (m, size, tw, index, rep), value in by_run.items():
-        if m != REFERENCE:
-            continue
         if tw_filter is not None and tw not in tw_filter:
             continue
-        drop_value = by_run.get((method, size, tw, index, rep))
-        if drop_value is not None:
-            diffs.append(100.0 * (drop_value - value) / value)
+        if m in (REFERENCE, method):
+            grouped[(size, tw, index)][m].append(value)
+
+    diffs = []
+    for methods in grouped.values():
+        if REFERENCE in methods and method in methods:
+            reference = statistics.mean(methods[REFERENCE])
+            removed = statistics.mean(methods[method])
+            diffs.append(100.0 * (removed - reference) / reference)
     return diffs
 
 
@@ -83,7 +87,7 @@ def main() -> None:
         print(f"{f'{size}-{tw or 'none'}':<12}{cells}")
 
     print()
-    print("=== Paired Wilcoxon: degradation from removing each component ===")
+    print("=== Paired Wilcoxon on instance replication means ===")
     print(f"{'component removed':<20}{'scope':<10}{'n':>5}{'degrade%':>10}{'p':>10}{'verdict':>14}")
     tw_none = {None: True}
     tw_windows = {"medium": True, "tight": True}

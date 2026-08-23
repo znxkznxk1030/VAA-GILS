@@ -1,4 +1,4 @@
-# APIEMS 2026 full paper draft (v1, 2026-07-06)
+# APIEMS 2026 full paper draft (v2, 2026-08-23)
 
 **Title:** Compound-Truck Cross-Docking Scheduling with Arrival Time Windows:
 A Bottleneck-Guided Iterated Local Search with Exact-Solver Verification
@@ -8,34 +8,31 @@ University, Seoul, Republic of Korea (znxkznxk1030@yonsei.ac.kr)
 
 ## Abstract
 
-We study truck scheduling in a multi-door cross-docking center where compound
-trucks are partially unloaded and reused as outbound trucks. Prior work on this
-problem assumes that every truck is available at time zero and minimizes
-makespan only. We introduce the first extension with per-truck arrival
-(release) times and soft departure due dates, minimizing makespan plus weighted
-total tardiness; we provide a mixed-integer formulation, a CP-SAT constraint
-model, valid combinatorial lower bounds, and a reproducible benchmark with
-strict train/tuning/test seed separation. We then propose VAA-GILS, a
-bottleneck-guided iterated local search that combines a Vogel-approximation
-construction, best-improvement descent, operators that steer moves toward the
-makespan-critical and most-tardy trucks, simulated-annealing acceptance, and
-kick restarts. On every test cell where an exact reference exists, VAA-GILS
-reaches objective values within 0.1–0.6% of CP-SAT incumbents — matching
-provably optimal solutions on the small no-time-window instances — in under one
-second, versus 76–376 seconds for CP-SAT; on larger time-window cells, where
-CP-SAT returns no feasible solution within 600 seconds, VAA-GILS provides all
-best-known solutions, and it significantly outperforms the
-reinforcement-learning-based simulated annealing of the original model
-(p < 10⁻⁴). A controlled ablation then decomposes where the quality comes from:
-the deterministic search structure — best-improvement descent, the
-bottleneck-guided operators, and kick restarts — accounts for it, whereas three
-adaptive levers do not. Removing the guided operators significantly worsens the
-objective in every cell, while learned operator selection (tabular Q-learning
-and a transfer-trained deep Q-network), a learned or improved initial solution,
-and stochastic acceptance each change the objective by at most a fifth of a
-percentage point, with no computation budget at which the learned policy wins.
-We characterize the conditions under which such adaptive components cannot pay
-off in this regime.
+This paper considers a multi-door cross-dock in which a truck can be partially
+unloaded and then leave as an outbound carrier. Existing compound-truck models
+place every truck at the dock at time zero and optimize makespan. Here, trucks
+have individual release times and soft departure due dates, and the objective
+also charges tardiness. We formulate the resulting problem as a mixed-integer
+program and as a CP-SAT model, and use separate train, tuning, and test seeds in
+the computational study. Our solution method, VAA-GILS, starts from a
+Vogel-style construction and uses best-improvement descent throughout the
+search. Its additional moves focus on
+the door that determines makespan or on the truck with the greatest tardiness;
+simulated-annealing acceptance and kick restarts provide diversification. On
+the subsets for which CP-SAT produced a reference, the resulting objectives
+were 0.1–0.6% from the CP-SAT incumbents. The small no-window references were
+proven optimal. A GILS run took 0.1–2.3 seconds, compared with 76–376 seconds
+for CP-SAT. For the larger time-window cases, CP-SAT found no feasible schedule
+within 600 seconds, while GILS returned the best solutions among the methods
+tested. It also outperformed our implementation of the earlier RL-based
+simulated annealing baseline (p < 10⁻⁴). The ablation results are less favorable
+to learning-based additions. Descent, the bottleneck moves, and kick restarts
+account for the observed improvement.
+Changing the initial solution, retaining stochastic acceptance, or replacing
+uniform operator sampling with tabular Q-learning or a transfer DQN changed the
+objective by no more than 0.2 percentage points. The learned selectors did not
+win at any tested budget. This result is specific to the benchmark and search
+architecture studied here.
 
 **Keywords:** cross-docking; truck scheduling; time windows; iterated local
 search; constraint programming; guided local search
@@ -52,55 +49,37 @@ demand before departing as an outbound truck. Partial unloading was shown to
 reduce makespan by up to 56% relative to full unloading [5], making this model
 practically attractive for less-than-truckload consolidation networks.
 
-Two assumptions in the existing compound-truck model limit its realism. First,
-all trucks are assumed available at the beginning of the horizon, whereas real
-docks face staggered, scheduled arrivals. Second, the objective is pure
-makespan, whereas outbound departures are typically bound to due times whose
-violation is costly. We remove both assumptions.
+The simultaneous-arrival assumption is restrictive for scheduled docks, where
+release times differ by truck. A makespan-only objective is also incomplete
+when outbound departures have due dates. We therefore add both release times
+and soft due dates to the compound-truck problem. To our knowledge, this
+combination has not previously been formulated for partial unloading. Section
+3 gives the big-M model, its reified CP-SAT counterpart, and lower bounds. The
+instance generator and the train/tuning/test seed split are included so that
+the computational protocol can be reproduced.
 
-This paper makes three contributions.
+For this problem we develop VAA-GILS. The method keeps the VAA construction and
+generic moves used in earlier work [5], but adds a full best-improvement descent,
+bottleneck-specific moves, and restarts. Its default selector is uniform rather
+than learned. The exact-solver comparison is deliberately limited to the
+subsets on which CP-SAT returned an incumbent; only the small no-window subset
+has proven optima. Elsewhere we compare against the best solutions found by the
+tested methods.
 
-1. **Problem.** We formulate, to our knowledge for the first time, the
-   compound-truck cross-docking scheduling problem with per-truck release times
-   and soft due dates, minimizing makespan plus weighted total tardiness. We
-   give a big-M mixed-integer program, a reified CP-SAT model, valid
-   combinatorial lower bounds on the objective, and a parameterized instance
-   generator with a strict train/tuning/test seed protocol.
+Much of the paper is devoted to identifying which parts of GILS matter. The
+operator-pool experiment gives a monotone improvement when critical and tardy
+moves are added (p < 0.002). Removing descent causes the largest loss, followed
+by removing kick restarts. In contrast, the final quality changes little when
+VAA is replaced by a random feasible start or when simulated-annealing
+acceptance is removed. We obtained a similar result for operator selection:
+neither tabular Q-learning nor a transfer-trained DQN gave a meaningful gain
+over uniform sampling over budgets of 50–3,000 iterations.
 
-2. **Method.** We propose VAA-GILS, a deterministic guided iterated local
-   search. Despite containing no learned component, it matches the incumbents
-   of a state-of-the-art exact solver wherever one exists: within 0.1–0.6% of
-   CP-SAT solutions (proven optimal on all small no-time-window instances) at
-   70–700× less computation time. Where CP-SAT produces no solution within
-   600 seconds, VAA-GILS supplies the best-known solutions, and it
-   significantly dominates the reinforcement-learning-based simulated
-   annealing proposed for the original problem.
-
-3. **Analysis.** Using the engine as a controlled apparatus, we decompose where
-   its quality comes from. An operator-pool ablation shows that the
-   bottleneck-guided operators lower the objective consistently and
-   significantly in every cell (monotone, p < 0.002). A component ablation
-   ranks the engine's parts: best-improvement descent is the dominant
-   contributor, followed by kick restarts, while the Vogel-approximation
-   initial solution is statistically irrelevant and stochastic acceptance is
-   not a driver. Against this, three adaptive levers add nothing: learned
-   operator selection (tabular Q-learning and a transfer-trained deep Q-network)
-   never beats uniform random by a practically meaningful margin at any budget
-   from 50 to 3,000 iterations and is significantly worse at large budgets; a
-   learned or improved initial solution converges to the same attractor; and
-   stochastic acceptance is dispensable. We explain the mechanism — a strong
-   deterministic local search reaches a near-optimal attractor independent of
-   these levers — and derive conditions under which such components can and
-   cannot help.
-
-The third contribution speaks to a broader methodological concern: adaptive
-components inside metaheuristics are often evaluated against weak baselines or
-without equal-budget, equal-structure controls. Within our reimplementation and
-benchmark we find that, once a strong deterministic local search is in place,
-the learned operator selection of the base model [5] adds no measurable benefit
-over uniform random selection; we report this as a controlled decomposition of
-our own engine rather than as a claim about the original study, whose setting
-and implementation differ from ours.
+These comparisons concern our reimplementation and benchmark. They should not
+be read as a replication claim about [5], whose experimental setting and code
+differ. Their narrower implication is methodological: when a learned selector
+is embedded in a strong search engine, a uniform, equal-budget control is
+needed to establish its incremental value.
 
 ## 2. Related work
 
@@ -129,9 +108,9 @@ original model's, is trained online within each instance.
 
 **Learned metaheuristics.** Neural construction policies [7, 8] and learned
 operator selection (via bandits, tabular Q [9], or deep Q-networks [10]) have
-been widely reported to improve metaheuristics. Our results add a controlled
-counterexample and a condition analysis for when such components cannot pay
-off.
+been reported to improve many metaheuristics. The experiments below examine a
+less commonly reported outcome: after strengthening the underlying local
+search, the learned selector adds little on this benchmark.
 
 ## 3. Problem definition
 
@@ -159,27 +138,119 @@ max(own unload finish, destination ready) for compound carriers and
 max(door available, destination ready, r_f) for outbound carriers; DL is added
 after loading. The makespan τ is the largest completion time.
 
-### 3.2 Time-window extension
+### 3.2 Mixed-integer formulation
 
-We relax two assumptions of [5]:
+We state the formulation implemented in our MILP. Binary \(x_{idm}\) equals one
+when compound truck \(i\in I\) retains destination \(d\in D\) at door
+\(m\in M\); \(z_{fdm}\) analogously assigns outbound truck \(f\in F\). Define
+\(X_{im}=\sum_d x_{idm}\), \(Z_{fm}=\sum_d z_{fdm}\), and
+\(Z_{fd}=\sum_m z_{fdm}\). Binary \(b_{fgm}\) equals one when outbound \(f\)
+precedes \(g\) on door \(m\). Continuous \(U_i,C_i,S_f,C_f\) are compound
+unload completion, compound completion, outbound start, and outbound completion;
+\(C_{\max}\) is makespan. Let \(H_i=\sum_d h_{id}\),
+\(L_{id}=\sum_{j\ne i}h_{jd}\), \(L_d=\sum_i h_{id}\), and let \(B\) be a
+valid upper bound on the scheduling horizon.
 
-- **Release times.** Each truck f has an arrival time r_f ≥ 0 before which no
-  operation involving f may start (the base model is the special case r_f = 0).
-- **Due dates.** Each truck f has a soft due time d̄_f; its tardiness is
-  T_f = max(0, C_f − d̄_f), where C_f is f's completion time.
+Carrier and door assignments satisfy
 
-The objective is
+$$
+\sum_{d,m}x_{idm}=1\quad\forall i, \qquad
+\sum_{d,m}z_{fdm}=1\quad\forall f, \tag{2}
+$$
 
-  minimize τ + λ · Σ_f T_f,        (1)
+$$
+\sum_{i,m}x_{idm}+\sum_{f,m}z_{fdm}=1\quad\forall d, \tag{3}
+$$
 
-with tardiness weight λ (λ = 1 in our experiments; d̄_f = ∞ recovers the base
-model). We extend the MILP of [5] with release-time lower bounds on start
-variables and linear tardiness variables, and additionally implement a CP-SAT
-model [11] in which the big-M disjunctions are replaced by reified constraints;
-integer scaling is exact to 0.01 time units. The CP-SAT model returns both an
-incumbent and a proven lower bound.
+$$
+\sum_{i,d}x_{idm}\le1\quad\forall m. \tag{4}
+$$
 
-### 3.3 Combinatorial lower bounds
+Compound timing and incoming-transfer precedence are
+
+$$
+U_i=r_i+DE_i+H_i-\sum_{d,m}h_{id}x_{idm}\quad\forall i, \tag{5}
+$$
+
+$$
+C_i\ge U_i+L_{id}+DL_i-B(1-x_{idm})\quad\forall i,d,m, \tag{6}
+$$
+
+$$
+C_i\ge U_j+t_{nm}+L_{id}+DL_i-B(2-x_{idm}-X_{jn}) \tag{7}
+$$
+
+for every \(i,d,m,n\) and contributing \(j\ne i\) with
+\(\sum_k f_{jdk}>0\). Thus a compound carrier waits for every source transfer.
+For outbound carriers,
+
+$$
+S_f\ge r_f\quad\forall f, \tag{8}
+$$
+
+$$
+C_f\ge S_f+DE_f+L_d+DL_f-B(1-Z_{fd})\quad\forall f,d, \tag{9}
+$$
+
+$$
+S_f\ge U_i+t_{nm}-B(2-z_{fdm}-X_{in}) \tag{10}
+$$
+
+for every \(f,d,m,n\) and contributing \(i\) with \(\sum_k f_{idk}>0\).
+An outbound truck also waits for a compound truck assigned to the same door:
+
+$$
+S_f\ge C_i-B(2-Z_{fm}-X_{im})\quad\forall f,i,m. \tag{11}
+$$
+
+For each outbound pair \(f<g\) sharing door \(m\),
+
+$$
+b_{fgm}+b_{gfm}\ge Z_{fm}+Z_{gm}-1, \tag{12}
+$$
+
+with \(b_{fgm}\le Z_{fm}\) and \(b_{fgm}\le Z_{gm}\). The associated
+non-overlap constraints are
+
+$$
+S_g\ge C_f-B(1-b_{fgm}),\qquad
+S_f\ge C_g-B(1-b_{gfm}). \tag{13}
+$$
+
+Finally,
+
+$$
+C_{\max}\ge C_i\quad\forall i,\qquad
+C_{\max}\ge C_f\quad\forall f. \tag{14}
+$$
+
+Equations (2)–(14) model carrier assignment, compound-door exclusivity,
+transfer precedence, door capacity, and outbound sequencing. The CP-SAT model
+uses the same semantics but replaces the big-M disjunctions with enforcement
+literals. Fixing all assignments to a feasible schedule reproduces the
+independent evaluator's completion times, providing a model-fidelity check.
+
+### 3.3 Time-window extension and objective
+
+Each truck \(q\in I\cup F\) has release time \(r_q\ge0\) and soft due date
+\(\bar d_q\). Introduce \(T_q\ge0\) with
+
+$$
+T_q\ge C_q-\bar d_q. \tag{15}
+$$
+
+The optimization objective is
+
+$$
+\min\ C_{\max}+\lambda\sum_{q\in I\cup F}T_q. \tag{16}
+$$
+
+We use \(\lambda=1\); \(r_q=0\) and \(\bar d_q=\infty\) recover the base
+model. CP-SAT scales time exactly to 0.01 units and returns both an incumbent
+and a proven lower bound. We call an incumbent optimal only when the solver
+proves equality with its bound.
+
+### 3.4 Combinatorial lower bounds
 
 For gap reporting when exact bounds are weak we use two valid bounds whose
 maximum bounds τ: (i) a *critical-chain* bound — for each truck, the fastest
@@ -187,7 +258,7 @@ possible completion over all retained-destination choices, relaxing all door
 contention; (ii) a *door-area* bound — the total unavoidable door occupancy
 divided by |M|. A structural tardiness bound follows by applying (i) per truck
 against its due date; since both terms bound their objective components for any
-feasible solution, LB_τ + λ·LB_T is a valid bound on (1).
+feasible solution, LB_τ + λ·LB_T is a valid bound on (16).
 
 ## 4. VAA-GILS: guided iterated local search
 
@@ -199,8 +270,9 @@ proceeds as follows.
 destinations by Vogel-style regret [12], assigns remaining destinations to
 outbound trucks by completion-time priority, seeds central doors with the
 first assigned trucks, and inserts remaining outbound trucks into the door
-with the earliest finish time. We extend all finish-time computations with
-release times.
+with the earliest finish time. The regret assignment and priority ranking retain
+the base heuristic's processing-time logic; once doors are assigned, all
+finish-time and insertion computations enforce the release times.
 
 **Descent.** A best-improvement local search over three move families:
 relocation of any outbound truck to any door position, compound door swaps and
@@ -273,12 +345,12 @@ move, and kick restarts with reheating.
 | Construction | VAA | VAA, extended with release times |
 | Objective | Makespan | Makespan + λ · total tardiness (time windows) |
 
-Two of these rows carry the paper's message. First, the "after an improving
-move" row is why our per-iteration work is not a single move: the guided
-operator only *starts* an improvement that the descent finishes, which the later
-ablation identifies as the dominant quality contributor. Second, the "which
-operator fires" row is exactly the lever that [5] learns and that we find
-inert once the deterministic structure above is in place.
+The most consequential difference in Table 1 occurs after an improving move.
+In VAA-GILS, that move triggers descent, so the selected operator often begins
+an improvement that is completed by several further moves. The ablation later
+shows that this descent accounts for most of the quality gain. Operator choice
+is a separate issue: [5] learns this choice, whereas our uniform control reaches
+essentially the same final quality as the learned selectors.
 
 ## 5. Experimental design
 
@@ -301,19 +373,24 @@ generalization claims. CP-SAT runs once per instance with 8 threads: 300 s on S
 (5 instances) and 600 s on M and L (2 instances per cell). λ = 1 on window
 cells.
 
-**Statistics.** Two-sided Wilcoxon signed-rank tests on paired runs (identical
-instance and replication seeds across methods).
+**Statistics.** The independently generated instance is the experimental unit.
+For stochastic methods, we first average the five replications within each
+instance and method, then apply two-sided Wilcoxon signed-rank tests to paired
+instance means. Zero differences are omitted by the signed-rank test, so the
+reported \(n\) can be smaller than the number of paired instances. Replications
+quantify algorithmic variability but are not treated as independent samples.
 
 ## 6. Results
 
 ### 6.1 Solution quality
 
-*Scope of claims.* We claim near-optimality only where an exact reference
-exists: on the S cells (CP-SAT, 300 s per instance; optimality proven on all
-five S-none instances) and on M-none (CP-SAT, 600 s, two instances). On the
+*Scope of claims.* We report proximity to CP-SAT incumbents on the S cells
+(300 s per instance) and M-none (600 s, two instances). Only the five S-none
+incumbents were proven optimal, so only that subset supports an optimality-gap
+statement; all other exact-solver comparisons are incumbent gaps. On the
 remaining cells CP-SAT returns no feasible solution within 600 s; there our
-claim is dominance over all baselines, and the reported solutions are, to our
-knowledge, the best known. Accordingly, Table 2 reports the gap to the
+claim is dominance over the tested baselines, and the reported solutions are,
+to our knowledge, the best known. Accordingly, Table 2 reports the gap to the
 *best-known* solution per instance (Δbk, over all methods, all budgets, and
 CP-SAT) as the primary quality measure, and the gap to the CP-SAT reference
 where one exists.
@@ -366,15 +443,15 @@ M-none) and is unchanged from the original exact runs.
 | | GILS-tabular | 118865.6 ± 31788.4 | 0.05 | — |
 | | GILS-DQN | 118888.8 ± 31789.1 | 0.07 | — |
 
-Three observations. (i) On every cell with an exact reference, GILS matches it
-(vs CP-SAT column, on the exact-referenced instances): within 0.21–0.75% of the
+On every cell with an exact reference, GILS approaches it (see the final column
+of Table 2): within 0.21–0.75% of the
 five proven optima on S-none, within 0.11–0.55% of the 300 s CP-SAT incumbents
 on S-medium and S-tight, and within 0.11–0.19% of the 600 s incumbents on
-M-none, which the best GILS runs match or beat. (ii) The ordering
+M-none, which the best GILS runs match or beat. The ordering
 GILS < Paper-SA-RL5 < VAA holds in every cell where the baseline is defined;
-over the 20-instance test set, Wilcoxon tests confirm GILS-tabular beats VAA
-(+2.64% mean, n = 180, p < 10⁻⁴) and Paper-SA-RL5 (+1.33%, n = 297 pairs,
-p < 10⁻⁴). (iii) Our combinatorial
+over the 20-instance test set, Wilcoxon tests on paired instance means confirm
+GILS-tabular beats VAA (+2.64% mean, n = 180, p < 10⁻⁴) and Paper-SA-RL5
+(+1.33%, n = 60, p < 10⁻⁴). The combinatorial
 lower bounds are informative on no-window cells but loose elsewhere: the gap
 of the *best-known solution itself* to the bound is 0.0% on S-none (optimality
 proven), 18.5–51.5% on the other S cells, 33–34% on M-none and L-none, and
@@ -389,11 +466,10 @@ computation.
 
 ### 6.2 Where does the quality come from?
 
-We decompose the engine with three controlled ablations that all hold the
-computation budget fixed at 1,000 iterations. The first two vary the
-deterministic structure; the third varies the adaptive selection policy. All
-three use uniform random selection except where the policy is itself the
-variable, so the comparisons are equal-budget and equal-structure.
+All ablations use 1,000 iterations. We change one part of the engine at a time:
+the available moves, the search components, or the operator-selection rule.
+Uniform sampling is retained unless the selector itself is under study. Thus,
+the paired comparisons differ only in the component named in each table.
 
 **Operator pool (guided operators).** We fix the selection policy to uniform
 and vary only the operator pool: *generic* (the seven paper neighborhoods),
@@ -403,15 +479,15 @@ to the per-instance best-known solution is monotone — generic ≥ critical ≥
 — in every one of the nine cells (e.g., S-none 0.45 / 0.17 / 0.10; M-medium
 0.45 / 0.37 / 0.28). Table 3 gives the paired tests.
 
-**Table 3.** Operator-pool ablation (two-sided Wilcoxon; +mean = the richer
-pool, which adds the guided operators, is better).
+**Table 3.** Operator-pool ablation (two-sided Wilcoxon on paired instance
+replication means; +mean = the richer pool is better).
 
 | Contrast | Scope | n | Mean (%) | p | Verdict |
 |---|---|---:|---:|---:|---|
-| generic → critical (add g1, g2) | all | 136 | +0.114 | <10⁻⁴ | significant |
-| critical → full (add g3, g4) | all | 172 | +0.048 | <10⁻⁴ | significant |
-| critical → full | TW cells | 116 | +0.045 | 0.0004 | significant |
-| generic → full (all guided) | all | 166 | +0.161 | <10⁻⁴ | significant |
+| generic → critical (add g1, g2) | all | 40 | +0.114 | <10⁻⁴ | significant |
+| critical → full (add g3, g4) | all | 42 | +0.047 | 0.0001 | significant |
+| critical → full | TW cells | 28 | +0.045 | 0.0003 | significant |
+| generic → full (all guided) | all | 43 | +0.161 | <10⁻⁴ | significant |
 
 ![Operator-pool ablation: mean gap to best-known per cell for the generic,
 critical, and full pools.](figures/fig2_operator_pool.svg)
@@ -430,8 +506,8 @@ critical → full on the time-window cells.)
 remove one engine component at a time and measure the resulting degradation
 (Table 4). Best-improvement descent is the dominant contributor and kick
 restarts are second, both significant everywhere. The Vogel-approximation
-initial solution is statistically irrelevant once split by cell type — starting
-from a random feasible solution reaches essentially the same objective —
+initial solution has no statistically detectable pooled effect — starting from
+a random feasible solution reaches essentially the same objective —
 consistent with a separate sensitivity test in which a purely random start
 (26–31% worse than VAA) changes the final objective by at most ±0.33%. Removing
 stochastic acceptance (making it greedy) does *not* worsen the objective on
@@ -439,22 +515,22 @@ average, and is marginally better at M and L; the deterministic descent,
 restarts, and guided operators already reach the attractor without it.
 
 **Table 4.** Engine-component ablation (leave-one-out; degradation = relative
-objective increase when the component is removed; two-sided Wilcoxon, all cells).
+objective increase when removed; Wilcoxon on paired instance replication means).
 
 | Component removed | n | Degradation (%) | p | Verdict |
 |---|---:|---:|---:|---|
-| best-improvement descent | 220 | +0.156 | <10⁻⁴ | significant |
-| kick restart | 172 | +0.069 | <10⁻⁴ | significant |
-| VAA initial solution | 217 | +0.022 | 0.014 | negligible (n.s. by cell) |
-| stochastic acceptance | 215 | −0.026 | 0.0001 | not a driver (greedy ≈ or better) |
+| best-improvement descent | 45 | +0.156 | <10⁻⁴ | significant |
+| kick restart | 43 | +0.069 | <10⁻⁴ | significant |
+| VAA initial solution | 45 | +0.022 | 0.114 | no significant difference |
+| stochastic acceptance | 45 | −0.026 | 0.0014 | greedy slightly better |
 
 ![Engine-component leave-one-out: objective degradation when each component is
 removed.](figures/fig3_component_ablation.svg)
 
 **Figure 2.** Engine-component leave-one-out ablation. Best-improvement descent
-and kick restarts are the significant contributors; the VAA initial solution is
-statistically irrelevant and removing stochastic acceptance does not worsen the
-objective.
+and kick restarts are the significant contributors; the VAA initial solution
+has no statistically significant pooled effect, and removing stochastic
+acceptance slightly improves the mean objective in this experiment.
 
 **Learned operator selection.** Finally we vary the selection policy itself,
 holding pool and components at *full*: uniform random, the base model's tabular
@@ -462,7 +538,7 @@ Q-learning, and a transfer-trained deep Q-network (Table 5). No learned policy
 beats uniform by a practically meaningful margin. Across budgets (mean gap to
 best-known) uniform runs 0.47 → 0.16%, tabular 0.56 → 0.09%, and DQN 0.56 →
 0.26% from 50 to 3,000 iterations: at 50 iterations uniform is *better* than
-tabular (+0.08%, p < 10⁻³), at 3,000 tabular edges uniform (+0.07%, p < 10⁻⁴),
+tabular (+0.08%, p = 0.0055), at 3,000 tabular edges uniform (+0.07%, p < 10⁻⁴),
 and the transfer DQN never wins at any budget and is significantly worse at
 1,000 and 3,000. All selection effects are ≤ 0.17 percentage points — below the
 guided-operator effect of Table 3 and an order of magnitude below the
@@ -471,20 +547,20 @@ method-level differences of Table 2 — and their direction flips with budget.
 Crucially, the same picture holds on the no-time-window cells alone, which are
 exactly the original problem of [5] with all trucks available at time zero: at
 1,000 iterations tabular Q-learning is indistinguishable from uniform (mean
-−0.01%, p = 0.76, n = 66) and the transfer DQN is significantly worse (uniform
-better by +0.17%, p = 0.002; tabular better by +0.16%, p < 10⁻³). The negative
+−0.05%, p = 0.52, n = 58) and the transfer DQN is significantly worse (uniform
+better by +0.14%, p = 0.0012; tabular better by +0.09%, p < 10⁻³). The negative
 result is therefore not an artifact of the time-window extension; it already
 holds in the base setting where the original model introduces learned
 selection.
 
-**Table 5.** Selection-policy effects at 1,000 iterations (two-sided Wilcoxon;
-positive mean = first method better).
+**Table 5.** Selection-policy effects at 1,000 iterations (two-sided Wilcoxon
+on paired instance replication means; positive mean = first method better).
 
 | Comparison | Mean diff (%) | p | Verdict |
 |---|---:|---:|---|
-| tabular vs uniform | 0.00 | 0.28 | no difference |
-| tabular vs DQN | +0.14 | <10⁻⁴ | DQN worse |
-| uniform vs DQN | +0.14 | <10⁻⁴ | DQN worse |
+| tabular vs uniform | −0.01 | 0.150 | no difference |
+| tabular vs DQN | +0.10 | <10⁻⁴ | DQN worse |
+| uniform vs DQN | +0.11 | <10⁻⁴ | DQN worse |
 
 ![Selection-policy budget sweep: mean gap to best-known versus iteration budget
 for uniform, tabular Q-learning, and transfer DQN.](figures/fig1_selector_budget.svg)
@@ -494,18 +570,17 @@ iterations, neither learned policy beats uniform random selection by a
 practically meaningful margin; the transfer DQN is consistently worse and the
 tabular policy only edges uniform at the largest budget.
 
-Together the three ablations locate the quality unambiguously: it comes from the
-deterministic structure — descent, the bottleneck-guided operators, and kick
-restarts — while the adaptive levers (learned selection, learned/good
-initialization, stochastic acceptance) do not contribute. As a point check, on
-a tuning instance the engine's converged value coincides *exactly* with the
-CP-SAT incumbent found after 240 s: the search reaches a near-optimal attractor
-regardless of which operator fires when, leaving no room for a selection policy
-to matter.
+Across the three experiments, descent has the largest measured effect. Guided
+moves and restarts provide smaller but repeatable gains. The initial solution,
+stochastic acceptance, and learned selection have little practical effect once
+those parts are present. One tuning instance illustrates the pattern: several
+selector variants converged to exactly the CP-SAT incumbent obtained after 240
+seconds. This is only a point check, but it shows how the local search can erase
+differences created earlier in a run.
 
 ### 6.3 Tardiness-weight sensitivity
 
-The objective (1) weights total tardiness by λ; our experiments fix λ = 1. To
+The objective (16) weights total tardiness by λ; our experiments fix λ = 1. To
 justify this modelling choice we trace the makespan–tardiness trade-off by
 sweeping λ ∈ {0, 0.25, 0.5, 1, 2, 4, 8} on the *tuning* pool (all six
 time-window cells, five instances × three replications, 1,000 iterations, seeds
@@ -523,52 +598,56 @@ makespan 0.13 → 0.74, normalized tardiness 0.99 → 0.04). Most of the achieva
 tardiness reduction is bought by the first increment away from λ = 0, after
 which returns diminish while the makespan penalty keeps rising.
 
-Two points support λ = 1. First, in absolute terms the conflict is mild: over
-the whole sweep mean makespan rises by only about 1% (e.g., S 2060.8 → 2084.1)
-while mean tardiness falls by 2–3% (e.g., L 87215 → 86306), so no reasonable λ
-is badly wrong. Second, λ = 1 already reaches near-minimal tardiness
+The absolute trade-off is mild. Across the sweep, mean makespan rises by only
+about 1% (e.g., S 2060.8 → 2084.1), while mean tardiness falls by 2–3% (e.g.,
+L 87215 → 86306). At λ = 1, tardiness is already near its minimum
 (normalized 0.14, versus 0.04 at the extreme λ = 8) at only a moderate makespan
-cost (normalized 0.41), and it is the natural interpretable choice — one unit of
-makespan time is traded against one unit of tardiness time. We therefore adopt
-λ = 1 throughout, and report this sweep as design justification rather than a
-tuned result (it uses the tuning pool only).
+cost (normalized 0.41). We use λ = 1 because it also has a direct interpretation:
+one unit of makespan time is exchanged for one unit of tardiness time. The sweep
+is reported as design justification, not as a tuned result, and uses only the
+tuning pool.
 
-## 7. Discussion: when can adaptive components pay off?
+## 7. Discussion
 
-Our negative result is conditional, and the conditions are informative. The
-adaptive levers — learned operator selection, learned initialization, and
-stochastic acceptance — were voided here by the conjunction of: (i) *cheap
-evaluation* — tens of microseconds per candidate, so poor proposals cost almost
-nothing and are filtered by acceptance; (ii) a *static, deterministic* problem
-— nothing to predict across decisions; (iii) *saturating budgets* — the
-attractor is reached well within 1,000 iterations; and (iv) a *strong
-structure-guided local search* — descent and the bottleneck-guided operators
-finish whatever a lucky move starts. Negating any of these restores room for
-adaptation: expensive (e.g., simulation-based) evaluation makes each proposal
-precious; dynamic arrivals make anticipation structurally valuable
-(re-optimization cannot see the future); tight real-time decision budgets
-preclude search altogether; and much larger instances stretch budgets past
-saturation. We conjecture that reported successes of learned selection
-concentrate in such regimes, and that equal-budget, equal-structure comparisons
-against uniform selection inside strong engines — as done here — should be a
-standard control.
+The selector result should be interpreted within the search process used here.
+A candidate can be evaluated in tens of microseconds, so an unhelpful operator
+choice is inexpensive. More importantly, every new incumbent is followed by a
+deterministic descent. Two runs that enter the same basin can therefore end at
+the same schedule even if their preceding moves differ. The budget curves
+suggest that this happens before 1,000 iterations for most test instances.
+
+There is also little information for a policy to predict. Instances are static,
+and all releases are known before optimization begins. This is quite different
+from online dock control, where arrivals are revealed over time, or from a
+simulation model in which evaluating one move is costly. Learned selection may
+matter more in either setting. It may also matter on instances large enough
+that descent cannot reach saturation within the available budget. We did not
+test those cases, so they remain hypotheses rather than consequences of the
+present experiments.
+
+What the results do support is a narrower recommendation. A learned selector
+should be compared with uniform sampling inside the same engine and under the
+same evaluation budget. Without that control, gains due to descent, restart, or
+a stronger move set can be attributed to the policy itself.
 
 ## 8. Conclusion
 
-We introduced the time-window extension of compound-truck cross-docking
-scheduling with partial unloading, together with exact models, valid bounds,
-and a reproducible benchmark. A deterministic bottleneck-guided iterated local
-search matches exact incumbents within a fraction of a percent wherever they
-exist — including proven optima on the small no-time-window instances — and
-supplies the best-known solutions in seconds where the exact solver fails. A
-three-part controlled ablation locates the quality in the deterministic
-structure: best-improvement descent and the bottleneck-guided operators are the
-significant contributors, while learned operator selection (online tabular
-Q-learning and an offline-trained transfer DQN), a learned or improved initial
-solution, and stochastic acceptance provide no practical benefit in this regime.
-Future work includes the dynamic variant with online arrival revelation, where
-adaptive policies are structurally advantaged, and tighter lower bounds for
-large time-window instances.
+This study adds release times and soft due dates to compound-truck scheduling
+with partial unloading. The MILP and CP-SAT formulations also provide a check
+on the heuristic results. On the exact-referenced subsets, VAA-GILS finished
+within a fraction of a percent of the CP-SAT incumbent; optimality was proven
+only for the small no-window cases. For the larger windowed instances, it found
+the best schedules among the methods tested in a few seconds, while CP-SAT did
+not return a feasible schedule within its limit.
+
+The ablations change how that result should be understood. Most of the gain is
+due to best-improvement descent, with additional gains from bottleneck moves
+and restarts. In this engine, tabular Q-learning and the transfer DQN did not
+improve meaningfully on uniform operator sampling. Nor did the final result
+depend much on the starting solution or simulated-annealing acceptance. These
+findings are specific to the present benchmark. An online version with
+unrevealed arrivals would provide a more demanding test of adaptive policies;
+tighter bounds for the larger time-window cases are another priority.
 
 ## References
 

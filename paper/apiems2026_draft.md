@@ -51,12 +51,14 @@ practically attractive for less-than-truckload consolidation networks.
 
 The simultaneous-arrival assumption is restrictive for scheduled docks, where
 release times differ by truck. A makespan-only objective is also incomplete
-when outbound departures have due dates. We therefore add both release times
-and soft due dates to the compound-truck problem. To our knowledge, this
-combination has not previously been formulated for partial unloading. Section
-3 gives the big-M model, its reified CP-SAT counterpart, and lower bounds. The
-instance generator and the train/tuning/test seed split are included so that
-the computational protocol can be reproduced.
+when outbound departures have due dates. Release times, time windows, and
+due-date objectives have been studied for conventional inbound/outbound trucks
+[15–23]; our contribution is to integrate known release times and soft due
+dates into the partial-unloading compound-truck setting. To our knowledge,
+this combination has not previously been formulated. Section 3 gives the
+big-M model, its reified CP-SAT counterpart, and lower bounds. The instance
+generator and the train/tuning/test seed split are included so that the
+computational protocol can be reproduced.
 
 For this problem we develop VAA-GILS. The method keeps the VAA construction and
 generic moves used in earlier work [5], but adds a full best-improvement descent,
@@ -83,11 +85,31 @@ needed to establish its incremental value.
 
 ## 2. Related work
 
-**Cross-dock truck scheduling.** Boysen and Fliedner [1] classify dock
-scheduling problems; Van Belle et al. [2] and Ladier and Alpan [3] survey the
-field and its industry gap. Time windows, release times, and due dates are
-well studied for *pure* inbound/outbound truck scheduling (e.g., earliness/
-tardiness objectives and door capacity variants), but not for compound trucks.
+**Cross-dock truck scheduling with temporal constraints.** Boysen and Fliedner
+[1] classify dock-scheduling problems; Van Belle et al. [2] and Ladier and
+Alpan [3] survey the field and its industry gap. Several deterministic models
+already incorporate temporal constraints for conventional inbound and outbound
+trucks. Van Belle et al. [15] consider multiple docks, time windows, and
+tardiness; Assadi and Bagheri [16] use truck ready times and minimize outbound
+earliness and tardiness; and Bodnar et al. [17] combine time windows with
+mixed-service doors. Molavi et al. [18] instead impose hard outbound due dates,
+while Rijal et al. [24] integrate truck scheduling and door assignment and
+include tardiness in a mixed-service-door setting. These studies establish
+that releases and due-date performance are not new to cross-dock scheduling.
+They retain the conventional separation between inbound and outbound trucks,
+however, and do not model a partially unloaded truck that subsequently becomes
+a carrier.
+
+**Incomplete and uncertain arrival information.** Arrival uncertainty is a
+separate, well-developed stream. Konur and Golias study both bounded arrival
+windows [19] and cost-stable schedules under unknown arrivals [20]. Larbi et
+al. [22] distinguish full, partial, and absent information on inbound arrivals;
+Ladier and Alpan [21] develop robust schedules with time windows; and Xi et al.
+[23] address uncertain arrival and operation times through two-stage conflict
+robust optimization. Our model is deterministic: each release time is known
+when the schedule is constructed. These uncertainty models therefore provide
+natural extensions rather than direct substitutes for the problem studied
+here.
 
 **Compound trucks and partial unloading.** Joo and Kim [4] introduced compound
 trucks with exclusive door service. Shahmardan and Sajadieh [5] added partial
@@ -140,15 +162,15 @@ after loading. The makespan τ is the largest completion time.
 
 ### 3.2 Mixed-integer formulation
 
-We state the formulation implemented in our MILP. Binary \(x_{idm}\) equals one
-when compound truck \(i\in I\) retains destination \(d\in D\) at door
-\(m\in M\); \(z_{fdm}\) analogously assigns outbound truck \(f\in F\). Define
-\(X_{im}=\sum_d x_{idm}\), \(Z_{fm}=\sum_d z_{fdm}\), and
-\(Z_{fd}=\sum_m z_{fdm}\). Binary \(b_{fgm}\) equals one when outbound \(f\)
-precedes \(g\) on door \(m\). Continuous \(U_i,C_i,S_f,C_f\) are compound
+We state the formulation implemented in our MILP. Binary $x_{idm}$ equals one
+when compound truck $i\in I$ retains destination $d\in D$ at door
+$m\in M$; $z_{fdm}$ analogously assigns outbound truck $f\in F$. Define
+$X_{im}=\sum_d x_{idm}$, $Z_{fm}=\sum_d z_{fdm}$, and
+$Z_{fd}=\sum_m z_{fdm}$. Binary $b_{fgm}$ equals one when outbound $f$
+precedes $g$ on door $m$. Continuous $U_i,C_i,S_f,C_f$ are compound
 unload completion, compound completion, outbound start, and outbound completion;
-\(C_{\max}\) is makespan. Let \(H_i=\sum_d h_{id}\),
-\(L_{id}=\sum_{j\ne i}h_{jd}\), \(L_d=\sum_i h_{id}\), and let \(B\) be a
+$C_{\max}$ is makespan. Let $H_i=\sum_d h_{id}$,
+$L_{id}=\sum_{j\ne i}h_{jd}$, $L_d=\sum_i h_{id}$, and let $B$ be a
 valid upper bound on the scheduling horizon.
 
 Carrier and door assignments satisfy
@@ -180,8 +202,8 @@ $$
 C_i\ge U_j+t_{nm}+L_{id}+DL_i-B(2-x_{idm}-X_{jn}) \tag{7}
 $$
 
-for every \(i,d,m,n\) and contributing \(j\ne i\) with
-\(\sum_k f_{jdk}>0\). Thus a compound carrier waits for every source transfer.
+for every $i,d,m,n$ and contributing $j\ne i$ with
+$\sum_k f_{jdk}>0$. Thus a compound carrier waits for every source transfer.
 For outbound carriers,
 
 $$
@@ -196,20 +218,20 @@ $$
 S_f\ge U_i+t_{nm}-B(2-z_{fdm}-X_{in}) \tag{10}
 $$
 
-for every \(f,d,m,n\) and contributing \(i\) with \(\sum_k f_{idk}>0\).
+for every $f,d,m,n$ and contributing $i$ with $\sum_k f_{idk}>0$.
 An outbound truck also waits for a compound truck assigned to the same door:
 
 $$
 S_f\ge C_i-B(2-Z_{fm}-X_{im})\quad\forall f,i,m. \tag{11}
 $$
 
-For each outbound pair \(f<g\) sharing door \(m\),
+For each outbound pair $f<g$ sharing door $m$,
 
 $$
 b_{fgm}+b_{gfm}\ge Z_{fm}+Z_{gm}-1, \tag{12}
 $$
 
-with \(b_{fgm}\le Z_{fm}\) and \(b_{fgm}\le Z_{gm}\). The associated
+with $b_{fgm}\le Z_{fm}$ and $b_{fgm}\le Z_{gm}$. The associated
 non-overlap constraints are
 
 $$
@@ -232,8 +254,8 @@ independent evaluator's completion times, providing a model-fidelity check.
 
 ### 3.3 Time-window extension and objective
 
-Each truck \(q\in I\cup F\) has release time \(r_q\ge0\) and soft due date
-\(\bar d_q\). Introduce \(T_q\ge0\) with
+Each truck $q\in I\cup F$ has release time $r_q\ge0$ and soft due date
+$\bar d_q$. Introduce $T_q\ge0$ with
 
 $$
 T_q\ge C_q-\bar d_q. \tag{15}
@@ -245,7 +267,7 @@ $$
 \min\ C_{\max}+\lambda\sum_{q\in I\cup F}T_q. \tag{16}
 $$
 
-We use \(\lambda=1\); \(r_q=0\) and \(\bar d_q=\infty\) recover the base
+We use $\lambda=1$; $r_q=0$ and $\bar d_q=\infty$ recover the base
 model. CP-SAT scales time exactly to 0.01 units and returns both an incumbent
 and a proven lower bound. We call an incumbent optimal only when the solver
 proves equality with its bound.
@@ -377,7 +399,7 @@ cells.
 For stochastic methods, we first average the five replications within each
 instance and method, then apply two-sided Wilcoxon signed-rank tests to paired
 instance means. Zero differences are omitted by the signed-rank test, so the
-reported \(n\) can be smaller than the number of paired instances. Replications
+reported $n$ can be smaller than the number of paired instances. Replications
 quantify algorithmic variability but are not treated as independent samples.
 
 ## 6. Results
@@ -672,7 +694,8 @@ vol. 139, 106134, 2020.
 [6] Y. Li, M. Mohammadi, X. Zhang, Y. Lan, W. van Jaarsveld, "Integrated trucks
 assignment and scheduling problem with mixed service mode docks: A Q-learning
 based adaptive large neighborhood search algorithm," *European Journal of
-Operational Research*, 2025.
+Operational Research*, vol. 333, no. 1, pp. 117–137, 2026.
+https://doi.org/10.1016/j.ejor.2025.12.036
 
 [7] W. Kool, H. van Hoof, M. Welling, "Attention, learn to solve routing
 problems!" in *Proc. International Conference on Learning Representations*,
@@ -700,3 +723,51 @@ annealing," *Science*, vol. 220, no. 4598, pp. 671–680, 1983.
 
 [14] H.R. Lourenço, O.C. Martin, T. Stützle, "Iterated local search: Framework
 and applications," in *Handbook of Metaheuristics*, 3rd ed., Springer, 2019.
+
+[15] J. Van Belle, P. Valckenaers, G. Vanden Berghe, D. Cattrysse, "A tabu
+search approach to the truck scheduling problem with multiple docks and time
+windows," *Computers & Industrial Engineering*, vol. 66, no. 4, pp. 818–826,
+2013. https://doi.org/10.1016/j.cie.2013.09.024
+
+[16] M.T. Assadi, M. Bagheri, "Differential evolution and population-based
+simulated annealing for truck scheduling problem in multiple door cross-docking
+systems," *Computers & Industrial Engineering*, vol. 96, pp. 149–161, 2016.
+https://doi.org/10.1016/j.cie.2016.03.021
+
+[17] P. Bodnar, R.B.M. de Koster, K. Azadeh, "Scheduling trucks in a cross-dock
+with mixed service mode dock doors," *Transportation Science*, vol. 51, no. 1,
+pp. 112–131, 2017. https://doi.org/10.1287/trsc.2015.0612
+
+[18] D. Molavi, A. Shahmardan, M.S. Sajadieh, "Truck scheduling in a cross
+docking systems with fixed due dates and shipment sorting," *Computers &
+Industrial Engineering*, vol. 117, pp. 29–40, 2018.
+https://doi.org/10.1016/j.cie.2018.01.009
+
+[19] D. Konur, M.M. Golias, "Analysis of different approaches to cross-dock
+truck scheduling with truck arrival time uncertainty," *Computers & Industrial
+Engineering*, vol. 65, no. 4, pp. 663–672, 2013.
+https://doi.org/10.1016/j.cie.2013.05.009
+
+[20] D. Konur, M.M. Golias, "Cost-stable truck scheduling at a cross-dock
+facility with unknown truck arrivals: A meta-heuristic approach,"
+*Transportation Research Part E: Logistics and Transportation Review*, vol. 49,
+no. 1, pp. 71–91, 2013. https://doi.org/10.1016/j.tre.2012.06.007
+
+[21] A.-L. Ladier, G. Alpan, "Robust cross-dock scheduling with time windows,"
+*Computers & Industrial Engineering*, vol. 99, pp. 16–28, 2016.
+https://doi.org/10.1016/j.cie.2016.07.003
+
+[22] R. Larbi, G. Alpan, P. Baptiste, B. Penz, "Scheduling cross docking
+operations under full, partial and no information on inbound arrivals,"
+*Computers & Operations Research*, vol. 38, no. 6, pp. 889–900, 2011.
+https://doi.org/10.1016/j.cor.2010.10.003
+
+[23] X. Xi, C. Liu, Y. Wang, L.H. Lee, "Two-stage conflict robust optimization
+models for cross-dock truck scheduling problem under uncertainty,"
+*Transportation Research Part E: Logistics and Transportation Review*, vol.
+144, 102123, 2020. https://doi.org/10.1016/j.tre.2020.102123
+
+[24] A. Rijal, M. Bijvank, R. de Koster, "Integrated scheduling and assignment
+of trucks at unit-load cross-dock terminals with mixed service mode dock
+doors," *European Journal of Operational Research*, vol. 278, no. 3,
+pp. 752–771, 2019. https://doi.org/10.1016/j.ejor.2019.04.028

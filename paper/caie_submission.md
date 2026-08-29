@@ -1,59 +1,76 @@
-# APIEMS 2026 full paper draft (v2, 2026-08-23)
+<!-- CAIE SUBMISSION VERSION (generated from apiems2026_draft.md). Reformatted to
+Computers & Industrial Engineering Guide for Authors: APA 7th citations, double-
+anonymized (title page separate), highlights, declarations. At submission, split
+into (a) Title page, (b) Highlights, (c) Anonymized manuscript, plus separate
+figure files (SVG -> EPS/PDF). Editor note: remove this comment block. -->
 
-**Title:** Compound-Truck Cross-Docking Scheduling with Arrival Time Windows:
-A Bottleneck-Guided Iterated Local Search with Exact-Solver Verification
+# =========================  FILE 1 — TITLE PAGE  =========================
+# (Submit as a SEPARATE file; do NOT include in the anonymized manuscript.)
 
-**Author:** Youngsoo Kim¹ — ¹Department of Artificial Intelligence, Yonsei
-University, Seoul, Republic of Korea (znxkznxk1030@yonsei.ac.kr)
+**Title.** Compound-Truck Cross-Docking Scheduling with Arrival Time Windows: A Bottleneck-Guided Iterated Local Search with Exact-Solver Verification
+
+**Authors.** Youngsoo Kim ᵃ, Sangjin Kwon ᵃ,\*
+
+**Affiliations.**
+ᵃ Department of Artificial Intelligence, Yonsei University, 50 Yonsei-ro,
+Seodaemun-gu, Seoul 03722, Republic of Korea.
+
+**Corresponding author (\*).** Sangjin Kwon, Department of Artificial
+Intelligence, Yonsei University, Seoul 03722, Republic of Korea.
+Email: [advisor email — to be added]
+
+**Acknowledgements.** [Optional — e.g., computing resources or non-author help.]
+
+**CRediT author statement.**
+- **Youngsoo Kim:** Conceptualization, Methodology, Software, Formal analysis,
+  Investigation, Data curation, Visualization, Writing – original draft.
+- **Sangjin Kwon:**
+
+**Declaration of competing interests.** The authors declare that they have no
+known competing financial interests or personal relationships that could have
+appeared to influence the work reported in this paper.
+
+**Funding.** This research did not receive any specific grant from funding
+agencies in the public, commercial, or not-for-profit sectors.  <!-- edit if funded -->
+
+**Data availability.** The instance generator, solver code, and result files
+that support the findings of this study are available in a public repository
+[URL to be added at acceptance].  <!-- add repository DOI/URL -->
+
+# =========================  FILE 2 — HIGHLIGHTS  =========================
+# (Submit as a SEPARATE file; 3–5 bullets, each ≤ 85 characters.)
+
+- First compound-truck cross-dock model with release times and soft due dates
+- MILP and CP-SAT formulations verify the heuristic on small and medium cases
+- VAA-GILS matches CP-SAT incumbents within 0.6% in seconds, not minutes
+- Best-improvement descent and bottleneck moves drive the quality gains
+- Learned operator selection adds no benefit over uniform under equal budget
+
+# ===============  FILE 3 — ANONYMIZED MANUSCRIPT (no author info)  ===============
+
+**Title.** Compound-Truck Cross-Docking Scheduling with Arrival Time Windows: A Bottleneck-Guided Iterated Local Search with Exact-Solver Verification
 
 ## Abstract
 
-This paper considers a multi-door cross-dock in which a truck can be partially
-unloaded and then leave as an outbound carrier. Existing compound-truck models
-place every truck at the dock at time zero and optimize makespan. Here, trucks
-have individual release times and soft departure due dates, and the objective
-also charges tardiness. We formulate the resulting problem as a mixed-integer
-program and as a CP-SAT model, and use separate train, tuning, and test seeds in
-the computational study. Our solution method, VAA-GILS, starts from a
-Vogel-style construction and uses best-improvement descent throughout the
-search. Its additional moves focus on
-the door that determines makespan or on the truck with the greatest tardiness;
-simulated-annealing acceptance and kick restarts provide diversification. On
-the subsets for which CP-SAT produced a reference, the resulting objectives
-were 0.1–0.6% from the CP-SAT incumbents. The small no-window references were
-proven optimal. A GILS run took 0.1–2.3 seconds, compared with 76–376 seconds
-for CP-SAT. For the larger time-window cases, CP-SAT found no feasible schedule
-within 600 seconds, while GILS returned the best solutions among the methods
-tested. It also outperformed our implementation of the earlier RL-based
-simulated annealing baseline (p < 10⁻⁴). The ablation results are less favorable
-to learning-based additions. Descent, the bottleneck moves, and kick restarts
-account for the observed improvement.
-Changing the initial solution, retaining stochastic acceptance, or replacing
-uniform operator sampling with tabular Q-learning or a transfer DQN changed the
-objective by no more than 0.2 percentage points. The learned selectors did not
-win at any tested budget. This result is specific to the benchmark and search
-architecture studied here.
+This paper considers a multi-door cross-dock in which a truck can be partially unloaded and then leave as an outbound carrier. Existing compound-truck models place every truck at the dock at time zero and optimize makespan. Here, trucks have individual release times and soft departure due dates, and the objective also charges tardiness. We formulate the problem as a mixed-integer program and as a CP-SAT model, and use separate train, tuning, and test seeds in the computational study. Our method, VAA-GILS, starts from a Vogel-style construction and uses best-improvement descent throughout; its additional moves focus on the door that determines makespan or on the most tardy truck, with simulated-annealing acceptance and kick restarts for diversification. On the subsets for which CP-SAT produced a reference, the resulting objectives were 0.1–0.6% from the CP-SAT incumbents, and the small no-window references were proven optimal. A GILS run took 0.1–2.3 seconds, versus 76–376 seconds for CP-SAT. For the larger time-window cases, CP-SAT found no feasible schedule within 600 seconds, while GILS returned the best solutions among the methods tested. Ablation is less favorable to learning: descent, the bottleneck moves, and kick restarts account for the improvement, whereas changing the initial solution, retaining stochastic acceptance, or replacing uniform operator sampling with tabular Q-learning or a transfer DQN changed the objective by no more than 0.2 percentage points, and the learned selectors did not win at any tested budget.
 
-**Keywords:** cross-docking; truck scheduling; time windows; iterated local
-search; constraint programming; guided local search
+**Keywords:** cross-docking; truck scheduling; time windows; iterated local search; constraint programming; guided local search
 
 ## 1. Introduction
 
 Cross-docking centers transfer products from inbound to outbound trucks with
-little or no storage, reducing inventory and lead time [2]. In the
-compound-truck variant introduced by Joo and Kim [4] and refined by Shahmardan
-and Sajadieh [5], a truck may serve both roles: a compound truck arrives loaded
+little or no storage, reducing inventory and lead time (Van Belle et al., 2012). In the
+compound-truck variant introduced by Joo and Kim (2013) and refined by Shahmardan and Sajadieh (2020), a truck may serve both roles: a compound truck arrives loaded
 with products for several destinations, is *partially* unloaded — retaining the
 demand of one destination — and then reloads that destination's remaining
 demand before departing as an outbound truck. Partial unloading was shown to
-reduce makespan by up to 56% relative to full unloading [5], making this model
+reduce makespan by up to 56% relative to full unloading (Shahmardan & Sajadieh, 2020), making this model
 practically attractive for less-than-truckload consolidation networks.
 
 The simultaneous-arrival assumption is restrictive for scheduled docks, where
 release times differ by truck. A makespan-only objective is also incomplete
 when outbound departures have due dates. Release times, time windows, and
-due-date objectives have been studied for conventional inbound/outbound trucks
-[15–23]; our contribution is to integrate known release times and soft due
+due-date objectives have been studied for conventional inbound/outbound trucks (Assadi & Bagheri, 2016; Bodnar et al., 2017; Konur & Golias, 2013a, 2013b; Ladier & Alpan, 2016b; Larbi et al., 2011; Molavi et al., 2018; Van Belle et al., 2013; Xi et al., 2020); our contribution is to integrate known release times and soft due
 dates into the partial-unloading compound-truck setting. To our knowledge,
 this combination has not previously been formulated. Section 3 gives the
 big-M model, its reified CP-SAT counterpart, and lower bounds. The instance
@@ -61,7 +78,7 @@ generator and the train/tuning/test seed split are included so that the
 computational protocol can be reproduced.
 
 For this problem we develop VAA-GILS. The method keeps the VAA construction and
-generic moves used in earlier work [5], but adds a full best-improvement descent,
+generic moves used in earlier work (Shahmardan & Sajadieh, 2020), but adds a full best-improvement descent,
 bottleneck-specific moves, and restarts. Its default selector is uniform rather
 than learned. The exact-solver comparison is deliberately limited to the
 subsets on which CP-SAT returned an incumbent; only the small no-window subset
@@ -78,22 +95,20 @@ neither tabular Q-learning nor a transfer-trained DQN gave a meaningful gain
 over uniform sampling over budgets of 50–3,000 iterations.
 
 These comparisons concern our reimplementation and benchmark. They should not
-be read as a replication claim about [5], whose experimental setting and code
+be read as a replication claim about Shahmardan and Sajadieh (2020), whose experimental setting and code
 differ. Their narrower implication is methodological: when a learned selector
 is embedded in a strong search engine, a uniform, equal-budget control is
 needed to establish its incremental value.
 
 ## 2. Related work
 
-**Cross-dock truck scheduling with temporal constraints.** Boysen and Fliedner
-[1] classify dock-scheduling problems; Van Belle et al. [2] and Ladier and
-Alpan [3] survey the field and its industry gap. Several deterministic models
+**Cross-dock truck scheduling with temporal constraints.** Boysen and Fliedner (2010) classify dock-scheduling problems; Van Belle et al. (2012) and Ladier and Alpan (2016a) survey the field and its industry gap. Several deterministic models
 already incorporate temporal constraints for conventional inbound and outbound
-trucks. Van Belle et al. [15] consider multiple docks, time windows, and
-tardiness; Assadi and Bagheri [16] use truck ready times and minimize outbound
-earliness and tardiness; and Bodnar et al. [17] combine time windows with
-mixed-service doors. Molavi et al. [18] instead impose hard outbound due dates,
-while Rijal et al. [24] integrate truck scheduling and door assignment and
+trucks. Van Belle et al. (2013) consider multiple docks, time windows, and
+tardiness; Assadi and Bagheri (2016) use truck ready times and minimize outbound
+earliness and tardiness; and Bodnar et al. (2017) combine time windows with
+mixed-service doors. Molavi et al. (2018) instead impose hard outbound due dates,
+while Rijal et al. (2019) integrate truck scheduling and door assignment and
 include tardiness in a mixed-service-door setting. These studies establish
 that releases and due-date performance are not new to cross-dock scheduling.
 They retain the conventional separation between inbound and outbound trucks,
@@ -101,25 +116,22 @@ however, and do not model a partially unloaded truck that subsequently becomes
 a carrier.
 
 **Incomplete and uncertain arrival information.** Arrival uncertainty is a
-separate, well-developed stream. Konur and Golias study both bounded arrival
-windows [19] and cost-stable schedules under unknown arrivals [20]. Larbi et
-al. [22] distinguish full, partial, and absent information on inbound arrivals;
-Ladier and Alpan [21] develop robust schedules with time windows; and Xi et al.
-[23] address uncertain arrival and operation times through two-stage conflict
+separate, well-developed stream. Konur and Golias study both bounded arrival windows (2013a) and cost-stable schedules under unknown arrivals (2013b). Larbi et al. (2011) distinguish full, partial, and absent information on inbound arrivals;
+Ladier and Alpan (2016b) develop robust schedules with time windows; and Xi et al. (2020) address uncertain arrival and operation times through two-stage conflict
 robust optimization. Our model is deterministic: each release time is known
 when the schedule is constructed. These uncertainty models therefore provide
 natural extensions rather than direct substitutes for the problem studied
 here.
 
-**Compound trucks and partial unloading.** Joo and Kim [4] introduced compound
-trucks with exclusive door service. Shahmardan and Sajadieh [5] added partial
+**Compound trucks and partial unloading.** Joo and Kim (2013) introduced compound
+trucks with exclusive door service. Shahmardan and Sajadieh (2020) added partial
 unloading, a mixed door service mode, a MILP, a VAA-based constructive
 heuristic, and simulated annealing variants whose neighborhood selection is
 driven by multi-armed bandits or Q-learning; their SA-RL5 variant is our main
 baseline. Follow-up work on this model line is sparse, and none considers
 arrival times or due dates.
 
-**Closest neighboring problem.** Li et al. [6] study integrated truck
+**Closest neighboring problem.** Li et al. (2026) study integrated truck
 assignment and scheduling with *mixed service mode docks* and time windows,
 solved by a Q-learning-based adaptive large neighborhood search. Their
 flexibility lives at the dock level (a door may serve either direction), while
@@ -128,8 +140,8 @@ storage by AGVs; in our problem the flexibility lives at the truck level
 (compound trucks, direct door-to-door transfer). Their Q-learning, like the
 original model's, is trained online within each instance.
 
-**Learned metaheuristics.** Neural construction policies [7, 8] and learned
-operator selection (via bandits, tabular Q [9], or deep Q-networks [10]) have
+**Learned metaheuristics.** Neural construction policies (Kool et al., 2019; Zhang et al., 2020) and learned
+operator selection (via bandits, tabular Q (Watkins & Dayan, 1992), or deep Q-networks (Mnih et al., 2015)) have
 been reported to improve many metaheuristics. The experiments below examine a
 less commonly reported outcome: after strengthening the underlying local
 search, the learned selector adds little on this benchmark.
@@ -153,7 +165,7 @@ A compound truck unloads everything except its retained destination's demand,
 transfers move products to carrier doors, and each carrier loads its
 destination's demand collected from all compound trucks.
 
-Timing follows the evaluator semantics of [5]: a compound truck's unload
+Timing follows the evaluator semantics of Shahmardan and Sajadieh (2020): a compound truck's unload
 finishes at r_i + DE_i + Σ_{d′≠d} h_id′; a destination is ready at its carrier
 door when the last contributing transfer arrives; loading starts at
 max(own unload finish, destination ready) for compound carriers and
@@ -284,12 +296,12 @@ feasible solution, LB_τ + λ·LB_T is a valid bound on (16).
 
 ## 4. VAA-GILS: guided iterated local search
 
-VAA-GILS instantiates the iterated local search framework [14] and is
+VAA-GILS instantiates the iterated local search framework (Lourenço et al., 2019) and is
 deterministic apart from the sampling inside operators and acceptance. One run
 proceeds as follows.
 
-**Construction.** The VAA heuristic of [5] assigns compound trucks to retained
-destinations by Vogel-style regret [12], assigns remaining destinations to
+**Construction.** The VAA heuristic of Shahmardan and Sajadieh (2020) assigns compound trucks to retained
+destinations by Vogel-style regret (Korukoğlu & Ballı, 2011), assigns remaining destinations to
 outbound trucks by completion-time priority, seeds central doors with the
 first assigned trucks, and inserts remaining outbound trucks into the door
 with the earliest finish time. The regret assignment and priority ranking retain
@@ -305,7 +317,7 @@ initial solution, to every new incumbent, and to the final solution.
 **Iterated search.** For 1,000 iterations: an operator is drawn by the
 selection policy (Section 4.1); the operator generates one candidate from the
 current solution; if the candidate improves the global best, descent is applied
-and the incumbent is updated; acceptance follows simulated annealing [13] with
+and the incumbent is updated; acceptance follows simulated annealing (Kirkpatrick et al., 1983) with
 initial temperature $T_0=\max\{1,0.05J(s_0)\}$ and geometric cooling
 $T\leftarrow0.995T$.
 
@@ -326,7 +338,7 @@ it does not reset the temperature to $T_0$ and never lowers the current
 temperature. The counters for iterations since the last best solution and for
 consecutive worsening candidates are both reset to zero after the restart.
 
-**Operator pool.** Seven generic neighborhood moves from [5] (destination
+**Operator pool.** Seven generic neighborhood moves from Shahmardan and Sajadieh (2020) (destination
 swaps, door swaps, insertions; the base model numbers its moves k1–k8 but
 defines no k5, so seven are implemented) plus four *guided* operators that first identify
 the current bottleneck and then perform a best-of mini-search around it:
@@ -345,11 +357,11 @@ evaluated only as ablation arms (Section 6.2), not as part of the proposed
 method.
 
 - **Uniform** (default): uniform random choice over the operator pool.
-- **Tabular Q** (the policy of SA-RL5 [5]): Q-learning [9] over five
+- **Tabular Q** (the policy of SA-RL5 in Shahmardan and Sajadieh, 2020): Q-learning (Watkins & Dayan, 1992) over five
   stagnation-bin states, trained online within the run; ε-greedy with roulette
   exploitation, shaped reward (2 for a new incumbent, 1 for a non-worsening
   move, 0 otherwise).
-- **Transfer DQN**: a two-layer deep Q-network [10] over a 27-dimensional
+- **Transfer DQN**: a two-layer deep Q-network (Mnih et al., 2015) over a 27-dimensional
   scale-invariant state (instance descriptors such as compound-truck fraction,
   flow concentration, window tightness; search descriptors such as progress,
   temperature, stagnation, door-load imbalance; and per-operator recent success
@@ -357,20 +369,20 @@ method.
   (sizes S/M, all flow patterns and window levels) and applied zero-shot
   (ε = 0, no updates) to unseen test instances.
 
-### 4.2 Relation to the base model [5]
+### 4.2 Relation to the base model of Shahmardan and Sajadieh (2020)
 
 VAA-GILS shares the construction heuristic and the seven generic neighborhoods
-of the base model [5], and like it applies exactly one operator per iteration.
-The differences are structural, and Table 1 makes them explicit: [5] is a *pure*
+of the base model (Shahmardan & Sajadieh, 2020), and like it applies exactly one operator per iteration.
+The differences are structural, and Table 1 makes them explicit: Shahmardan and Sajadieh (2020) is a *pure*
 simulated-annealing method in which the reinforcement-learning policy chooses
 which single move to apply and the step ends at the SA accept/reject; VAA-GILS
 embeds that same one-operator step inside an iterated local search, adding
 bottleneck-guided operators, a best-improvement descent after every improving
 move, and kick restarts with reheating.
 
-**Table 1.** Base model [5] versus VAA-GILS.
+**Table 1.** Base model (Shahmardan & Sajadieh, 2020) versus VAA-GILS.
 
-| Aspect | Base SA-RL5 [5] | VAA-GILS (ours) |
+| Aspect | Base SA-RL5 (Shahmardan & Sajadieh, 2020) | VAA-GILS (ours) |
 |---|---|---|
 | Overall framework | Pure simulated annealing | Iterated local search (SA only as acceptance) |
 | Operators per iteration | One | One (same) |
@@ -387,12 +399,12 @@ The most consequential difference in Table 1 occurs after an improving move.
 In VAA-GILS, that move triggers descent, so the selected operator often begins
 an improvement that is completed by several further moves. The ablation later
 shows that this descent accounts for most of the quality gain. Operator choice
-is a separate issue: [5] learns this choice, whereas our uniform control reaches
+is a separate issue: Shahmardan and Sajadieh (2020) learn this choice, whereas our uniform control reaches
 essentially the same final quality as the learned selectors.
 
 ## 5. Experimental design
 
-**Instances.** We follow the size regime of [5]: (|I|, |D|, |M|) =
+**Instances.** We follow the size regime of Shahmardan and Sajadieh (2020): (|I|, |D|, |M|) =
 S (6, 9, 6), M (12, 18, 12), L (20, 30, 20), with compound-truck fraction 2/3.
 Flows f_idk are uniform integers in [0, 20] with 3 product types; unit times
 t_k ~ U[1, 5]; doors lie on a random 100×100 layout. Window levels: *none*
@@ -583,7 +595,7 @@ guided-operator effect of Table 3 and an order of magnitude below the
 method-level differences of Table 2 — and their direction flips with budget.
 
 Crucially, the same picture holds on the no-time-window cells alone, which are
-exactly the original problem of [5] with all trucks available at time zero: at
+exactly the original problem of Shahmardan and Sajadieh (2020) with all trucks available at time zero: at
 1,000 iterations tabular Q-learning is indistinguishable from uniform (mean
 −0.05%, p = 0.52, n = 58) and the transfer DQN is significantly worse (uniform
 better by +0.14%, p = 0.0012; tabular better by +0.09%, p < 10⁻³). The negative
@@ -687,103 +699,62 @@ findings are specific to the present benchmark. An online version with
 unrevealed arrivals would provide a more demanding test of adaptive policies;
 tighter bounds for the larger time-window cases are another priority.
 
+## Declaration of generative AI and AI-assisted technologies in the manuscript preparation process
+
+During the preparation of this work the authors used Claude Code (Anthropic) in
+order to assist with software for the computational experiments, generation of
+result figures, and drafting and language editing of the manuscript. After using
+this tool, the authors reviewed and edited the content as needed and take full
+responsibility for the content of the publication.
+<!-- EDIT to match your actual usage; confirm wording with your advisor and the
+journal policy. Remove if only basic grammar/spell tools were used. -->
+
 ## References
 
-[1] N. Boysen, M. Fliedner, "Cross dock scheduling: Classification, literature
-review and research agenda," *Omega*, vol. 38, pp. 413–422, 2010.
+Assadi, M. T., & Bagheri, M. (2016). Differential evolution and population-based simulated annealing for truck scheduling problem in multiple door cross-docking systems. *Computers & Industrial Engineering, 96*, 149–161. https://doi.org/10.1016/j.cie.2016.03.021
 
-[2] J. Van Belle, P. Valckenaers, D. Cattrysse, "Cross-docking: State of the
-art," *Omega*, vol. 40, no. 6, pp. 827–846, 2012.
+Bodnar, P., de Koster, R. B. M., & Azadeh, K. (2017). Scheduling trucks in a cross-dock with mixed service mode dock doors. *Transportation Science, 51*(1), 112–131. https://doi.org/10.1287/trsc.2015.0612
 
-[3] A.-L. Ladier, G. Alpan, "Cross-docking operations: Current research versus
-industry practice," *Omega*, vol. 62, pp. 145–162, 2016.
+Boysen, N., & Fliedner, M. (2010). Cross dock scheduling: Classification, literature review and research agenda. *Omega, 38*(6), 413–422.
 
-[4] C.M. Joo, B.S. Kim, "Scheduling compound trucks in multi-door cross-docking
-terminals," *International Journal of Advanced Manufacturing Technology*,
-vol. 64, pp. 977–988, 2013.
+Joo, C. M., & Kim, B. S. (2013). Scheduling compound trucks in multi-door cross-docking terminals. *International Journal of Advanced Manufacturing Technology, 64*, 977–988.
 
-[5] A. Shahmardan, M.S. Sajadieh, "Truck scheduling in a multi-door
-cross-docking center with partial unloading – Reinforcement learning-based
-simulated annealing approaches," *Computers & Industrial Engineering*,
-vol. 139, 106134, 2020.
+Kirkpatrick, S., Gelatt, C. D., & Vecchi, M. P. (1983). Optimization by simulated annealing. *Science, 220*(4598), 671–680.
 
-[6] Y. Li, M. Mohammadi, X. Zhang, Y. Lan, W. van Jaarsveld, "Integrated trucks
-assignment and scheduling problem with mixed service mode docks: A Q-learning
-based adaptive large neighborhood search algorithm," *European Journal of
-Operational Research*, vol. 333, no. 1, pp. 117–137, 2026.
-https://doi.org/10.1016/j.ejor.2025.12.036
+Konur, D., & Golias, M. M. (2013a). Analysis of different approaches to cross-dock truck scheduling with truck arrival time uncertainty. *Computers & Industrial Engineering, 65*(4), 663–672. https://doi.org/10.1016/j.cie.2013.05.009
 
-[7] W. Kool, H. van Hoof, M. Welling, "Attention, learn to solve routing
-problems!" in *Proc. International Conference on Learning Representations*,
-2019.
+Konur, D., & Golias, M. M. (2013b). Cost-stable truck scheduling at a cross-dock facility with unknown truck arrivals: A meta-heuristic approach. *Transportation Research Part E: Logistics and Transportation Review, 49*(1), 71–91. https://doi.org/10.1016/j.tre.2012.06.007
 
-[8] C. Zhang, W. Song, Z. Cao, J. Zhang, P.S. Tan, X. Chi, "Learning to
-dispatch for job shop scheduling via deep reinforcement learning," in *Advances
-in Neural Information Processing Systems*, vol. 33, 2020.
+Kool, W., van Hoof, H., & Welling, M. (2019). Attention, learn to solve routing problems! In *Proceedings of the International Conference on Learning Representations*.
 
-[9] C.J.C.H. Watkins, P. Dayan, "Q-learning," *Machine Learning*, vol. 8,
-pp. 279–292, 1992.
+Korukoğlu, S., & Ballı, S. (2011). An improved Vogel's approximation method for the transportation problem. *Mathematical and Computational Applications, 16*(2), 370–381.
 
-[10] V. Mnih et al., "Human-level control through deep reinforcement learning,"
-*Nature*, vol. 518, pp. 529–533, 2015.
+Ladier, A.-L., & Alpan, G. (2016a). Cross-docking operations: Current research versus industry practice. *Omega, 62*, 145–162.
 
-[11] L. Perron, F. Didier, *Google OR-Tools CP-SAT solver*, version 9.x,
-software, 2024. https://developers.google.com/optimization
+Ladier, A.-L., & Alpan, G. (2016b). Robust cross-dock scheduling with time windows. *Computers & Industrial Engineering, 99*, 16–28. https://doi.org/10.1016/j.cie.2016.07.003
 
-[12] S. Korukoğlu, S. Ballı, "An improved Vogel's approximation method for the
-transportation problem," *Mathematical and Computational Applications*,
-vol. 16, no. 2, pp. 370–381, 2011.
+Larbi, R., Alpan, G., Baptiste, P., & Penz, B. (2011). Scheduling cross docking operations under full, partial and no information on inbound arrivals. *Computers & Operations Research, 38*(6), 889–900. https://doi.org/10.1016/j.cor.2010.10.003
 
-[13] S. Kirkpatrick, C.D. Gelatt, M.P. Vecchi, "Optimization by simulated
-annealing," *Science*, vol. 220, no. 4598, pp. 671–680, 1983.
+Li, Y., Mohammadi, M., Zhang, X., Lan, Y., & van Jaarsveld, W. (2026). Integrated trucks assignment and scheduling problem with mixed service mode docks: A Q-learning based adaptive large neighborhood search algorithm. *European Journal of Operational Research, 333*(1), 117–137. https://doi.org/10.1016/j.ejor.2025.12.036
 
-[14] H.R. Lourenço, O.C. Martin, T. Stützle, "Iterated local search: Framework
-and applications," in *Handbook of Metaheuristics*, 3rd ed., Springer, 2019.
+Lourenço, H. R., Martin, O. C., & Stützle, T. (2019). Iterated local search: Framework and applications. In *Handbook of metaheuristics* (3rd ed.). Springer.
 
-[15] J. Van Belle, P. Valckenaers, G. Vanden Berghe, D. Cattrysse, "A tabu
-search approach to the truck scheduling problem with multiple docks and time
-windows," *Computers & Industrial Engineering*, vol. 66, no. 4, pp. 818–826,
-2013. https://doi.org/10.1016/j.cie.2013.09.024
+Mnih, V., Kavukcuoglu, K., Silver, D., Rusu, A. A., Veness, J., Bellemare, M. G., Graves, A., Riedmiller, M., Fidjeland, A. K., Ostrovski, G., Petersen, S., Beattie, C., Sadik, A., Antonoglou, I., King, H., Kumaran, D., Wierstra, D., Legg, S., & Hassabis, D. (2015). Human-level control through deep reinforcement learning. *Nature, 518*, 529–533.
 
-[16] M.T. Assadi, M. Bagheri, "Differential evolution and population-based
-simulated annealing for truck scheduling problem in multiple door cross-docking
-systems," *Computers & Industrial Engineering*, vol. 96, pp. 149–161, 2016.
-https://doi.org/10.1016/j.cie.2016.03.021
+Molavi, D., Shahmardan, A., & Sajadieh, M. S. (2018). Truck scheduling in a cross docking systems with fixed due dates and shipment sorting. *Computers & Industrial Engineering, 117*, 29–40. https://doi.org/10.1016/j.cie.2018.01.009
 
-[17] P. Bodnar, R.B.M. de Koster, K. Azadeh, "Scheduling trucks in a cross-dock
-with mixed service mode dock doors," *Transportation Science*, vol. 51, no. 1,
-pp. 112–131, 2017. https://doi.org/10.1287/trsc.2015.0612
+Perron, L., & Didier, F. (2024). *Google OR-Tools CP-SAT solver* (Version 9.x) [Computer software]. https://developers.google.com/optimization
 
-[18] D. Molavi, A. Shahmardan, M.S. Sajadieh, "Truck scheduling in a cross
-docking systems with fixed due dates and shipment sorting," *Computers &
-Industrial Engineering*, vol. 117, pp. 29–40, 2018.
-https://doi.org/10.1016/j.cie.2018.01.009
+Rijal, A., Bijvank, M., & de Koster, R. (2019). Integrated scheduling and assignment of trucks at unit-load cross-dock terminals with mixed service mode dock doors. *European Journal of Operational Research, 278*(3), 752–771. https://doi.org/10.1016/j.ejor.2019.04.028
 
-[19] D. Konur, M.M. Golias, "Analysis of different approaches to cross-dock
-truck scheduling with truck arrival time uncertainty," *Computers & Industrial
-Engineering*, vol. 65, no. 4, pp. 663–672, 2013.
-https://doi.org/10.1016/j.cie.2013.05.009
+Shahmardan, A., & Sajadieh, M. S. (2020). Truck scheduling in a multi-door cross-docking center with partial unloading — Reinforcement learning-based simulated annealing approaches. *Computers & Industrial Engineering, 139*, Article 106134.
 
-[20] D. Konur, M.M. Golias, "Cost-stable truck scheduling at a cross-dock
-facility with unknown truck arrivals: A meta-heuristic approach,"
-*Transportation Research Part E: Logistics and Transportation Review*, vol. 49,
-no. 1, pp. 71–91, 2013. https://doi.org/10.1016/j.tre.2012.06.007
+Van Belle, J., Valckenaers, P., & Cattrysse, D. (2012). Cross-docking: State of the art. *Omega, 40*(6), 827–846.
 
-[21] A.-L. Ladier, G. Alpan, "Robust cross-dock scheduling with time windows,"
-*Computers & Industrial Engineering*, vol. 99, pp. 16–28, 2016.
-https://doi.org/10.1016/j.cie.2016.07.003
+Van Belle, J., Valckenaers, P., Vanden Berghe, G., & Cattrysse, D. (2013). A tabu search approach to the truck scheduling problem with multiple docks and time windows. *Computers & Industrial Engineering, 66*(4), 818–826. https://doi.org/10.1016/j.cie.2013.09.024
 
-[22] R. Larbi, G. Alpan, P. Baptiste, B. Penz, "Scheduling cross docking
-operations under full, partial and no information on inbound arrivals,"
-*Computers & Operations Research*, vol. 38, no. 6, pp. 889–900, 2011.
-https://doi.org/10.1016/j.cor.2010.10.003
+Watkins, C. J. C. H., & Dayan, P. (1992). Q-learning. *Machine Learning, 8*, 279–292.
 
-[23] X. Xi, C. Liu, Y. Wang, L.H. Lee, "Two-stage conflict robust optimization
-models for cross-dock truck scheduling problem under uncertainty,"
-*Transportation Research Part E: Logistics and Transportation Review*, vol.
-144, 102123, 2020. https://doi.org/10.1016/j.tre.2020.102123
+Xi, X., Liu, C., Wang, Y., & Lee, L. H. (2020). Two-stage conflict robust optimization models for cross-dock truck scheduling problem under uncertainty. *Transportation Research Part E: Logistics and Transportation Review, 144*, Article 102123. https://doi.org/10.1016/j.tre.2020.102123
 
-[24] A. Rijal, M. Bijvank, R. de Koster, "Integrated scheduling and assignment
-of trucks at unit-load cross-dock terminals with mixed service mode dock
-doors," *European Journal of Operational Research*, vol. 278, no. 3,
-pp. 752–771, 2019. https://doi.org/10.1016/j.ejor.2019.04.028
+Zhang, C., Song, W., Cao, Z., Zhang, J., Tan, P. S., & Chi, X. (2020). Learning to dispatch for job shop scheduling via deep reinforcement learning. In *Advances in Neural Information Processing Systems* (Vol. 33).

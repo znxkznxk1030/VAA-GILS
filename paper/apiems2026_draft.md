@@ -1,7 +1,8 @@
 # APIEMS 2026 full paper draft (v2, 2026-08-23)
 
-**Title:** Compound-Truck Cross-Docking Scheduling with Arrival Time Windows:
-A Bottleneck-Guided Iterated Local Search with Exact-Solver Verification
+**Title:** Compound-Truck Cross-Docking Scheduling with Release Times and Soft
+Due Dates: A Bottleneck-Guided Iterated Local Search with Exact-Solver
+Verification
 
 **Author:** Youngsoo Kim¹ — ¹Department of Artificial Intelligence, Yonsei
 University, Seoul, Republic of Korea (znxkznxk1030@yonsei.ac.kr)
@@ -53,9 +54,20 @@ The simultaneous-arrival assumption is restrictive for scheduled docks, where
 release times differ by truck. A makespan-only objective is also incomplete
 when outbound departures have due dates. Release times, time windows, and
 due-date objectives have been studied for conventional inbound/outbound trucks
-[15–23]; our contribution is to integrate known release times and soft due
-dates into the partial-unloading compound-truck setting. To our knowledge,
-this combination has not previously been formulated. Section 3 gives the
+[15–23], but the compound-truck setting changes what a temporal constraint does.
+A compound truck is neither a pure inbound nor a pure outbound vehicle: it is
+partially unloaded, keeps the demand of a retained destination, waits for the
+incoming transfers that feed that destination, and only then departs as an
+outbound carrier. This partial-unloading transformation induces a precedence
+chain — arrival → partial unload → retained cargo → incoming-transfer wait →
+outbound departure — that couples trucks through the destinations they share.
+Adding a release time therefore does more than shift one truck's start: a late
+arrival propagates along this chain and can delay every carrier that depends on
+that truck's transfers, and a soft due date turns the resulting cascade into a
+tardiness cost. Our contribution is to formulate and study this interaction —
+known release times and soft due dates acting through the partial-unloading
+carrier transformation — which, to our knowledge, has not previously been
+modeled. Section 3 gives the
 big-M model, its reified CP-SAT counterpart, and lower bounds. The instance
 generator and the train/tuning/test seed split are included so that the
 computational protocol can be reproduced.
@@ -154,13 +166,17 @@ A compound truck unloads everything except its retained destination's demand,
 transfers move products to carrier doors, and each carrier loads its
 destination's demand collected from all compound trucks.
 
-Timing follows the evaluator semantics of [5]: a compound truck's unload
-finishes at $r_i+DE_i+\sum_{d'\ne d}h_{id'}$; a destination is ready at its
-carrier door when the last contributing transfer arrives; loading starts at
-the maximum of own unload completion and destination readiness for compound
-carriers, and at the maximum of door availability, destination readiness, and
-$r_f$ for outbound carriers. The undocking time $DL$ is added after loading.
-The makespan $\tau$ is the largest completion time.
+Timing follows the evaluator semantics of [5], extended with release times. A
+compound truck's unload finishes at $r_i+DE_i+\sum_{d'\ne d}h_{id'}$, and a
+destination is ready at its carrier door when the last contributing transfer
+arrives. A compound carrier begins loading at the maximum of its own unload
+completion and destination readiness, and adds the undocking time $DL_i$ after
+loading. An outbound carrier $f$ begins *door service* at
+$S_f=\max(\text{door available},\ \text{destination ready},\ r_f)$; it then docks
+($DE_f$), loads its destination's demand, and undocks ($DL_f$), so its completion
+is $S_f+DE_f+L_d+DL_f$. Thus $S_f$ denotes the start of door service, not of
+loading, which begins at $S_f+DE_f$. The makespan $\tau$ is the largest
+completion time.
 
 ### 3.2 Mixed-integer formulation
 
@@ -276,13 +292,55 @@ proves equality with its bound.
 
 ### 3.4 Combinatorial lower bounds
 
-For gap reporting when exact bounds are weak we use two valid bounds whose
-maximum bounds $\tau$: (i) a *critical-chain* bound — for each truck, the fastest
-possible completion over all retained-destination choices, relaxing all door
-contention; (ii) a *door-area* bound — the total unavoidable door occupancy
-divided by $|M|$. A structural tardiness bound follows by applying (i) per truck
-against its due date; since both terms bound their objective components for any
-feasible solution, $LB_\tau+\lambda LB_T$ is a valid bound on (16).
+When CP-SAT returns no tight bound we report the gap against two valid,
+polynomially computable bounds obtained by relaxing all door contention. For a
+compound truck $i$ retaining destination $d$, the earliest possible completion
+is its release and docking, plus unloading everything but $d$, plus loading $d$
+from every other compound truck, plus undocking; minimizing over the retained
+destination gives the per-truck earliest finish
+
+$$
+EF_i=r_i+DE_i+\min_{d\in D}\Big(H_i-h_{id}+\sum_{j\in I\setminus\{i\}}h_{jd}\Big)+DL_i,\quad i\in I, \tag{18}
+$$
+
+while an outbound truck $f$, whose only work is loading its destination, has
+
+$$
+EF_f=r_f+DE_f+\min_{d\in D}\sum_{j\in I}h_{jd}+DL_f,\quad f\in F. \tag{19}
+$$
+
+The *critical-chain* makespan bound is the longest unavoidable single-truck
+chain,
+
+$$
+LB_{\mathrm{cc}}=\max_{q\in I\cup F}EF_q. \tag{20}
+$$
+
+The *door-area* bound spreads the total forced door occupancy over the $|M|$
+doors. Each truck holds a door for at least its changeovers and its minimal
+unloading and loading work,
+
+$$
+o_i=DE_i+\Big(H_i-\max_{d}h_{id}\Big)+\min_{d}\sum_{j\in I\setminus\{i\}}h_{jd}+DL_i,\qquad
+o_f=DE_f+\min_{d}\sum_{j\in I}h_{jd}+DL_f,
+$$
+
+$$
+LB_{\mathrm{da}}=\frac{1}{|M|}\Big(\sum_{i\in I}o_i+\sum_{f\in F}o_f\Big). \tag{21}
+$$
+
+Because doors run in parallel and both derivations only drop constraints,
+$LB_\tau=\max\{LB_{\mathrm{cc}},LB_{\mathrm{da}}\}$ is a valid lower bound on the
+makespan. A structural tardiness bound follows because each $EF_q$
+underestimates $C_q$ in any feasible schedule,
+
+$$
+LB_T=\sum_{q:\ \bar d_q<\infty}\max\{0,\ EF_q-\bar d_q\}. \tag{22}
+$$
+
+Since each term lower-bounds its objective component for every feasible
+solution, $LB_J=LB_\tau+\lambda\,LB_T$ is a valid lower bound on the objective
+(16).
 
 ## 4. VAA-GILS: guided iterated local search
 
@@ -431,18 +489,19 @@ incumbents were proven optimal, so only that subset supports an optimality-gap
 statement; all other exact-solver comparisons are incumbent gaps. On the
 remaining cells CP-SAT returns no feasible solution within 600 s; there our
 claim is dominance over the tested baselines, and the reported solutions are,
-to our knowledge, the best known. Accordingly, Table 2 reports the gap to the
-*best-known* solution per instance ($\Delta_{bk}$, over all methods, all budgets, and
+to our knowledge, the best observed among the tested methods. Accordingly,
+Table 2 reports the gap to the *best observed* solution per instance
+($\Delta_{bo}$, over all methods, all budgets, and
 CP-SAT) as the primary quality measure, and the gap to the CP-SAT reference
 where one exists.
 
-**Table 2.** Test-pool results. Mean obj ± std and $\Delta_{bk}$ are over 20 instances ×
-5 reps per cell (Phase D1); $\Delta_{bk}$ is the mean gap to the per-instance best-known
+**Table 2.** Test-pool results. Mean obj ± std and $\Delta_{bo}$ are over 20 instances ×
+5 reps per cell (Phase D1); $\Delta_{bo}$ is the mean gap to the per-instance best-known
 solution (over all methods and CP-SAT where available). vs CP-SAT is over the
 exact-referenced subset only (5 per S cell — S-none: proven optima; 2 for
 M-none) and is unchanged from the original exact runs.
 
-| Cell | Method | Mean obj ± std | $\Delta_{bk}$ (%) | vs CP-SAT (%) |
+| Cell | Method | Mean obj ± std | $\Delta_{bo}$ (%) | vs CP-SAT (%) |
 |---|---|---|---:|---:|
 | S-none | VAA | 1497.5 ± 400.3 | 6.60 | +6.49 |
 | | Paper-SA-RL5 | 1423.3 ± 383.6 | 1.03 | +1.21 |
@@ -490,11 +549,12 @@ five proven optima on S-none, within 0.11–0.55% of the 300 s CP-SAT incumbents
 on S-medium and S-tight, and within 0.11–0.19% of the 600 s incumbents on
 M-none, which the best GILS runs match or beat. The ordering
 GILS < Paper-SA-RL5 < VAA holds in every cell where the baseline is defined;
-over the 20-instance test set, Wilcoxon tests on paired instance means confirm
-GILS-tabular beats VAA (+2.64% mean, $n=180$, $p<10^{-4}$) and Paper-SA-RL5
-(+1.33%, $n=60$, $p<10^{-4}$). The combinatorial
+over the 20-instance test set, and using the default uniform selector, Wilcoxon
+tests on paired instance means confirm GILS beats VAA (+2.65% mean, $n=180$,
+$p<10^{-4}$) and Paper-SA-RL5 (+1.38%, $n=60$, $p<10^{-4}$); the tabular-Q and
+transfer-DQN selectors are compared in Section 6.2. The combinatorial
 lower bounds are informative on no-window cells but loose elsewhere: the gap
-of the *best-known solution itself* to the bound is 0.0% on S-none (optimality
+of the *best observed solution itself* to the bound is 0.0% on S-none (optimality
 proven), 18.5–51.5% on the other S cells, 33–34% on M-none and L-none, and
 171–273% on the time-window cells at M and L. These figures measure the bound,
 not the solutions; tightening bounds for large time-window instances is left
@@ -634,7 +694,7 @@ across the $\lambda$ grid per instance and average (Figure 4).
 varies, averaged over all tuning time-window cells.](figures/fig4_lambda_tradeoff.svg)
 
 **Figure 4.** Tardiness-weight sensitivity. As $\lambda$ grows the search trades a
-higher makespan for lower tardiness along a convex frontier (normalized
+higher makespan for lower tardiness along an empirical trade-off frontier (normalized
 makespan 0.13 → 0.74, normalized tardiness 0.99 → 0.04). Most of the achievable
 tardiness reduction is bought by the first increment away from $\lambda=0$, after
 which returns diminish while the makespan penalty keeps rising.
@@ -655,7 +715,11 @@ A candidate can be evaluated in tens of microseconds, so an unhelpful operator
 choice is inexpensive. More importantly, every new incumbent is followed by a
 deterministic descent. Two runs that enter the same basin can therefore end at
 the same schedule even if their preceding moves differ. The budget curves
-suggest that this happens before 1,000 iterations for most test instances.
+suggest that this happens before 1,000 iterations for most test instances. For
+the same reason, the simulated-annealing acceptance and reheating are retained
+mainly for comparability with the base SA-RL5 framework: the component ablation
+(Section 6.2) indicates that they are not necessary for solution quality in this
+setting, where a greedy variant performs comparably.
 
 There is also little information for a policy to predict. Instances are static,
 and all releases are known before optimization begins. This is quite different
@@ -689,6 +753,26 @@ depend much on the starting solution or simulated-annealing acceptance. These
 findings are specific to the present benchmark. An online version with
 unrevealed arrivals would provide a more demanding test of adaptive policies;
 tighter bounds for the larger time-window cases are another priority.
+
+## Appendix A. Transfer-DQN implementation details
+
+The transfer DQN of Section 4.1 selects one operator per iteration from the
+11-operator pool. Its Q-network is a multilayer perceptron that maps the
+27-dimensional scale-invariant state to one Q-value per operator, with two
+hidden layers of 64 units and ReLU activations. Training uses a replay buffer of
+capacity 100,000; after a warm-up of 500 transitions, one gradient step is taken
+per environment step by minimizing the Huber (smooth-$L_1$) temporal-difference
+loss with the Adam optimizer at learning rate $10^{-3}$ and discount factor
+$\gamma = 0.9$. Mini-batches contain 64 transitions, and the target network is
+synchronized to the online network every 500 steps. The reward is the shaped
+signal of Section 4.1 (2 for a new incumbent, 1 for a non-worsening move, 0
+otherwise). The agent is trained offline on 500 runs over the *training* instance
+pool (sizes S and M, all flow patterns and window levels) under an $\varepsilon$-greedy
+behavior policy, and is then applied zero-shot to the *test* instances with
+$\varepsilon = 0$ and no further updates. Because the reported outcome is that
+this policy does not improve on uniform sampling, we release the trained network,
+the training script, and the seeds so that the negative result can be reproduced
+and, if desired, strengthened.
 
 ## References
 

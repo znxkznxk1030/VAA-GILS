@@ -28,7 +28,7 @@
 \titleformat{\subsection}{\bfseries\normalsize}{\thesubsection}{0.4em}{}
 \setlist{nosep,leftmargin=1.4em}
 
-\title{\vspace{-8mm}\textbf{Compound-Truck Cross-Docking Scheduling with Arrival Time Windows:\\A Bottleneck-Guided Iterated Local Search}}
+\title{\vspace{-8mm}\textbf{Compound-Truck Cross-Docking Scheduling with Release Times and Soft Due Dates:\\A Bottleneck-Guided Iterated Local Search}}
 \author{Youngsoo Kim\\
 \small Department of Artificial Intelligence, Yonsei University\\
 \small Seoul, Republic of Korea \quad \texttt{znxkznxk1030@yonsei.ac.kr}}
@@ -75,9 +75,15 @@ mixed-service-door models have been studied in
 \cite{vanbelle2013,assadi2016,bodnar2017,molavi2018,rijal2019,li2026}; uncertain or
 incomplete arrivals are addressed in
 \cite{larbi2011,konur2013,konurcost2013,ladier2016,xi2020}.
-Those studies keep trucks purely inbound or outbound. Our contribution is to
-integrate \emph{known} release times and soft due dates into the
-partial-unloading compound-truck setting.
+Those studies keep trucks purely inbound or outbound. The compound-truck
+setting is different: a truck is partially unloaded, retains one destination,
+waits for the incoming transfers feeding it, and only then departs as a carrier.
+This partial-unloading transformation induces a precedence chain
+(arrival $\to$ partial unload $\to$ retained cargo $\to$ transfer wait $\to$
+outbound departure), so a late arrival propagates to every dependent carrier and
+a soft due date turns the cascade into a tardiness cost. Our contribution is to
+formulate and study this interaction of \emph{known} release times and soft due
+dates with the partial-unloading carrier transformation.
 
 We make three contributions. First, we give MILP and CP-SAT formulations that
 match an independent schedule evaluator. Second, we develop VAA-GILS, which
@@ -112,7 +118,9 @@ unloading completes at
 $U_i=r_i+DE_i+H_i-h_{id}$. A carrier may load only after every contributing
 source has finished unloading and its freight has traversed the door-to-door
 transfer time. An outbound carrier must additionally wait for its release and
-for the preceding occupant of its door. Loading time for destination $d$ is
+for the preceding occupant of its door; it begins door service at that time and
+then docks, loads, and undocks (so loading starts only after docking $DE_f$).
+Loading time for destination $d$ is
 $L_d=\sum_i h_{id}$; docking and undocking times are included.
 
 \subsection{Compact MILP statement}
@@ -214,7 +222,7 @@ comparisons use CP-SAT incumbents.
 
 Baselines are VAA, our implementation of SA-RL5 \cite{shahmardan2020}, and
 GILS with uniform, tabular-Q, or transfer-DQN selection. The primary metric is
-the per-instance gap $\Delta_{bk}$ to the best solution observed across all
+the per-instance gap $\Delta_{bo}$ to the best solution observed across all
 methods, budgets, and CP-SAT where available.
 
 \section{Results}
@@ -227,15 +235,15 @@ dominates the tested baselines rather than an exact reference.
 
 \begin{table*}[t]
 \centering
-\caption{Mean test objective and gap to best-known solution. CP denotes the
-gap to a CP-SAT reference; only S-none is proven optimal.}
+\caption{Mean test objective and gap to the best observed solution; only S-none
+is proven optimal.}
 \label{tab:quality}
 \small
 \begin{tabular}{@{}lrrrrrrrrr@{}}
 \toprule
 & \multicolumn{3}{c}{No windows} & \multicolumn{3}{c}{Medium} & \multicolumn{3}{c}{Tight} \\
 \cmidrule(lr){2-4}\cmidrule(lr){5-7}\cmidrule(lr){8-10}
-Size & VAA & GILS & $\Delta_{bk}$ & VAA & GILS & $\Delta_{bk}$ & VAA & GILS & $\Delta_{bk}$ \\
+Size & VAA & GILS & $\Delta_{bo}$ & VAA & GILS & $\Delta_{bo}$ & VAA & GILS & $\Delta_{bo}$ \\
 \midrule
 S & 1497.5 & 1411.8 & 0.16\% & 5447.5 & 5255.7 & 0.08\% & 9276.8 & 9010.8 & 0.09\% \\
 M & 3030.9 & 2928.9 & 0.29\% & 23025.5 & 22526.4 & 0.29\% & 38903.7 & 38528.0 & 0.19\% \\
@@ -244,9 +252,10 @@ L & 5492.3 & 5388.4 & 0.27\% & 55611.1 & 54846.4 & 0.10\% & 119671.9 & 118901.4 
 \end{tabular}
 \end{table*}
 
-Where SA-RL5 is defined, the ordering GILS $<$ SA-RL5 $<$ VAA holds. Paired
-tests show that GILS-tabular improves on VAA by 2.64\% on average
-($n=180$, $p<10^{-4}$) and on SA-RL5 by 1.33\% ($n=60$, $p<10^{-4}$).
+Where SA-RL5 is defined, the ordering GILS $<$ SA-RL5 $<$ VAA holds. Using the
+default uniform selector, paired tests show that GILS improves on VAA by
+2.65\% on average ($n=180$, $p<10^{-4}$) and on SA-RL5 by 1.38\%
+($n=60$, $p<10^{-4}$); tabular-Q and DQN selection are examined in the ablation.
 Mean GILS runtimes are 0.11, 0.52, and 2.3 seconds for S, M, and L; the
 corresponding CP-SAT averages are 76, 237, and 376 seconds.
 
@@ -260,7 +269,7 @@ gain is 0.114 percentage points ($p<10^{-4}$); critical-to-full is 0.047
 \begin{figure}[H]
 \centering
 \includegraphics[width=\columnwidth]{fig2_operator_pool.pdf}
-\caption{Mean gap to best-known by operator pool.}
+\caption{Mean gap to the best observed solution by operator pool.}
 \label{fig:operators}
 \end{figure}
 
@@ -288,7 +297,7 @@ result also holds on no-window cells, so it is not caused by the extension.
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.72\textwidth]{fig1_selector_budget.pdf}
-\caption{Mean gap to best-known across iteration budgets. The tabular selector
+\caption{Mean gap to the best observed solution across iteration budgets. The tabular selector
 only edges uniform at the largest budget, while transfer DQN never wins.}
 \label{fig:selector-budget}
 \end{figure}
@@ -298,7 +307,7 @@ only edges uniform at the largest budget, while transfer DQN never wins.}
 Because Eq.~\eqref{eq:objective} combines two time-valued components, we test
 $\lambda\in\{0,0.25,0.5,1,2,4,8\}$ on the tuning pool. We record physical
 makespan and total tardiness, min--max normalize both metrics within each
-instance, and then average. Figure~\ref{fig:lambda} shows a convex trade-off.
+instance, and then average. Figure~\ref{fig:lambda} shows an empirical trade-off.
 Most tardiness reduction occurs between $\lambda=0$ and $1$, after which the
 returns diminish. Across the sweep, mean makespan rises by about 1\%, whereas
 mean tardiness falls by 2--3\%. We retain $\lambda=1$: it is close to the
@@ -325,17 +334,20 @@ dominance over tested baselines, not optimality.
 The ablations change the interpretation of performance. Best-improvement
 descent, guided moves, and restart carry the search. Once those mechanisms are
 present, a uniform selector is as effective as the learned alternatives under
-equal budgets. This does not imply that learning is generally ineffective;
+equal budgets. SA acceptance and reheating are retained for comparability with
+the base SA-RL5 framework, although the ablation indicates they are not necessary
+for solution quality in the present setting. This does not imply that learning is
+generally ineffective;
 online arrivals, heterogeneous instances, or larger operator pools may create
 a stronger role for adaptation. Future work should study unrevealed arrivals,
 robust schedules, tighter lower bounds, and industrial data.
 
 \section*{Declaration of generative AI use}
-During preparation, the author used OpenAI Codex (GPT-5) for language editing,
-manuscript organization, bibliographic checking, and assistance in developing
-and reviewing computational code. The author reviewed and verified all
-references, formulations, code, results, and interpretations, and takes full
-responsibility for the content.
+During preparation, the author used OpenAI Codex (GPT-5) and Claude Code
+(Anthropic) for language editing, manuscript organization, bibliographic
+checking, and assistance in developing and reviewing computational code. The
+author reviewed and verified all references, formulations, code, results, and
+interpretations, and takes full responsibility for the content.
 
 \begin{thebibliography}{99}\small
 \bibitem{assadi2016} M. T. Assadi and M. Bagheri, ``Differential evolution and

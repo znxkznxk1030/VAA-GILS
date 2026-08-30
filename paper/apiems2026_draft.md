@@ -25,7 +25,7 @@ proven optimal. A GILS run took 0.1–2.3 seconds, compared with 76–376 second
 for CP-SAT. For the larger time-window cases, CP-SAT found no feasible schedule
 within 600 seconds, while GILS returned the best solutions among the methods
 tested. It also outperformed our implementation of the earlier RL-based
-simulated annealing baseline (p < 10⁻⁴). The ablation results are less favorable
+simulated annealing baseline ($p<10^{-4}$). The ablation results are less favorable
 to learning-based additions. Descent, the bottleneck moves, and kick restarts
 account for the observed improvement.
 Changing the initial solution, retaining stochastic acceptance, or replacing
@@ -138,12 +138,13 @@ search, the learned selector adds little on this benchmark.
 
 ### 3.1 Base model
 
-Let I be the set of compound trucks, F the outbound trucks, D the destinations
-(|I| + |F| = |D|), K the product types, and M the dock doors (|I| ≤ |M|). A
-compound truck i carries f_idk units of product k for destination d; the unit
-handling time is t_k, and moving one batch between doors m and n takes t_mn.
-Truck i needs changeover times DE_i (docking) and DL_i (undocking). Define the
-handling time h_id = Σ_k f_idk · t_k.
+Let $I$ be the set of compound trucks, $F$ the outbound trucks, $D$ the
+destinations ($|I|+|F|=|D|$), $K$ the product types, and $M$ the dock doors
+($|I|\le |M|$). A compound truck $i$ carries $f_{idk}$ units of product $k$
+for destination $d$; the unit handling time is $t_k$, and moving one batch
+between doors $m$ and $n$ takes $t_{mn}$. Truck $i$ needs changeover times
+$DE_i$ (docking) and $DL_i$ (undocking). Define the handling time
+$h_{id}=\sum_k f_{idk}t_k$.
 
 Decisions: (i) each compound truck is assigned one *retained* destination and
 one door (at most one compound truck per door); (ii) each outbound truck is
@@ -154,11 +155,12 @@ transfers move products to carrier doors, and each carrier loads its
 destination's demand collected from all compound trucks.
 
 Timing follows the evaluator semantics of [5]: a compound truck's unload
-finishes at r_i + DE_i + Σ_{d′≠d} h_id′; a destination is ready at its carrier
-door when the last contributing transfer arrives; loading starts at
-max(own unload finish, destination ready) for compound carriers and
-max(door available, destination ready, r_f) for outbound carriers; DL is added
-after loading. The makespan τ is the largest completion time.
+finishes at $r_i+DE_i+\sum_{d'\ne d}h_{id'}$; a destination is ready at its
+carrier door when the last contributing transfer arrives; loading starts at
+the maximum of own unload completion and destination readiness for compound
+carriers, and at the maximum of door availability, destination readiness, and
+$r_f$ for outbound carriers. The undocking time $DL$ is added after loading.
+The makespan $\tau$ is the largest completion time.
 
 ### 3.2 Mixed-integer formulation
 
@@ -275,12 +277,12 @@ proves equality with its bound.
 ### 3.4 Combinatorial lower bounds
 
 For gap reporting when exact bounds are weak we use two valid bounds whose
-maximum bounds τ: (i) a *critical-chain* bound — for each truck, the fastest
+maximum bounds $\tau$: (i) a *critical-chain* bound — for each truck, the fastest
 possible completion over all retained-destination choices, relaxing all door
 contention; (ii) a *door-area* bound — the total unavoidable door occupancy
-divided by |M|. A structural tardiness bound follows by applying (i) per truck
+divided by $|M|$. A structural tardiness bound follows by applying (i) per truck
 against its due date; since both terms bound their objective components for any
-feasible solution, LB_τ + λ·LB_T is a valid bound on (16).
+feasible solution, $LB_\tau+\lambda LB_T$ is a valid bound on (16).
 
 ## 4. VAA-GILS: guided iterated local search
 
@@ -346,7 +348,7 @@ method.
 
 - **Uniform** (default): uniform random choice over the operator pool.
 - **Tabular Q** (the policy of SA-RL5 [5]): Q-learning [9] over five
-  stagnation-bin states, trained online within the run; ε-greedy with roulette
+  stagnation-bin states, trained online within the run; $\varepsilon$-greedy with roulette
   exploitation, shaped reward (2 for a new incumbent, 1 for a non-worsening
   move, 0 otherwise).
 - **Transfer DQN**: a two-layer deep Q-network [10] over a 27-dimensional
@@ -355,7 +357,7 @@ method.
   temperature, stagnation, door-load imbalance; and per-operator recent success
   rates). It is trained offline on 500 runs over a *training* instance pool
   (sizes S/M, all flow patterns and window levels) and applied zero-shot
-  (ε = 0, no updates) to unseen test instances.
+  ($\varepsilon=0$, no updates) to unseen test instances.
 
 ### 4.2 Relation to the base model [5]
 
@@ -381,7 +383,7 @@ move, and kick restarts with reheating.
 | Stagnation handling | None | Kick restart from best + reheating |
 | Acceptance | SA (Metropolis) | SA (Metropolis) — shown dispensable by ablation (Section 6.2) |
 | Construction | VAA | VAA, extended with release times |
-| Objective | Makespan | Makespan + λ · total tardiness (time windows) |
+| Objective | Makespan | Makespan + $\lambda\cdot$ total tardiness (time windows) |
 
 The most consequential difference in Table 1 occurs after an improving move.
 In VAA-GILS, that move triggers descent, so the selected operator often begins
@@ -392,13 +394,14 @@ essentially the same final quality as the learned selectors.
 
 ## 5. Experimental design
 
-**Instances.** We follow the size regime of [5]: (|I|, |D|, |M|) =
-S (6, 9, 6), M (12, 18, 12), L (20, 30, 20), with compound-truck fraction 2/3.
-Flows f_idk are uniform integers in [0, 20] with 3 product types; unit times
-t_k ~ U[1, 5]; doors lie on a random 100×100 layout. Window levels: *none*
-(r = 0, d̄ = ∞), *medium*, and *tight*: releases r ~ U[0, ρH] and d̄ = r + δH,
-where H estimates the unconstrained makespan and (ρ, δ) = (0.25, 0.60) and
-(0.50, 0.35) respectively.
+**Instances.** We follow the size regime of [5]: $(|I|,|D|,|M|)=$
+S $(6,9,6)$, M $(12,18,12)$, and L $(20,30,20)$, with compound-truck fraction
+$2/3$. Flows $f_{idk}$ are uniform integers in $[0,20]$ with three product
+types; unit times follow $t_k\sim U[1,5]$; doors lie on a random
+$100\times100$ layout. Window levels are *none* ($r=0$, $\bar d=\infty$),
+*medium*, and *tight*: releases follow $r\sim U[0,\rho H]$ and
+$\bar d=r+\delta H$, where $H$ estimates the unconstrained makespan and
+$(\rho,\delta)=(0.25,0.60)$ and $(0.50,0.35)$, respectively.
 
 **Protocol.** Seeds are split into disjoint train / tuning / test pools.
 All algorithm design and hyperparameters were frozen on the tuning pool; the
@@ -408,7 +411,7 @@ run. The main solution-quality comparison (Table 2 and its Wilcoxon tests) uses
 controlled ablations (Tables 3–5 and Figure 3) keep the original 5-instance
 design, since they are equal-budget, equal-structure decompositions rather than
 generalization claims. CP-SAT runs once per instance with 8 threads: 300 s on S
-(5 instances) and 600 s on M and L (2 instances per cell). λ = 1 on window
+(5 instances) and 600 s on M and L (2 instances per cell). $\lambda=1$ on window
 cells.
 
 **Statistics.** The independently generated instance is the experimental unit.
@@ -429,17 +432,17 @@ statement; all other exact-solver comparisons are incumbent gaps. On the
 remaining cells CP-SAT returns no feasible solution within 600 s; there our
 claim is dominance over the tested baselines, and the reported solutions are,
 to our knowledge, the best known. Accordingly, Table 2 reports the gap to the
-*best-known* solution per instance (Δbk, over all methods, all budgets, and
+*best-known* solution per instance ($\Delta_{bk}$, over all methods, all budgets, and
 CP-SAT) as the primary quality measure, and the gap to the CP-SAT reference
 where one exists.
 
-**Table 2.** Test-pool results. Mean obj ± std and Δbk are over 20 instances ×
-5 reps per cell (Phase D1); Δbk = mean gap to the per-instance best-known
+**Table 2.** Test-pool results. Mean obj ± std and $\Delta_{bk}$ are over 20 instances ×
+5 reps per cell (Phase D1); $\Delta_{bk}$ is the mean gap to the per-instance best-known
 solution (over all methods and CP-SAT where available). vs CP-SAT is over the
 exact-referenced subset only (5 per S cell — S-none: proven optima; 2 for
 M-none) and is unchanged from the original exact runs.
 
-| Cell | Method | Mean obj ± std | Δbk (%) | vs CP-SAT (%) |
+| Cell | Method | Mean obj ± std | $\Delta_{bk}$ (%) | vs CP-SAT (%) |
 |---|---|---|---:|---:|
 | S-none | VAA | 1497.5 ± 400.3 | 6.60 | +6.49 |
 | | Paper-SA-RL5 | 1423.3 ± 383.6 | 1.03 | +1.21 |
@@ -488,8 +491,8 @@ on S-medium and S-tight, and within 0.11–0.19% of the 600 s incumbents on
 M-none, which the best GILS runs match or beat. The ordering
 GILS < Paper-SA-RL5 < VAA holds in every cell where the baseline is defined;
 over the 20-instance test set, Wilcoxon tests on paired instance means confirm
-GILS-tabular beats VAA (+2.64% mean, n = 180, p < 10⁻⁴) and Paper-SA-RL5
-(+1.33%, n = 60, p < 10⁻⁴). The combinatorial
+GILS-tabular beats VAA (+2.64% mean, $n=180$, $p<10^{-4}$) and Paper-SA-RL5
+(+1.33%, $n=60$, $p<10^{-4}$). The combinatorial
 lower bounds are informative on no-window cells but loose elsewhere: the gap
 of the *best-known solution itself* to the bound is 0.0% on S-none (optimality
 proven), 18.5–51.5% on the other S cells, 33–34% on M-none and L-none, and
@@ -513,7 +516,7 @@ the paired comparisons differ only in the component named in each table.
 and vary only the operator pool: *generic* (the seven paper neighborhoods),
 *critical* (generic plus the two makespan-critical guided operators g1, g2), and
 *full* (critical plus the two tardiness-guided operators g3, g4). The mean gap
-to the per-instance best-known solution is monotone — generic ≥ critical ≥ full
+to the per-instance best-known solution is monotone — generic $\ge$ critical $\ge$ full
 — in every one of the nine cells (e.g., S-none 0.45 / 0.17 / 0.10; M-medium
 0.45 / 0.37 / 0.28). Table 3 gives the paired tests.
 
@@ -522,10 +525,10 @@ replication means; +mean = the richer pool is better).
 
 | Contrast | Scope | n | Mean (%) | p | Verdict |
 |---|---|---:|---:|---:|---|
-| generic → critical (add g1, g2) | all | 40 | +0.114 | <10⁻⁴ | significant |
+| generic → critical (add g1, g2) | all | 40 | +0.114 | $<10^{-4}$ | significant |
 | critical → full (add g3, g4) | all | 42 | +0.047 | 0.0001 | significant |
 | critical → full | TW cells | 28 | +0.045 | 0.0003 | significant |
-| generic → full (all guided) | all | 43 | +0.161 | <10⁻⁴ | significant |
+| generic → full (all guided) | all | 43 | +0.161 | $<10^{-4}$ | significant |
 
 ![Operator-pool ablation: mean gap to best-known per cell for the generic,
 critical, and full pools.](figures/fig2_operator_pool.svg)
@@ -557,10 +560,10 @@ objective increase when removed; Wilcoxon on paired instance replication means).
 
 | Component removed | n | Degradation (%) | p | Verdict |
 |---|---:|---:|---:|---|
-| best-improvement descent | 45 | +0.156 | <10⁻⁴ | significant |
-| kick restart | 43 | +0.069 | <10⁻⁴ | significant |
+| best-improvement descent | 45 | +0.156 | $<10^{-4}$ | significant |
+| kick restart | 43 | +0.069 | $<10^{-4}$ | significant |
 | VAA initial solution | 45 | +0.022 | 0.114 | no significant difference |
-| stochastic acceptance | 45 | −0.026 | 0.0014 | greedy slightly better |
+| stochastic acceptance | 45 | $-0.026$ | 0.0014 | greedy slightly better |
 
 ![Engine-component leave-one-out: objective degradation when each component is
 removed.](figures/fig3_component_ablation.svg)
@@ -576,17 +579,17 @@ Q-learning, and a transfer-trained deep Q-network (Table 5). No learned policy
 beats uniform by a practically meaningful margin. Across budgets (mean gap to
 best-known) uniform runs 0.47 → 0.16%, tabular 0.56 → 0.09%, and DQN 0.56 →
 0.26% from 50 to 3,000 iterations: at 50 iterations uniform is *better* than
-tabular (+0.08%, p = 0.0055), at 3,000 tabular edges uniform (+0.07%, p < 10⁻⁴),
+tabular (+0.08%, $p=0.0055$), at 3,000 tabular edges uniform (+0.07%, $p<10^{-4}$),
 and the transfer DQN never wins at any budget and is significantly worse at
-1,000 and 3,000. All selection effects are ≤ 0.17 percentage points — below the
+1,000 and 3,000. All selection effects are $\le 0.17$ percentage points — below the
 guided-operator effect of Table 3 and an order of magnitude below the
 method-level differences of Table 2 — and their direction flips with budget.
 
 Crucially, the same picture holds on the no-time-window cells alone, which are
 exactly the original problem of [5] with all trucks available at time zero: at
 1,000 iterations tabular Q-learning is indistinguishable from uniform (mean
-−0.05%, p = 0.52, n = 58) and the transfer DQN is significantly worse (uniform
-better by +0.14%, p = 0.0012; tabular better by +0.09%, p < 10⁻³). The negative
+$-0.05\%$, $p=0.52$, $n=58$) and the transfer DQN is significantly worse (uniform
+better by +0.14%, $p=0.0012$; tabular better by +0.09%, $p<10^{-3}$). The negative
 result is therefore not an artifact of the time-window extension; it already
 holds in the base setting where the original model introduces learned
 selection.
@@ -596,9 +599,9 @@ on paired instance replication means; positive mean = first method better).
 
 | Comparison | Mean diff (%) | p | Verdict |
 |---|---:|---:|---|
-| tabular vs uniform | −0.01 | 0.150 | no difference |
-| tabular vs DQN | +0.10 | <10⁻⁴ | DQN worse |
-| uniform vs DQN | +0.11 | <10⁻⁴ | DQN worse |
+| tabular vs uniform | $-0.01$ | 0.150 | no difference |
+| tabular vs DQN | +0.10 | $<10^{-4}$ | DQN worse |
+| uniform vs DQN | +0.11 | $<10^{-4}$ | DQN worse |
 
 ![Selection-policy budget sweep: mean gap to best-known versus iteration budget
 for uniform, tabular Q-learning, and transfer DQN.](figures/fig1_selector_budget.svg)
@@ -618,29 +621,29 @@ differences created earlier in a run.
 
 ### 6.3 Tardiness-weight sensitivity
 
-The objective (16) weights total tardiness by λ; our experiments fix λ = 1. To
+The objective (16) weights total tardiness by $\lambda$; our experiments fix $\lambda=1$. To
 justify this modelling choice we trace the makespan–tardiness trade-off by
-sweeping λ ∈ {0, 0.25, 0.5, 1, 2, 4, 8} on the *tuning* pool (all six
+sweeping $\lambda\in\{0,0.25,0.5,1,2,4,8\}$ on the *tuning* pool (all six
 time-window cells, five instances × three replications, 1,000 iterations, seeds
-shared across λ so that only the objective weight differs). For each run we
+shared across $\lambda$ so that only the objective weight differs). For each run we
 record the *physical* makespan and total tardiness of the returned schedule; to
 combine cells of very different magnitude we min–max normalize each metric
-across the λ grid per instance and average (Figure 4).
+across the $\lambda$ grid per instance and average (Figure 4).
 
-![Tardiness-weight sensitivity: normalized makespan–tardiness trade-off as λ
+![Tardiness-weight sensitivity: normalized makespan–tardiness trade-off as lambda
 varies, averaged over all tuning time-window cells.](figures/fig4_lambda_tradeoff.svg)
 
-**Figure 4.** Tardiness-weight sensitivity. As λ grows the search trades a
+**Figure 4.** Tardiness-weight sensitivity. As $\lambda$ grows the search trades a
 higher makespan for lower tardiness along a convex frontier (normalized
 makespan 0.13 → 0.74, normalized tardiness 0.99 → 0.04). Most of the achievable
-tardiness reduction is bought by the first increment away from λ = 0, after
+tardiness reduction is bought by the first increment away from $\lambda=0$, after
 which returns diminish while the makespan penalty keeps rising.
 
 The absolute trade-off is mild. Across the sweep, mean makespan rises by only
 about 1% (e.g., S 2060.8 → 2084.1), while mean tardiness falls by 2–3% (e.g.,
-L 87215 → 86306). At λ = 1, tardiness is already near its minimum
-(normalized 0.14, versus 0.04 at the extreme λ = 8) at only a moderate makespan
-cost (normalized 0.41). We use λ = 1 because it also has a direct interpretation:
+L 87215 → 86306). At $\lambda=1$, tardiness is already near its minimum
+(normalized 0.14, versus 0.04 at the extreme $\lambda=8$) at only a moderate makespan
+cost (normalized 0.41). We use $\lambda=1$ because it also has a direct interpretation:
 one unit of makespan time is exchanged for one unit of tardiness time. The sweep
 is reported as design justification, not as a tuned result, and uses only the
 tuning pool.

@@ -1,4 +1,4 @@
-This is XeTeX, Version 3.141592653-2.6-0.999998 (TeX Live 2026) (preloaded format=xelatex 2026.3.8)  30 AUG 2026 20:16
+This is XeTeX, Version 3.141592653-2.6-0.999998 (TeX Live 2026) (preloaded format=xelatex 2026.3.8)  31 AUG 2026 22:50
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -611,11 +611,11 @@ line 29.
 LaTeX Font Info:    Font shape `TU/UnBatang.ttf(0)/bx/n' in size <14.4> not ava
 ilable
 (Font)              Font shape `TU/UnBatang.ttf(0)/b/n' tried instead on input 
-line 54.
+line 55.
 
 
 LaTeX Font Warning: Font shape `TU/UnBatang.ttf(0)/m/it' undefined
-(Font)              using `TU/UnBatang.ttf(0)/m/n' instead on input line 60.
+(Font)              using `TU/UnBatang.ttf(0)/m/n' instead on input line 61.
 
 [1
 
@@ -623,14 +623,13 @@ LaTeX Font Warning: Font shape `TU/UnBatang.ttf(0)/m/it' undefined
 LaTeX Font Info:    Font shape `TU/UnBatang.ttf(0)/bx/n' in size <10.95> not av
 ailable
 (Font)              Font shape `TU/UnBatang.ttf(0)/b/n' tried instead on input 
-line 94.
- [2]
+line 95.
 LaTeX Font Info:    Font shape `TU/UnBatang.ttf(0)/bx/n' in size <12> not avail
 able
 (Font)              Font shape `TU/UnBatang.ttf(0)/b/n' tried instead on input 
-line 123.
- [3]
-Overfull \hbox (22.77129pt too wide) in paragraph at lines 201--207
+line 124.
+ [2] [3]
+Overfull \hbox (22.77129pt too wide) in paragraph at lines 206--212
 \TU/UnBatang.ttf(0)/m/it/10.95 을 도 어 수 로 나 눈 $\OML/cmm/m/it/10.95 LB[] \OT1/cmr
 /m/n/10.95 = [][] [][] \OML/cmm/m/it/10.95 o[] \OT1/cmr/m/n/10.95 + [][] \OML/c
 mm/m/it/10.95 o[][]$ \TU/UnBatang.ttf(0)/m/it/10.95 이 다. 둘 다 제 약 을 완 화 하 므 로 $\
@@ -639,7 +638,7 @@ it/10.95 LB[]; LB[]\OMS/cmsy/m/n/10.95 g$
  []
 
 [4] [5]
-Overfull \hbox (22.75963pt too wide) in paragraph at lines 342--347
+Overfull \hbox (22.75963pt too wide) in paragraph at lines 347--352
 []\TU/lmr/bx/n/10.95 Operator pool. \TU/lmr/m/n/10.95 selection \TU/UnBatang.tt
 f(0)/m/it/10.95 을 \TU/lmr/m/n/10.95 uniform \TU/UnBatang.ttf(0)/m/it/10.95 으 로 
 고 정 하 고 \TU/lmr/m/n/10.95 pool \TU/UnBatang.ttf(0)/m/it/10.95 만 \TU/lmr/m/n/10.
@@ -675,7 +674,7 @@ Package rerunfilecheck Info: File `jkiie_korean.out' has not changed.
 Here is how much of TeX's memory you used:
  17252 strings out of 468168
  302315 string characters out of 5432816
- 761261 words of memory out of 5000000
+ 770252 words of memory out of 5000000
  45753 multiletter control sequences out of 15000+600000
  637854 words of font info for 121 fonts, out of 8000000 for 9000
  1348 hyphenation exceptions out of 8191

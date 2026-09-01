@@ -1,4 +1,4 @@
-This is XeTeX, Version 3.141592653-2.6-0.999998 (TeX Live 2026) (preloaded format=xelatex 2026.3.8)  30 AUG 2026 20:16
+This is XeTeX, Version 3.141592653-2.6-0.999998 (TeX Live 2026) (preloaded format=xelatex 2026.3.8)  31 AUG 2026 22:50
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -622,22 +622,22 @@ line 29.
 LaTeX Font Info:    Font shape `TU/UnBatang.ttf(0)/bx/n' in size <14.4> not ava
 ilable
 (Font)              Font shape `TU/UnBatang.ttf(0)/b/n' tried instead on input 
-line 53.
+line 54.
  [1
 
 ]
 LaTeX Font Info:    Font shape `TU/UnBatang.ttf(0)/bx/n' in size <10.95> not av
 ailable
 (Font)              Font shape `TU/UnBatang.ttf(0)/b/n' tried instead on input 
-line 108.
+line 112.
  [2]
 [3]
 LaTeX Font Info:    Font shape `TU/UnBatang.ttf(0)/bx/n' in size <12> not avail
 able
 (Font)              Font shape `TU/UnBatang.ttf(0)/b/n' tried instead on input 
-line 190.
+line 194.
 
-Overfull \hbox (10.64172pt too wide) in paragraph at lines 192--195
+Overfull \hbox (10.64172pt too wide) in paragraph at lines 196--199
 \TU/UnBatang.ttf(0)/m/n/10.95 조 건 에 서 \TU/lmr/m/n/10.95 gap \TU/UnBatang.ttf(0)
 /m/n/10.95 이 낮 아 진 다. \TU/lmr/m/n/10.95 generic\TU/UnBatang.ttf(0)/m/n/10.95 →\
 TU/lmr/m/n/10.95 critical \TU/UnBatang.ttf(0)/m/n/10.95 개 선 은 \TU/lmr/m/n/10.95
@@ -660,7 +660,7 @@ File: figures/fig4_lambda_tradeoff.pdf Graphic file (type pdf)
  [5]
 
 LaTeX Font Warning: Font shape `TU/UnBatang.ttf(0)/m/it' undefined
-(Font)              using `TU/UnBatang.ttf(0)/m/n' instead on input line 273.
+(Font)              using `TU/UnBatang.ttf(0)/m/n' instead on input line 277.
 
 [6] [7] (../output/pdf/apiems2026_korean.aux)
  ***********
@@ -677,7 +677,7 @@ Package rerunfilecheck Info: File `apiems2026_korean.out' has not changed.
 Here is how much of TeX's memory you used:
  17297 strings out of 468168
  303094 string characters out of 5432816
- 766321 words of memory out of 5000000
+ 768312 words of memory out of 5000000
  45796 multiletter control sequences out of 15000+600000
  637846 words of font info for 120 fonts, out of 8000000 for 9000
  1348 hyphenation exceptions out of 8191

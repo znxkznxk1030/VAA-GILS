@@ -132,7 +132,8 @@ $DE_i,DL_i$에 대해 $h_{id}=\sum_k f_{idk}t_k$, $H_i=\sum_d h_{id}$로 둔다.
 
 각 트럭 $q\in I\cup F$의 release time을 $r_q$로 나타낸다. 따라서 $r_i$는
 컴파운드 트럭 $i\in I$가 도어 작업을 시작할 수 있는 가장 이른 시각이고, $r_f$는
-출고 트럭 $f\in F$가 도어 작업을 시작할 수 있는 가장 이른 시각이다.
+출고 트럭 $f\in F$가 도어 작업을 시작할 수 있는 가장 이른 시각이다. 위반이
+허용되는 soft due date $\bar d_q$와 그에 따른 납기지연 $T_q$는 3.3절에서 정의한다.
 
 시간 계산은 스케줄 평가기 규칙을 따른다. 컴파운드 트럭 $i$(목적지 $d$ 유지)의 하역은
 $r_i+DE_i+\sum_{d'\ne d}h_{id'}$에 끝난다. 운송 트럭은 화물을 보내는 모든 트럭의 하역과
@@ -218,30 +219,30 @@ VAA-GILS는 iterated local search의 구현체로, 연산자 내부 sampling과 
 우선순위에 따라 출고 목적지를 배정한 뒤 완료 예정 시각이 가장 이른 도어에 삽입한다.
 모든 완료 예정 시각 계산에는 release time을 반영한다.
 
-\textbf{Descent.} 세 무브군(출고 트럭 재배치, 컴파운드 트럭의 도어 교환/빈 도어 이동, 두
-트럭 목적지 스왑)에 대한 best-improvement 지역탐색으로, local optimum에서
+\textbf{Descent.} 세 가지 이동 유형(출고 트럭 재배치, 컴파운드 트럭의 도어 교환/빈 도어 이동, 두
+트럭의 목적지 교환)에 대한 best-improvement 지역탐색으로, local optimum에서
 종료하며 초기해·모든 신규 incumbent·최종해에 적용한다.
 
 \textbf{반복 탐색.} 1{,}000회 반복한다. 선택 정책이 연산자 하나를 뽑아
-현재 해에서 후보를 생성하고, 후보가 전역 best를 개선하면 descent를 적용해
+현재 해에서 후보를 생성하고, 후보가 전역 최선해를 개선하면 descent를 적용해
 incumbent를 갱신한다. acceptance는 초기 온도 $T_0=\max\{1,0.05\,J(s_0)\}$, 기하
 냉각 $T\leftarrow0.995\,T$의 simulated annealing이다. 30회 연속 개선이 없으면 현재 최선해에서
 random kick 3회로 재시작하고 $T\leftarrow\max\{T,0.02\,J(s^*)\}$로 reheat한다.
 
 \textbf{Operator pool.} generic neighborhood 7종에, 현재 병목을 먼저 식별한 뒤 그
-주변을 best-of로 탐색하는 guided 연산자 4종을 더한다: (g1) critical door의 마지막
+주변에서 가능한 후보를 모두 평가해 최선을 택하는 guided 연산자 4종을 더한다: (g1) critical door의 마지막
 출고 트럭을 최선 도어·위치로 재배치, (g2) critical 트럭의 목적지를 전 트럭과
-대조해 최선 스왑, (g3)/(g4) most tardy 트럭 기준의 동일 무브(tardy인 트럭이 없으면
-g1/g2로 fallback). 고속 증분 evaluator(평가당 수십 $\mu$s)가 descent와 guided 무브를
+대조해 최선 교환, (g3)/(g4) most tardy 트럭 기준의 동일 이동(tardy인 트럭이 없으면
+g1/g2로 fallback). 고속 증분 evaluator(평가당 수십 $\mu$s)가 descent와 guided 이동을
 저렴하게 만든다.
 
 \textbf{선택 정책과 원 모델의 비교.} 선택 정책은 교체할 수 있으며 기본값은
-균등 무작위 선택이다. 학습 정책(SA-RL5의 tabular Q-learning, 규모 불변 피처로
+균등 무작위 선택이다. 학습 정책(SA-RL5의 tabular Q-learning, 규모 불변 특징(feature)으로
 오프라인 학습한 transfer DQN)는 ablation 목적으로만 평가하며 제안 방법의 일부가
-아니다. 원 모델 SA-RL5는 RL이 단일 무브를 고르고 SA accept/reject로 스텝이 끝나는
-\emph{순수} simulated annealing인 반면, VAA-GILS는 그 한 연산자 스텝을 iterated
-local search 안에 넣고 guided 연산자, 개선 무브마다의 full descent, kick
-restart를 더한다. 가장 중요한 차이는 개선 무브 이후의 descent이며, ablation은
+아니다. 원 모델 SA-RL5는 RL이 단일 이동을 고르고 SA accept/reject로 한 단계가 끝나는
+\emph{순수} simulated annealing인 반면, VAA-GILS는 그 한 연산자 적용 단계를 iterated
+local search 안에 넣고 guided 연산자, 개선 이동마다의 full descent, kick
+restart를 더한다. 가장 중요한 차이는 개선 이동 이후의 descent이며, ablation은
 이것이 품질 이득의 대부분을 설명함을 보인다. 표~\ref{tab:base}가 두 방법의 구조적
 차이를 요약한다.
 
@@ -254,9 +255,9 @@ restart를 더한다. 가장 중요한 차이는 개선 무브 이후의 descent
 \midrule
 전체 틀 & 순수 simulated annealing & iterated local search (SA는 acceptance만) \\
 반복당 연산자 & 1개 & 1개 (동일) \\
-연산자 pool & 이웃 7종 & 그 7종 + guided 4종 \\
+연산자 집합 & 이웃 7종 & 그 7종 + guided 4종 \\
 연산자 선택 & online Q-learning/roulette & uniform random (학습은 ablation 전용) \\
-개선 무브 이후 & 없음(SA step이 전부) & full best-improvement descent \\
+개선 이동 이후 & 없음(SA step이 전부) & full best-improvement descent \\
 정체 처리 & 없음 & kick restart + reheat \\
 acceptance & SA(Metropolis) & SA(Metropolis; ablation상 생략 가능) \\
 목적함수 & makespan & makespan $+\lambda\cdot$ tardiness \\
@@ -271,86 +272,89 @@ $t_k\sim U[1,5]$, 도어는 $100\times100$ 랜덤 배치이다. 시간 제약 �
 none/medium/tight이며 medium/tight에서 $r\sim U[0,\rho H]$, $\bar d=r+\delta H$,
 $(\rho,\delta)=(0.25,0.60),(0.50,0.35)$이다.
 
-seed는 서로소인 train/tuning/test 풀로 분리한다. 주 해품질 비교(표~\ref{tab:main})는
-셀당 test 인스턴스 20개 $\times$ replication 5회를 사용하고, 통제된 ablation은
+seed는 서로소인 train/tuning/test 집합으로 분리한다. 주 해품질 비교(표~\ref{tab:main})는
+실험 조건당 test 인스턴스 20개 $\times$ replication 5회를 사용하고, 통제된 ablation은
 동일예산·동일구조 분해이므로 원래의 5-인스턴스 설계를 유지한다. 인스턴스별로
 replication을 평균한 뒤 짝지은 인스턴스 평균에 양측 Wilcoxon signed-rank test를
 적용한다. GILS는 1{,}000회 반복한다. CP-SAT는 인스턴스당 1회, 8 thread로 S
-300초(5개), M/L 600초(셀당 2개) 실행하며 S-none 5개만 최적이 증명된다. 주 지표는
+300초(5개), M/L 600초(조건당 2개) 실행하며 S-none 5개만 최적이 증명된다. 주 지표는
 모든 방법과 예산 및 CP-SAT 결과를 포함하여 관측된 최선해에 대한 인스턴스별 gap
 $\Delta_{bo}$이다.
 
 \section{실험 결과}
 \subsection{해 품질}
 표~\ref{tab:main}이 20-인스턴스 test 결과를 요약한다. 평균목적값·$\Delta_{bo}$는
-20-인스턴스 기준이고, vs CP-SAT는 CP-SAT 기준해가 있는 부분집합(S 셀 5개, M-none 2개)만이며
+20-인스턴스 기준이고, vs CP-SAT는 CP-SAT 기준해가 있는 부분집합(S 조건 5개, M-none 2개)만이며
 S-none만 최적이 증명된다. CP-SAT 기준해가 있는 모든 실험 조건에서 GILS는 이에 근접한다(기본 selector인
 uniform 기준 0.11--0.21\%, 학습 selector를 포함한 전체 변형 기준 0.1--0.6\%). 기본(default) selector인 uniform 기준으로, GILS는 VAA를
 평균 2.65\%($n=180$, $p<10^{-4}$), SA-RL5를 1.38\%($n=60$, $p<10^{-4}$) 능가한다.
 GILS의 평균 실행 시간은 S/M/L에서 0.11, 0.52, 2.3초, CP-SAT는 76, 237, 376초이다.
 
 \begin{table}[t]\centering
-\caption{20-인스턴스 test 결과. $\Delta_{bo}$는 관측된 최선해 대비 평균 gap.
-vs CP-SAT는 CP-SAT 기준해가 있는 부분집합(S-none은 증명된 최적).}
+\caption{20-인스턴스 test 결과(실험 조건당 인스턴스 20개 $\times$ 반복 5회).
+$\Delta_{bo}$는 관측된 최선해 대비 평균 gap, 시간은 1회 실행 평균이다. vs CP-SAT는
+CP-SAT가 기준해를 제공한 부분집합(S 조건 각 5개, M-none 2개)에서만 계산하였으며,
+이 가운데 S-none만 최적성이 증명되었다. 같은 부분집합에서 CP-SAT의 평균 실행시간은
+S 조건 76초, M-none 237초이다.}
 \label{tab:main}\small
-\begin{tabular}{@{}llrrr@{}}
+\begin{tabular}{@{}llrrrr@{}}
 \toprule
-셀 & 방법 & 평균목적값$\pm$표준편차 & $\Delta_{bo}$(\%) & vs CP-SAT(\%)\\
+실험 조건 & 방법 & 평균목적값$\pm$표준편차 & $\Delta_{bo}$(\%) & vs CP-SAT(\%) & 시간(초)\\
 \midrule
-S-none & VAA & $1497.5\pm400.3$ & 6.60 & $+6.49$\\
- & Paper-SA-RL5 & $1423.3\pm383.6$ & 1.03 & $+1.21$\\
- & GILS-uniform & $1411.8\pm382.7$ & 0.16 & $+0.21$\\
- & GILS-tabular & $1412.9\pm381.3$ & 0.28 & $+0.33$\\
- & GILS-DQN & $1416.1\pm382.4$ & 0.51 & $+0.75$\\
-S-medium & VAA & $5447.5\pm1468.9$ & 3.89 & $+3.33$\\
- & GILS-uniform & $5255.7\pm1413.3$ & 0.08 & $+0.11$\\
- & GILS-tabular & $5259.1\pm1412.3$ & 0.15 & $+0.18$\\
- & GILS-DQN & $5270.8\pm1415.3$ & 0.38 & $+0.55$\\
-S-tight & VAA & $9276.8\pm2387.6$ & 2.90 & $+2.17$\\
- & GILS-uniform & $9010.8\pm2206.1$ & 0.09 & $+0.21$\\
- & GILS-tabular & $9011.9\pm2206.7$ & 0.11 & $+0.17$\\
- & GILS-DQN & $9022.0\pm2205.3$ & 0.23 & $+0.34$\\
-M-none & VAA & $3030.9\pm903.6$ & 3.73 & $+4.80$\\
- & Paper-SA-RL5 & $2976.4\pm864.4$ & 1.86 & $+0.99$\\
- & GILS-uniform & $2928.9\pm842.6$ & 0.29 & $+0.13$\\
- & GILS-tabular & $2932.1\pm846.3$ & 0.37 & $+0.11$\\
- & GILS-DQN & $2932.5\pm845.5$ & 0.40 & $+0.19$\\
-M-medium & VAA & $23025.5\pm4075.4$ & 2.56 & ---\\
- & GILS-uniform & $22526.4\pm3960.5$ & 0.29 & ---\\
- & GILS-tabular & $22515.5\pm3964.0$ & 0.24 & ---\\
- & GILS-DQN & $22540.3\pm3956.4$ & 0.36 & ---\\
-M-tight & VAA & $38903.7\pm11283.5$ & 1.25 & ---\\
- & GILS-uniform & $38528.0\pm11078.0$ & 0.19 & ---\\
- & GILS-tabular & $38512.1\pm11059.5$ & 0.16 & ---\\
- & GILS-DQN & $38543.6\pm11077.6$ & 0.24 & ---\\
-L-none & VAA & $5492.3\pm1482.2$ & 2.21 & ---\\
- & Paper-SA-RL5 & $5479.7\pm1449.5$ & 1.97 & ---\\
- & GILS-uniform & $5388.4\pm1427.3$ & 0.27 & ---\\
- & GILS-tabular & $5385.5\pm1424.6$ & 0.22 & ---\\
- & GILS-DQN & $5386.1\pm1425.2$ & 0.23 & ---\\
-L-medium & VAA & $55611.1\pm18087.3$ & 1.52 & ---\\
- & GILS-uniform & $54846.4\pm17523.5$ & 0.10 & ---\\
- & GILS-tabular & $54833.4\pm17526.8$ & 0.07 & ---\\
- & GILS-DQN & $54848.8\pm17522.9$ & 0.11 & ---\\
-L-tight & VAA & $119671.9\pm32475.3$ & 0.77 & ---\\
- & GILS-uniform & $118901.4\pm31781.1$ & 0.08 & ---\\
- & GILS-tabular & $118865.6\pm31788.4$ & 0.05 & ---\\
- & GILS-DQN & $118888.8\pm31789.1$ & 0.07 & ---\\
+S-none & VAA & $1497.5\pm400.3$ & 6.60 & $+6.49$ & 0.00\\
+ & Paper-SA-RL5 & $1423.3\pm383.6$ & 1.03 & $+1.21$ & 0.15\\
+ & GILS-uniform & $1411.8\pm382.7$ & 0.16 & $+0.21$ & 0.08\\
+ & GILS-tabular & $1412.9\pm381.3$ & 0.28 & $+0.33$ & 0.11\\
+ & GILS-DQN & $1416.1\pm382.4$ & 0.51 & $+0.75$ & 0.23\\
+S-medium & VAA & $5447.5\pm1468.9$ & 3.89 & $+3.33$ & 0.00\\
+ & GILS-uniform & $5255.7\pm1413.3$ & 0.08 & $+0.11$ & 0.08\\
+ & GILS-tabular & $5259.1\pm1412.3$ & 0.15 & $+0.18$ & 0.11\\
+ & GILS-DQN & $5270.8\pm1415.3$ & 0.38 & $+0.55$ & 0.22\\
+S-tight & VAA & $9276.8\pm2387.6$ & 2.90 & $+2.17$ & 0.00\\
+ & GILS-uniform & $9010.8\pm2206.1$ & 0.09 & $+0.21$ & 0.09\\
+ & GILS-tabular & $9011.9\pm2206.7$ & 0.11 & $+0.17$ & 0.11\\
+ & GILS-DQN & $9022.0\pm2205.3$ & 0.23 & $+0.34$ & 0.22\\
+M-none & VAA & $3030.9\pm903.6$ & 3.73 & $+4.80$ & 0.00\\
+ & Paper-SA-RL5 & $2976.4\pm864.4$ & 1.86 & $+0.99$ & 0.55\\
+ & GILS-uniform & $2928.9\pm842.6$ & 0.29 & $+0.13$ & 0.43\\
+ & GILS-tabular & $2932.1\pm846.3$ & 0.37 & $+0.11$ & 0.52\\
+ & GILS-DQN & $2932.5\pm845.5$ & 0.40 & $+0.19$ & 0.73\\
+M-medium & VAA & $23025.5\pm4075.4$ & 2.56 & --- & 0.00\\
+ & GILS-uniform & $22526.4\pm3960.5$ & 0.29 & --- & 0.44\\
+ & GILS-tabular & $22515.5\pm3964.0$ & 0.24 & --- & 0.55\\
+ & GILS-DQN & $22540.3\pm3956.4$ & 0.36 & --- & 0.75\\
+M-tight & VAA & $38903.7\pm11283.5$ & 1.25 & --- & 0.01\\
+ & GILS-uniform & $38528.0\pm11078.0$ & 0.19 & --- & 0.48\\
+ & GILS-tabular & $38512.1\pm11059.5$ & 0.16 & --- & 0.60\\
+ & GILS-DQN & $38543.6\pm11077.6$ & 0.24 & --- & 0.81\\
+L-none & VAA & $5492.3\pm1482.2$ & 2.21 & --- & 0.02\\
+ & Paper-SA-RL5 & $5479.7\pm1449.5$ & 1.97 & --- & 1.92\\
+ & GILS-uniform & $5388.4\pm1427.3$ & 0.27 & --- & 2.16\\
+ & GILS-tabular & $5385.5\pm1424.6$ & 0.22 & --- & 2.54\\
+ & GILS-DQN & $5386.1\pm1425.2$ & 0.23 & --- & 2.99\\
+L-medium & VAA & $55611.1\pm18087.3$ & 1.52 & --- & 0.02\\
+ & GILS-uniform & $54846.4\pm17523.5$ & 0.10 & --- & 2.10\\
+ & GILS-tabular & $54833.4\pm17526.8$ & 0.07 & --- & 2.52\\
+ & GILS-DQN & $54848.8\pm17522.9$ & 0.11 & --- & 2.85\\
+L-tight & VAA & $119671.9\pm32475.3$ & 0.77 & --- & 0.02\\
+ & GILS-uniform & $118901.4\pm31781.1$ & 0.08 & --- & 2.01\\
+ & GILS-tabular & $118865.6\pm31788.4$ & 0.05 & --- & 2.51\\
+ & GILS-DQN & $118888.8\pm31789.1$ & 0.07 & --- & 2.76\\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\subsection{성능은 어디에서 오는가}
+\subsection{핵심 구성요소 분석: 성능은 어디에서 오는가}
 세 가지 통제된 ablation(예산 1{,}000회 고정)으로 엔진을 분해한다.
 
-\textbf{Operator pool.} selection을 uniform으로 고정하고 pool만 generic(7)/
-critical(+g1,g2)/full(+g3,g4)로 바꾸면 $\Delta_{bo}$가 9개 셀 전부에서
+\textbf{Operator pool.} selection을 uniform으로 고정하고 연산자 집합만 generic(7)/
+critical(+g1,g2)/full(+g3,g4)로 바꾸면 $\Delta_{bo}$가 9개 실험 조건 전부에서
 generic $\ge$ critical $\ge$ full로 단조 감소한다(그림~\ref{fig:op}). 짝지은
 Wilcoxon(표~\ref{tab:b1})은 유도 연산자가 목적값을 일관되게·유의하게 낮춤을
 보인다.
 
 \begin{table}[H]\centering
-\caption{Operator-pool ablation(양측 Wilcoxon; $+$평균 = 풍부한 pool이 우세).}
+\caption{Operator-pool ablation(양측 Wilcoxon; $+$평균 = 더 풍부한 연산자 집합이 우세).}
 \label{tab:b1}\small
 \begin{tabular}{@{}lrrl@{}}
 \toprule
@@ -365,10 +369,10 @@ generic $\to$ full (전체 유도) & 166 & $+0.161$ & $<10^{-4}$\\
 
 \begin{figure}[H]\centering
 \includegraphics[width=0.82\columnwidth]{fig2_operator_pool.pdf}
-\caption{operator pool별 관측된 최선해 대비 gap.}\label{fig:op}
+\caption{연산자 집합별 관측된 최선해 대비 gap.}\label{fig:op}
 \end{figure}
 
-\textbf{Engine components.} pool을 full, selection을 uniform으로 고정하고 컴포넌트를
+\textbf{Engine components.} 연산자 집합을 full, selection을 uniform으로 고정하고 구성요소를
 하나씩 제거하면(표~\ref{tab:b2}), best-improvement descent의 기여가 가장 크고 kick
 restart가 그다음이며, VAA 초기해는 통계적으로 유의하지 않고 확률적 acceptance는
 제거해도 목적값이 나빠지지 않는다(그림~\ref{fig:comp}).
@@ -378,7 +382,7 @@ restart가 그다음이며, VAA 초기해는 통계적으로 유의하지 않고
 \label{tab:b2}\small
 \begin{tabular}{@{}lrrl@{}}
 \toprule
-제거 컴포넌트 & $n$ & 악화(\%p) & $p$\\
+제거 구성요소 & $n$ & 악화(\%p) & $p$\\
 \midrule
 best-improvement descent & 45 & $+0.156$ & $<10^{-4}$\\
 kick restart & 43 & $+0.069$ & $<10^{-4}$\\
@@ -390,15 +394,15 @@ stochastic acceptance & 45 & $-0.026$ & 0.0014\\
 
 \begin{figure}[H]\centering
 \includegraphics[width=0.82\columnwidth]{fig3_component_ablation.pdf}
-\caption{컴포넌트 제거 시 목적값 악화율.}\label{fig:comp}
+\caption{구성요소 제거 시 목적값 악화율.}\label{fig:comp}
 \end{figure}
 
-\textbf{Learned operator selection.} pool과 컴포넌트를 full로 고정하고 selection만
-바꾸면(표~\ref{tab:sel}), 어떤 learned policy도 uniform을 실용적으로 능가하지
-못한다. 예산 50--3{,}000회에서 uniform은 $0.47\to0.16\%$, tabular는
-$0.56\to0.09\%$, DQN은 $0.56\to0.26\%$로 움직이며, 방향은 예산에 따라 뒤집힌다
-(그림~\ref{fig:sel}). 이러한 부정적 결과는 무제약 조건만으로도 성립하므로 시간 제약
-확장 때문에 나타난 결과가 아니다.
+\subsection{보조 분석: 학습 기반 연산자 선택}
+연산자 집합과 구성요소를 full로 고정하고 selection만 바꾸면(표~\ref{tab:sel}), 어떤
+learned policy도 uniform을 실용적으로 능가하지 못한다. 50--3{,}000회의 모든 예산
+구간에서도 결과는 같고 우열의 방향이 예산에 따라 뒤집히며(부록 그림~\ref{fig:sel}),
+이러한 부정적 결과는 무제약 조건만으로도 성립하므로 시간 제약 확장 때문에 나타난
+결과가 아니다.
 
 \begin{table}[H]\centering
 \caption{1{,}000회에서의 selection 효과(양측 Wilcoxon; 양의 평균 = 앞 방법 우세).}
@@ -414,13 +418,8 @@ uniform vs DQN & $+0.11$ & $<10^{-4}$ & DQN 열세\\
 \end{tabular}
 \end{table}
 
-\begin{figure}[H]\centering
-\includegraphics[width=0.72\textwidth]{fig1_selector_budget.pdf}
-\caption{iteration budget에 따른 관측된 최선해 대비 gap.}\label{fig:sel}
-\end{figure}
-
 \subsection{Tardiness-weight 민감도}
-식~\eqref{eq:obj}이 시간 단위 성분 둘을 합치므로 tuning 풀에서
+식~\eqref{eq:obj}이 시간 단위 성분 둘을 합치므로 tuning 집합에서
 $\lambda\in\{0,0.25,0.5,1,2,4,8\}$을 스윕한다. 물리적 makespan과 총 tardiness를
 인스턴스별로 min--max 정규화해 평균한다(그림~\ref{fig:lam}). tardiness 감소의
 대부분은 $\lambda=0$에서 $1$ 사이에서 일어나고 이후에는 그 폭이 줄어든다. 전체 스윕 구간에서 평균
@@ -436,40 +435,47 @@ makespan은 약 1\% 상승, 평균 tardiness는 2--3\% 하락한다. $\lambda=1$
 \section{논의}
 selector 결과는 본 탐색 과정 안에서 해석해야 한다. 후보 평가가 수십 $\mu$s로
 저렴하고, 모든 신규 incumbent 뒤에 결정론적 descent가 따른다. 같은 basin에
-들어간 두 실행은 선행 무브가 달라도 같은 해로 수렴할 수 있으며, budget 곡선은 이
+들어간 두 실행은 선행 이동이 달라도 같은 해로 수렴할 수 있으며, budget 곡선은 이
 수렴이 대부분의 test 인스턴스에서 1{,}000회 이전에 일어남을 시사한다. 같은
 이유로 SA acceptance와 reheating은 기저 SA-RL5 framework와의 comparability를 위해
 유지하였으나, ablation은 본 설정에서 이들이 해 품질에 필수적이지 않음을 보인다.
 
 정책이 예측할 정보도 적다. 인스턴스는 정적이고 모든 release는 최적화 전에 알려져
-있다. 이는 도착 정보가 시간의 흐름에 따라 공개되는 online dock control이나 개별 무브의 평가 비용이
+있다. 이는 도착 정보가 시간의 흐름에 따라 공개되는 online dock control이나 개별 이동의 평가 비용이
 비싼 simulation 모형과 다르며, 그런 환경에서는 learned selection의 역할이 커질 수
 있다. 본 결과가 뒷받침하는 바는 제한적이다. 즉, learned selector는 동일한 엔진과 동일한
 예산에서 uniform sampling과 비교되어야 하며, 그 통제가 없으면 descent·restart·강한
-무브군의 이득이 정책 자체의 것으로 잘못 귀속될 수 있다.
+이동 집합의 이득이 정책 자체의 것으로 잘못 귀속될 수 있다.
 
 \section{결론}
 본 연구는 부분 하역 컴파운드 트럭 스케줄링에 release time과 soft due date를
 도입하고, MILP·CP-SAT 정식화와 유효 하한으로 휴리스틱 해를 검증하였다. CP-SAT
-기준해가 있는 실험 조건에서 VAA-GILS의 목적값은 해당 incumbent 대비 1\% 미만이었고(소형은 증명된
-최적), 대형 시간 제약 조건에서는 수 초 안에 비교 방법 가운데 가장 좋은 해를 제공하였다.
-ablation은 성능이 best-improvement descent, guided 무브, restart라는 결정론적
+기준해가 있는 실험 조건에서 VAA-GILS의 목적값은 해당 기준해 대비 평균 0.11--0.21\%였고(소형 무제약
+조건에서는 CP-SAT가 최적성을 증명하였다), 대형 시간 제약 조건에서는 수 초 안에 비교 방법 가운데 가장 좋은 해를 제공하였다.
+ablation은 성능이 best-improvement descent, guided 이동, restart라는 결정론적
 구조에서 비롯되며, 학습 기반 연산자 선택·학습된 초기해·확률적 acceptance는 이
 환경에서 실용적 이득을 주지 않음을 보였다. 향후에는 도착 정보가 실시간으로 공개되는 동적
 문제, 대형 시간 제약 조건을 위한 더 강한 하한, 산업 데이터를 활용한 사례 연구가 필요하다.
 
 \appendix
 \section{Transfer DQN 구현 세부}
-transfer DQN은 매 반복 11개 연산자 pool에서 하나를 고른다. Q-network는 27차원 규모
+transfer DQN은 매 반복 11개 연산자 집합에서 하나를 고른다. Q-network는 27차원 규모
 불변 상태를 연산자별 Q값으로 사상하는 MLP로, 64 unit의 hidden layer 2개와 ReLU를
 쓴다. 학습은 용량 100{,}000의 replay buffer를 사용하며, 500 transition warm-up 후
 매 step 1회 gradient step으로 Huber(smooth-$L_1$) temporal-difference loss를 Adam
 (learning rate $10^{-3}$, discount $\gamma=0.9$)으로 최소화한다. mini-batch는 64,
 target network는 500 step마다 동기화한다. reward는 shaped signal(신규 incumbent 2,
-비악화 1, 그 외 0)이다. agent는 \emph{train} 풀(S/M 규모, 모든 화물 분포·시간 제약 조건)에서 500회
+비악화 1, 그 외 0)이다. agent는 \emph{train} 집합(S/M 규모, 모든 화물 분포·시간 제약 조건)에서 500회
 실행으로 오프라인 학습($\varepsilon$-greedy) 후, \emph{test} 인스턴스에 zero-shot
 ($\varepsilon=0$, 갱신 없음)으로 적용한다. 결과가 uniform 대비 개선이 없다는
 것이므로, 재현·강화가 가능하도록 network·학습 스크립트·seed를 공개한다.
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.72\textwidth]{fig1_selector_budget.pdf}
+\caption{iteration budget별 관측된 최선해 대비 gap. 50--3{,}000회에서 uniform은
+$0.47\to0.16\%$, tabular는 $0.56\to0.09\%$, DQN은 $0.56\to0.26\%$로 움직이며,
+어떤 예산에서도 learned selector가 uniform을 뚜렷하게 능가하지 않는다.}\label{fig:sel}
+\end{figure}
 
 \section*{생성형 AI 사용 명시}
 원고 준비 과정에서 저자들은 언어 교정, 원고 구성, 참고문헌 확인, 계산 코드

@@ -283,12 +283,12 @@ $\Delta_{bo}$이다.
 
 \section{실험 결과}
 \subsection{해 품질}
-표~\ref{tab:main}이 20-인스턴스 test 결과를 요약한다. 평균목적값·$\Delta_{bo}$는
-20-인스턴스 기준이고, vs CP-SAT는 CP-SAT 기준해가 있는 부분집합(S 조건 5개, M-none 2개)만이며
-S-none만 최적이 증명된다. CP-SAT 기준해가 있는 모든 실험 조건에서 GILS는 이에 근접한다(기본 selector인
-uniform 기준 0.11--0.21\%, 학습 selector를 포함한 전체 변형 기준 0.1--0.6\%). 기본(default) selector인 uniform 기준으로, GILS는 VAA를
-평균 2.65\%($n=180$, $p<10^{-4}$), SA-RL5를 1.38\%($n=60$, $p<10^{-4}$) 능가한다.
-GILS의 평균 실행 시간은 S/M/L에서 0.11, 0.52, 2.3초, CP-SAT는 76, 237, 376초이다.
+표~\ref{tab:main}이 20-인스턴스 test 결과를 요약한다. CP-SAT가 기준해를 제공한
+실험 조건에서 GILS는 이에 근접하며, 기본 selector인 uniform 기준 0.11--0.21\%이다
+(학습 selector를 포함한 전체 변형은 0.1--0.6\%). 같은 selector 기준으로 GILS는
+VAA를 평균 2.65\%($n=180$, $p<10^{-4}$), SA-RL5를 1.38\%($n=60$, $p<10^{-4}$)
+능가한다. 실행 시간은 S/M/L에서 각각 0.11, 0.52, 2.3초로, 같은 조건의
+CP-SAT(76, 237, 376초)보다 두세 자릿수 짧다.
 
 \begin{table}[t]\centering
 \caption{20-인스턴스 test 결과(실험 조건당 인스턴스 20개 $\times$ 반복 5회).

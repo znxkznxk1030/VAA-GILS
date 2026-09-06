@@ -9,34 +9,9 @@ University, Seoul, Republic of Korea (znxkznxk1030@yonsei.ac.kr)
 
 ## Abstract
 
-This paper considers a multi-door cross-dock in which a truck can be partially
-unloaded and then leave as an outbound carrier. Existing compound-truck models
-place every truck at the dock at time zero and optimize makespan. Here, trucks
-have individual release times and soft departure due dates, and the objective
-also charges tardiness. We formulate the resulting problem as a mixed-integer
-program and as a CP-SAT model, and use separate train, tuning, and test seeds in
-the computational study. Our solution method, VAA-GILS, starts from a
-Vogel-style construction and uses best-improvement descent throughout the
-search. Its additional moves focus on
-the door that determines makespan or on the truck with the greatest tardiness;
-simulated-annealing acceptance and kick restarts provide diversification. On
-the subsets for which CP-SAT produced a reference, the resulting objectives
-were 0.1–0.6% from the CP-SAT incumbents. The small no-window references were
-proven optimal. A GILS run took 0.1–2.3 seconds, compared with 76–376 seconds
-for CP-SAT. For the larger time-window cases, CP-SAT found no feasible schedule
-within 600 seconds, while GILS returned the best solutions among the methods
-tested. It also outperformed our implementation of the earlier RL-based
-simulated annealing baseline ($p<10^{-4}$). The ablation results are less favorable
-to learning-based additions. Descent, the bottleneck moves, and kick restarts
-account for the observed improvement.
-Changing the initial solution, retaining stochastic acceptance, or replacing
-uniform operator sampling with tabular Q-learning or a transfer DQN changed the
-objective by no more than 0.2 percentage points. The learned selectors did not
-win at any tested budget. This result is specific to the benchmark and search
-architecture studied here.
+This paper considers a multi-door cross-dock in which a compound truck is partially unloaded and then departs as the outbound carrier of one destination. Existing compound-truck models assume that every truck is available at time zero and minimize makespan only. We extend the problem with per-truck release times and soft due dates — deadlines that may be violated at a tardiness cost rather than hard constraints — and minimize makespan plus total tardiness. The problem is formulated as a mixed-integer program and as a CP-SAT model, and evaluated under a reproducible protocol with disjoint train, tuning, and test seed sets. The proposed method, VAA-GILS, is an iterated local search that starts from a Vogel-style construction and combines best-improvement descent, bottleneck-guided operators, and kick restarts. On the conditions for which CP-SAT returned a reference solution, VAA-GILS is within 0.11–0.21% of that reference in under one second, compared with 76–237 seconds for CP-SAT; on the small unconstrained condition, where CP-SAT proved optimality, the proposed method averages 0.21% above the proven optimum. On the larger time-constrained conditions, where CP-SAT found no feasible schedule within 600 seconds, it returns the best solutions observed among the tested methods. A controlled ablation attributes the improvement to the deterministic search structure — descent, the bottleneck-guided operators, and kick restarts — whereas learned operator selection provides no additional benefit over uniform selection under equal computational budgets.
 
-**Keywords:** cross-docking; truck scheduling; time windows; iterated local
-search; constraint programming; guided local search
+**Keywords:** cross-docking; truck scheduling; release times; soft due dates; iterated local search; constraint programming
 
 ## 1. Introduction
 
@@ -752,7 +727,7 @@ improve meaningfully on uniform operator sampling. Nor did the final result
 depend much on the starting solution or simulated-annealing acceptance. These
 findings are specific to the present benchmark. An online version with
 unrevealed arrivals would provide a more demanding test of adaptive policies;
-tighter bounds for the larger time-window cases are another priority.
+tighter bounds for the larger time-constrained conditions are another priority.
 
 ## Appendix A. Transfer-DQN implementation details
 

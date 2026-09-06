@@ -28,24 +28,23 @@ CP-SAT로 검증한 병목 유도 Iterated Local Search}}
 
 \begin{abstract}
 \noindent
-컴파운드 트럭(compound truck)이 부분 하역된 뒤 특정 목적지의
-출고 운송 트럭으로 전환되는 다중 도어 크로스도킹 스케줄링 문제를 다룬다.
-기존 컴파운드 트럭 모델은 모든 트럭이 시각 0에 가용하다고 가정하고 총 작업완료시간
-(makespan)만 최소화한다. 본 연구는 트럭별 도착 시각(release time)과, 위반을 허용하되
-지연 비용을 부과하는 soft due date를 도입하여 makespan과 총 납기지연(tardiness)의
-가중합을 최소화하는 문제로 확장한다. 이를 mixed-integer
-program(MILP)과 CP-SAT 모형으로 정식화하고, 유효한 조합적 하한(lower bound)과
-서로 겹치지 않는 train, tuning, test seed 집합을 사용한 재현 가능한 벤치마크를 제시한다. 제안 방법
-VAA-GILS는 Vogel식 construction, best-improvement descent, 병목(bottleneck)을
-겨냥한 guided 연산자, simulated annealing acceptance, kick restart를 결합한
-iterated local search이다. CP-SAT 기준해가 존재하는 모든 실험 조건에서 VAA-GILS는
-해당 CP-SAT incumbent 대비 0.1--0.6\% 이내의 목적값을 1초 미만에 얻었으며(CP-SAT는 76--376초),
-소형 무(無)시간창 인스턴스에서는 증명된 최적해와 일치하였다. CP-SAT가 600초 내
-실행 가능해를 찾지 못한 대형 시간창 조건에서는 비교 방법 가운데 가장 좋은 해를
-제공하였다. 통제된 ablation 결과는 성능 향상이 descent, guided 연산자, restart라는 결정론적
-구조에서 비롯되며, 학습 기반 연산자 선택(tabular Q-learning, transfer DQN),
-학습된 초기해, 확률적 acceptance는 이 환경에서 동일 예산의 균등 연산자 선택을
-능가하지 못함을 보인다.
+컴파운드 트럭(compound truck)이 부분 하역된 뒤 특정 목적지의 출고 트럭으로
+전환되는 다중 도어 크로스도킹 스케줄링 문제를 다룬다. 기존 컴파운드 트럭 모델은
+모든 트럭이 시각 0에 도착한다고 가정하고 총 작업완료시간(makespan)만 최소화한다.
+본 연구는 트럭별 도착 시각(release time)과, 위반을 허용하되 지연 비용을 부과하는
+soft due date를 도입하고, makespan과 총 납기지연(tardiness)의 합을 최소화하는
+문제로 확장한다. 문제를 mixed-integer program과 CP-SAT 모형으로 정식화하고, 서로
+겹치지 않는 train, tuning, test seed 집합을 사용한 재현 가능한 실험 프로토콜을
+제시한다. 제안 방법인 VAA-GILS는 Vogel식 구성 기법으로 생성한 초기해에
+best-improvement descent, 병목(bottleneck) 유도 연산자, 그리고 kick restart를
+결합한 iterated local search이다. CP-SAT가 기준해를 제공한 실험 조건에서
+VAA-GILS는 그 기준해 대비 평균 0.11--0.21\%의 목적값을 1초 미만에 얻었다(CP-SAT는
+76--237초). 이 가운데 소형 무제약 조건은 CP-SAT가 최적성을 증명한 경우로, 제안
+방법은 증명된 최적해 대비 평균 0.21\%였다. CP-SAT가 600초 이내에 실행 가능한 해를
+찾지 못한 대형 시간 제약 조건에서도, 제안 방법은 비교 방법 가운데 가장 우수한 해를
+제공하였다. Ablation 실험 결과, 성능 향상에는 descent, 병목 유도 연산자, restart로
+구성된 결정론적 탐색 구조가 주요하게 기여한 것으로 나타났다. 한편 학습 기반 연산자
+선택은 동일 예산의 균등 선택 대비 추가 이득을 보이지 않았다.
 
 \smallskip
 \noindent\textbf{주제어:} cross-docking; compound truck; release time; soft due date;
@@ -180,7 +179,7 @@ big-$M$ disjunction을 enforcement literal로 대체하고 시간을 0.01 단위
 정수화하며, 모든 배정을 고정하면 독립 evaluator의 완료 시각이 재현되어 model
 fidelity가 확인된다.
 
-\subsection{시간창 확장과 목적함수}
+\subsection{시간 제약 확장과 목적함수}
 각 트럭 $q\in I\cup F$는 앞서 정의한 release time $r_q\ge0$과 soft due date $\bar d_q$를 갖고
 $T_q\ge\max\{0,C_q-\bar d_q\}$이다. 목적함수는
 \begin{equation}
@@ -268,7 +267,7 @@ acceptance & SA(Metropolis) & SA(Metropolis; ablation상 생략 가능) \\
 \section{실험 설계}
 세 규모 $(|I|,|D|,|M|)$: S $(6,9,6)$, M $(12,18,12)$, L $(20,30,20)$, 컴파운드
 비율 $2/3$을 사용한다. flow는 상품 3종에 대해 $[0,20]$의 균등 정수,
-$t_k\sim U[1,5]$, 도어는 $100\times100$ 랜덤 배치이다. 시간창 수준은
+$t_k\sim U[1,5]$, 도어는 $100\times100$ 랜덤 배치이다. 시간 제약 수준은
 none/medium/tight이며 medium/tight에서 $r\sim U[0,\rho H]$, $\bar d=r+\delta H$,
 $(\rho,\delta)=(0.25,0.60),(0.50,0.35)$이다.
 
@@ -285,8 +284,8 @@ $\Delta_{bo}$이다.
 \subsection{해 품질}
 표~\ref{tab:main}이 20-인스턴스 test 결과를 요약한다. 평균목적값·$\Delta_{bo}$는
 20-인스턴스 기준이고, vs CP-SAT는 CP-SAT 기준해가 있는 부분집합(S 셀 5개, M-none 2개)만이며
-S-none만 최적이 증명된다. CP-SAT 기준해가 있는 모든 실험 조건에서 GILS는 이에 근접한다
-(vs CP-SAT 0.1--0.6\% 이내). 기본(default) selector인 uniform 기준으로, GILS는 VAA를
+S-none만 최적이 증명된다. CP-SAT 기준해가 있는 모든 실험 조건에서 GILS는 이에 근접한다(기본 selector인
+uniform 기준 0.11--0.21\%, 학습 selector를 포함한 전체 변형 기준 0.1--0.6\%). 기본(default) selector인 uniform 기준으로, GILS는 VAA를
 평균 2.65\%($n=180$, $p<10^{-4}$), SA-RL5를 1.38\%($n=60$, $p<10^{-4}$) 능가한다.
 GILS의 평균 실행 시간은 S/M/L에서 0.11, 0.52, 2.3초, CP-SAT는 76, 237, 376초이다.
 
@@ -398,7 +397,7 @@ stochastic acceptance & 45 & $-0.026$ & 0.0014\\
 바꾸면(표~\ref{tab:sel}), 어떤 learned policy도 uniform을 실용적으로 능가하지
 못한다. 예산 50--3{,}000회에서 uniform은 $0.47\to0.16\%$, tabular는
 $0.56\to0.09\%$, DQN은 $0.56\to0.26\%$로 움직이며, 방향은 예산에 따라 뒤집힌다
-(그림~\ref{fig:sel}). 이러한 부정적 결과는 무시간창 셀만으로도 성립하므로 시간창
+(그림~\ref{fig:sel}). 이러한 부정적 결과는 무제약 조건만으로도 성립하므로 시간 제약
 확장 때문에 나타난 결과가 아니다.
 
 \begin{table}[H]\centering
@@ -453,11 +452,11 @@ selector 결과는 본 탐색 과정 안에서 해석해야 한다. 후보 평�
 본 연구는 부분 하역 컴파운드 트럭 스케줄링에 release time과 soft due date를
 도입하고, MILP·CP-SAT 정식화와 유효 하한으로 휴리스틱 해를 검증하였다. CP-SAT
 기준해가 있는 실험 조건에서 VAA-GILS의 목적값은 해당 incumbent 대비 1\% 미만이었고(소형은 증명된
-최적), 대형 시간창 조건에서는 수 초 안에 비교 방법 가운데 가장 좋은 해를 제공하였다.
+최적), 대형 시간 제약 조건에서는 수 초 안에 비교 방법 가운데 가장 좋은 해를 제공하였다.
 ablation은 성능이 best-improvement descent, guided 무브, restart라는 결정론적
 구조에서 비롯되며, 학습 기반 연산자 선택·학습된 초기해·확률적 acceptance는 이
 환경에서 실용적 이득을 주지 않음을 보였다. 향후에는 도착 정보가 실시간으로 공개되는 동적
-문제, 대형 시간창 조건을 위한 더 강한 하한, 산업 데이터를 활용한 사례 연구가 필요하다.
+문제, 대형 시간 제약 조건을 위한 더 강한 하한, 산업 데이터를 활용한 사례 연구가 필요하다.
 
 \appendix
 \section{Transfer DQN 구현 세부}
@@ -467,7 +466,7 @@ transfer DQN은 매 반복 11개 연산자 pool에서 하나를 고른다. Q-net
 매 step 1회 gradient step으로 Huber(smooth-$L_1$) temporal-difference loss를 Adam
 (learning rate $10^{-3}$, discount $\gamma=0.9$)으로 최소화한다. mini-batch는 64,
 target network는 500 step마다 동기화한다. reward는 shaped signal(신규 incumbent 2,
-비악화 1, 그 외 0)이다. agent는 \emph{train} 풀(S/M 규모, 모든 flow·시간창 조건)에서 500회
+비악화 1, 그 외 0)이다. agent는 \emph{train} 풀(S/M 규모, 모든 화물 분포·시간 제약 조건)에서 500회
 실행으로 오프라인 학습($\varepsilon$-greedy) 후, \emph{test} 인스턴스에 zero-shot
 ($\varepsilon=0$, 갱신 없음)으로 적용한다. 결과가 uniform 대비 개선이 없다는
 것이므로, 재현·강화가 가능하도록 network·학습 스크립트·seed를 공개한다.

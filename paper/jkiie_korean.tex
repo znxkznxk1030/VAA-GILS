@@ -1,7 +1,7 @@
 % 대한산업공학회지(JKIIE) 제출용 한글 full paper (XeLaTeX + kotex)
 %   xelatex jkiie_korean.tex  (2회)
 % 원칙: 기술 용어는 자연스러움을 위해 영어를 그대로 사용한다.
-\documentclass[11pt,a4paper]{article}
+\documentclass[10pt,a4paper]{article}
 \usepackage[margin=25mm]{geometry}
 \usepackage{kotex}
 \usepackage{amsmath,amssymb}
@@ -13,6 +13,11 @@
 \usepackage{setspace}
 \setstretch{1.28}
 \usepackage[hidelinks]{hyperref}
+\usepackage{titlesec}
+\titleformat{\section}{\Large\bfseries}{\thesection.}{0.5em}{}
+\titleformat{\subsection}{\large\bfseries}{\thesubsection}{0.5em}{}
+\titlespacing*{\section}{0pt}{12pt}{6pt}
+\titlespacing*{\subsection}{0pt}{10pt}{4pt}
 \setlength{\parindent}{1em}
 
 \title{\vspace{-8mm}\textbf{도착 시각(release time)과 soft due date를 갖는\\
@@ -57,7 +62,7 @@ iterated local search; constraint programming; guided local search
 재고와 리드타임을 줄이는 물류 방식이다~\cite{boysen2010,vanbelle2012}. Joo와
 Kim~\cite{joo2013}이 도입하고 Shahmardan과 Sajadieh~\cite{shahmardan2020}가
 발전시킨 컴파운드 트럭 변형에서는 한 대의 트럭이 두 역할을 겸한다. 여러 목적지
-화물을 싣고 도착한 뒤 한 목적지의 화물은 유지하고 나머지만 \emph{부분적으로} 하역하며,
+화물을 싣고 도착한 뒤 한 목적지의 화물은 유지하고 나머지만 \textbf{부분적으로} 하역하며,
 이후 해당 목적지의 나머지 화물을 적재해 출고 운송 트럭으로 출발한다. 부분 하역은 전량 하역 대비
 makespan을 크게 줄이는 것으로 보고되어 LTL 통합 네트워크에서 실용적 매력이 크다.
 
@@ -110,10 +115,15 @@ optimization을 제시한다. 본 모형은 결정론적이며 각 release time�
 시점에 알려져 있다. 따라서 이들 불확실성 모형은 본 모형을 직접 대체하기보다 향후
 자연스럽게 확장할 수 있는 연구 방향에 해당한다.
 
-\textbf{가장 유사한 문제와 학습형 메타휴리스틱.} Li 등~\cite{li2026}은 mixed
-service mode door와 time window의 통합 트럭 배정·스케줄링을 Q-learning 기반 ALNS로
-푼다. 그 유연성은 도어 수준에 있고 트럭은 순수 입고·출고 트럭인 반면, 본 문제의
-유연성은 트럭 수준(컴파운드 트럭, 도어 간 직접 이송)에 있다. 한편 학습 기반
+\textbf{가장 유사한 문제와 학습형 메타휴리스틱.} Li 등~\cite{li2026}은 무인
+배송센터(distribution center)를 대상으로 mixed service mode dock의 통합 트럭
+배정·스케줄링을 Q-learning 기반 ALNS로 푼다. 이들 역시 도착 시각과 연장 가능한
+출발 예정 시각을 시간창 $(r_i,d_i)$로 두고 tardiness와 makespan을 목적에 포함하므로,
+시간 제약의 형태 자체는 본 연구와 유사하다. 그러나 유연성이 도어 수준에 있어 도어가
+적재 전용·하역 전용·혼합 모드 중 하나를 선택하고 트럭은 순수 입고·출고 트럭으로
+고정되며, 화물은 도어 간 직접 이송이 아니라 저장 구역을 경유해 AGV가 운반한다.
+반면 본 문제의 유연성은 트럭 수준에 있어, 부분 하역된 컴파운드 트럭이 특정 목적지의
+운송 트럭으로 전환되고 화물은 도어 간에 직접 이송된다. 한편 이들을 포함하여 학습 기반
 operator selection이 메타휴리스틱을 개선한다는 보고가 많으나, 본 연구는 강한 지역
 탐색을 갖춘 뒤에는 learned selector의 이득이 작다는 통제된 반례를 더한다.
 
@@ -200,20 +210,25 @@ critical-chain 하한은 $LB_{\mathrm{cc}}=\max_{q\in I\cup F}EF_q$이다. door-
 하한은 각 트럭의 최소 도어 점유
 \begin{equation}o_i=DE_i+\Big(H_i-\max_d h_{id}\Big)+\min_d\textstyle\sum_{j\in I\setminus\{i\}}h_{jd}+DL_i\tag{19}\end{equation}
 \begin{equation}o_f=DE_f+\min_d\textstyle\sum_{j\in I}h_{jd}+DL_f\tag{20}\end{equation}
-을 도어 수로 나눈 $LB_{\mathrm{da}}=\frac1{|M|}\big(\sum_i o_i+\sum_f o_f\big)$이다.
-둘 다 제약을 완화하므로 $LB_\tau=\max\{LB_{\mathrm{cc}},LB_{\mathrm{da}}\}$는
-makespan의 유효 하한이며, 각 $EF_q$가 $C_q$의 하한이므로
-$LB_T=\sum_{q:\bar d_q<\infty}\max\{0,EF_q-\bar d_q\}$이고
-$LB_J=LB_\tau+\lambda LB_T$는 식~\eqref{eq:obj}의 유효 하한이다.
+을 도어 수로 나눈 값이다.
+\begin{equation}LB_{\mathrm{da}}=\frac{1}{|M|}\Big(\sum_i o_i+\sum_f o_f\Big)\tag{21}\end{equation}
+두 하한 모두 제약을 완화하여 얻으므로 이들의 최댓값
+$LB_\tau=\max\{LB_{\mathrm{cc}},LB_{\mathrm{da}}\}$는 makespan의 유효 하한이다.
+또한 각 $EF_q$가 $C_q$의 하한이므로 구조적 지연 하한은
+\begin{equation}LB_T=\sum_{q:\bar d_q<\infty}\max\{0,\ EF_q-\bar d_q\}\tag{22}\end{equation}
+이며, $LB_J=LB_\tau+\lambda LB_T$는 식~\eqref{eq:obj}의 유효 하한이다.
 
 \section{VAA-GILS}
 
 VAA-GILS는 iterated local search의 구현체로, 연산자 내부 sampling과 acceptance를
-제외하면 결정론적이다.
+제외하면 결정론적이다. 이하에서 \textbf{원 모델}은 Shahmardan과
+Sajadieh~\cite{shahmardan2020}가 제안한 SA-RL5를 가리키며, VAA 구성 휴리스틱과
+generic 이웃 7종은 이 모델에서 가져왔다.
 
-\textbf{초기해 구성.} VAA는 Vogel식 regret으로 유지 목적지를 정하고, 완료 시각
-우선순위에 따라 출고 목적지를 배정한 뒤 완료 예정 시각이 가장 이른 도어에 삽입한다.
-모든 완료 예정 시각 계산에는 release time을 반영한다.
+\textbf{초기해 구성.} 원 모델의 VAA는 Vogel식 regret으로 컴파운드 트럭의 유지 목적지를
+정하고, 완료 시각 우선순위에 따라 출고 목적지를 배정한다. 도어 배정은 먼저 처리되는
+트럭을 도어 간 이송시간 합이 가장 작은 중앙 도어에 두고, 나머지 트럭은 작업 종료가 가장
+이른 도어에 차례로 삽입한다. 모든 완료 예정 시각 계산에는 release time을 반영한다.
 
 \textbf{Descent.} 세 가지 이동 유형(출고 트럭 재배치, 컴파운드 트럭의 도어 교환/빈 도어 이동, 두
 트럭의 목적지 교환)에 대한 best-improvement 지역탐색으로, local optimum에서
@@ -222,10 +237,13 @@ VAA-GILS는 iterated local search의 구현체로, 연산자 내부 sampling과 
 \textbf{반복 탐색.} 1{,}000회 반복한다. 선택 정책이 연산자 하나를 뽑아
 현재 해에서 후보를 생성하고, 후보가 전역 최선해를 개선하면 descent를 적용해
 incumbent를 갱신한다. acceptance는 초기 온도 $T_0=\max\{1,0.05\,J(s_0)\}$, 기하
-냉각 $T\leftarrow0.995\,T$의 simulated annealing이다. 30회 연속 개선이 없으면 현재 최선해 $s^*$의 복사본에서
-다시 시작한다. 이때 아래 generic 이웃 7종에서 균등 무작위로 뽑은 이동을 3회 연속
-적용하며, 각 이동은 직전 이동의 결과에 적용되고 재시작 직후에는 descent를 수행하지
-않는다. 이어서 $T\leftarrow\max\{T,0.02\,J(s^*)\}$로 reheat한다.
+냉각 $T\leftarrow0.995\,T$의 simulated annealing이다.
+
+\textbf{Kick restart와 reheating.} 30회 연속 개선이 없으면 \textbf{kick restart}를
+수행한다. 현재 최선해 $s^*$의 복사본에서 다시 시작하되, 아래 generic 이웃 7종에서
+균등 무작위로 뽑은 이동(kick)을 3회 연속 적용한다. 각 이동은 직전 이동의 결과에
+적용되며, 재시작 직후에는 descent를 수행하지 않는다. 이어서
+$T\leftarrow\max\{T,0.02\,J(s^*)\}$로 온도를 reheat한다.
 
 \textbf{Operator pool.} generic 이웃 7종은 원 모델의 이웃 구조를 그대로 사용한다:
 (k1) 두 트럭의 목적지 교환, (k2) 컴파운드 트럭 간 도어 교환, (k3) 출고 트럭 간 도어
@@ -240,10 +258,14 @@ g1/g2로 fallback). 고속 증분 evaluator(평가당 수십 $\mu$s)가 descent�
 저렴하게 만든다.
 
 \textbf{선택 정책과 원 모델의 비교.} 선택 정책은 교체할 수 있으며 기본값은
-균등 무작위 선택이다. 학습 정책(SA-RL5의 tabular Q-learning, 규모 불변 특징(feature)으로
-오프라인 학습한 transfer DQN)는 ablation 목적으로만 평가하며 제안 방법의 일부가
-아니다. 원 모델 SA-RL5는 RL이 단일 이동을 고르고 SA accept/reject로 한 단계가 끝나는
-\emph{순수} simulated annealing인 반면, VAA-GILS는 그 한 연산자 적용 단계를 iterated
+균등 무작위 선택이다. 학습 정책(SA-RL5의 tabular
+Q-learning~\cite{watkins1992}, 규모 불변 특징(feature)으로 오프라인 학습한 transfer
+DQN~\cite{mnih2015})은 ablation 목적으로만 평가하며 제안 방법의 일부가 아니다.
+tabular Q는 원 모델과 같이 무개선 구간 5-상태에서 $\varepsilon$-greedy 탐험과 룰렛
+활용을 쓰되, 보상은 원 모델의 이진 보상(후보가 현재 해보다 나쁘지 않으면 1, 아니면 0)
+대신 신규 incumbent 2·비악화 1·그 외 0의 셰이핑 보상을 사용한다. 이는 학습 신호를
+강화할 뿐이므로 비교 대상 selector를 불리하게 만들지 않는다. 원 모델 SA-RL5는 RL이 단일 이동을 고르고 SA accept/reject로 한 단계가 끝나는
+\textbf{순수} simulated annealing인 반면, VAA-GILS는 그 한 연산자 적용 단계를 iterated
 local search 안에 넣고 guided 연산자, 개선 이동마다의 full descent, kick
 restart를 더한다. 가장 중요한 차이는 개선 이동 이후의 descent이며, ablation은
 이것이 품질 이득의 대부분을 설명함을 보인다. 표~\ref{tab:base}가 두 방법의 구조적
@@ -493,7 +515,7 @@ $0.47\to0.16\%$, tabular는 $0.56\to0.09\%$, DQN은 $0.56\to0.26\%$로 움직이
 전적인 책임을 진다.
 
 \begin{thebibliography}{99}\small
-\bibitem{assadi2016} M. T. Assadi and M. Bagheri, ``Differential evolution and population-based simulated annealing for truck scheduling,'' \emph{Computers \& Industrial Engineering}, vol. 96, pp. 149--161, 2016.
+\bibitem{assadi2016} M. T. Assadi and M. Bagheri, ``Differential evolution and population-based simulated annealing for truck scheduling problem in multiple door cross-docking systems,'' \emph{Computers \& Industrial Engineering}, vol. 96, pp. 149--161, 2016.
 \bibitem{bodnar2017} P. Bodnar, R. de Koster, and K. Azadeh, ``Scheduling trucks in a cross-dock with mixed service mode dock doors,'' \emph{Transportation Science}, vol. 51, no. 1, pp. 112--131, 2017.
 \bibitem{boysen2010} N. Boysen and M. Fliedner, ``Cross dock scheduling: Classification, literature review and research agenda,'' \emph{Omega}, vol. 38, pp. 413--422, 2010.
 \bibitem{joo2013} C. M. Joo and B. S. Kim, ``Scheduling compound trucks in multi-door cross-docking terminals,'' \emph{International Journal of Advanced Manufacturing Technology}, vol. 64, pp. 977--988, 2013.
@@ -501,15 +523,15 @@ $0.47\to0.16\%$, tabular는 $0.56\to0.09\%$, DQN은 $0.56\to0.26\%$로 움직이
 \bibitem{konurcost2013} D. Konur and M. M. Golias, ``Cost-stable truck scheduling at a cross-dock facility with unknown truck arrivals,'' \emph{Transportation Research Part E}, vol. 49, no. 1, pp. 71--91, 2013.
 \bibitem{ladier2016} A.-L. Ladier and G. Alpan, ``Robust cross-dock scheduling with time windows,'' \emph{Computers \& Industrial Engineering}, vol. 99, pp. 16--28, 2016.
 \bibitem{larbi2011} R. Larbi, G. Alpan, P. Baptiste, and B. Penz, ``Scheduling cross docking operations under full, partial and no information on inbound arrivals,'' \emph{Computers \& Operations Research}, vol. 38, no. 6, pp. 889--900, 2011.
-\bibitem{li2026} Y. Li, M. Mohammadi, X. Zhang, Y. Lan, and W. van Jaarsveld, ``Integrated trucks assignment and scheduling with mixed service mode docks,'' \emph{European Journal of Operational Research}, vol. 333, no. 1, pp. 117--137, 2026.
+\bibitem{li2026} Y. Li, M. Mohammadi, X. Zhang, Y. Lan, and W. van Jaarsveld, ``Integrated trucks assignment and scheduling problem with mixed service mode docks: A Q-learning based adaptive large neighborhood search algorithm,'' \emph{European Journal of Operational Research}, vol. 333, no. 1, pp. 117--137, 2026.
 \bibitem{molavi2018} D. Molavi, A. Shahmardan, and M. S. Sajadieh, ``Truck scheduling in a cross docking systems with fixed due dates and shipment sorting,'' \emph{Computers \& Industrial Engineering}, vol. 117, pp. 29--40, 2018.
-\bibitem{rijal2019} A. Rijal, M. Bijvank, and R. de Koster, ``Integrated scheduling and assignment of trucks at unit-load cross-dock terminals,'' \emph{European Journal of Operational Research}, vol. 278, no. 3, pp. 752--771, 2019.
+\bibitem{rijal2019} A. Rijal, M. Bijvank, and R. de Koster, ``Integrated scheduling and assignment of trucks at unit-load cross-dock terminals with mixed service mode dock doors,'' \emph{European Journal of Operational Research}, vol. 278, no. 3, pp. 752--771, 2019.
 \bibitem{shahmardan2020} A. Shahmardan and M. S. Sajadieh, ``Truck scheduling in a multi-door cross-docking center with partial unloading,'' \emph{Computers \& Industrial Engineering}, vol. 139, Art. 106134, 2020.
 \bibitem{vanbelle2012} J. Van Belle, P. Valckenaers, and D. Cattrysse, ``Cross-docking: State of the art,'' \emph{Omega}, vol. 40, no. 6, pp. 827--846, 2012.
 \bibitem{vanbelle2013} J. Van Belle, P. Valckenaers, G. Vanden Berghe, and D. Cattrysse, ``A tabu search approach to the truck scheduling problem with multiple docks and time windows,'' \emph{Computers \& Industrial Engineering}, vol. 66, no. 4, pp. 818--826, 2013.
 \bibitem{watkins1992} C. J. C. H. Watkins and P. Dayan, ``Q-learning,'' \emph{Machine Learning}, vol. 8, pp. 279--292, 1992.
 \bibitem{mnih2015} V. Mnih et al., ``Human-level control through deep reinforcement learning,'' \emph{Nature}, vol. 518, pp. 529--533, 2015.
-\bibitem{xi2020} X. Xi, C. Liu, Y. Wang, and L. H. Lee, ``Two-stage conflict robust optimization models for cross-dock truck scheduling under uncertainty,'' \emph{Transportation Research Part E}, vol. 144, Art. 102123, 2020.
+\bibitem{xi2020} X. Xi, C. Liu, Y. Wang, and L. H. Lee, ``Two-stage conflict robust optimization models for cross-dock truck scheduling problem under uncertainty,'' \emph{Transportation Research Part E}, vol. 144, Art. 102123, 2020.
 \end{thebibliography}
 
 \end{document}

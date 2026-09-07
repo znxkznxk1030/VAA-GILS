@@ -1,7 +1,7 @@
 % 대한산업공학회지(JKIIE) 제출용 한글 full paper (XeLaTeX + kotex)
 %   xelatex jkiie_korean.tex  (2회)
 % 원칙: 기술 용어는 자연스러움을 위해 영어를 그대로 사용한다.
-\documentclass[11pt,a4paper]{article}
+\documentclass[10pt,a4paper]{article}
 \usepackage[margin=25mm]{geometry}
 \usepackage{kotex}
 \usepackage{amsmath,amssymb}
@@ -13,6 +13,11 @@
 \usepackage{setspace}
 \setstretch{2.0}
 \usepackage[hidelinks]{hyperref}
+\usepackage{titlesec}
+\titleformat{\section}{\Large\bfseries}{\thesection.}{0.5em}{}
+\titleformat{\subsection}{\large\bfseries}{\thesubsection}{0.5em}{}
+\titlespacing*{\section}{0pt}{12pt}{6pt}
+\titlespacing*{\subsection}{0pt}{10pt}{4pt}
 \setlength{\parindent}{1em}
 
 
@@ -38,7 +43,7 @@
 재고와 리드타임을 줄이는 물류 방식이다(Boysen and Fliedner, 2010; Van Belle et al., 2012). Joo와
 Kim(2013)이 도입하고 Shahmardan과 Sajadieh(2020)가
 발전시킨 컴파운드 트럭 변형에서는 한 대의 트럭이 두 역할을 겸한다. 여러 목적지
-화물을 싣고 도착한 뒤 한 목적지의 화물은 유지하고 나머지만 \emph{부분적으로} 하역하며,
+화물을 싣고 도착한 뒤 한 목적지의 화물은 유지하고 나머지만 \textbf{부분적으로} 하역하며,
 이후 해당 목적지의 나머지 화물을 적재해 출고 운송 트럭으로 출발한다. 부분 하역은 전량 하역 대비
 makespan을 크게 줄이는 것으로 보고되어 LTL 통합 네트워크에서 실용적 매력이 크다.
 
@@ -91,10 +96,15 @@ optimization을 제시한다. 본 모형은 결정론적이며 각 release time�
 시점에 알려져 있다. 따라서 이들 불확실성 모형은 본 모형을 직접 대체하기보다 향후
 자연스럽게 확장할 수 있는 연구 방향에 해당한다.
 
-\textbf{가장 유사한 문제와 학습형 메타휴리스틱.} Li 등(2026)은 mixed
-service mode door와 time window의 통합 트럭 배정·스케줄링을 Q-learning 기반 ALNS로
-푼다. 그 유연성은 도어 수준에 있고 트럭은 순수 입고·출고 트럭인 반면, 본 문제의
-유연성은 트럭 수준(컴파운드 트럭, 도어 간 직접 이송)에 있다. 한편 학습 기반
+\textbf{가장 유사한 문제와 학습형 메타휴리스틱.} Li 등(2026)은 무인
+배송센터(distribution center)를 대상으로 mixed service mode dock의 통합 트럭
+배정·스케줄링을 Q-learning 기반 ALNS로 푼다. 이들 역시 도착 시각과 연장 가능한
+출발 예정 시각을 시간창 $(r_i,d_i)$로 두고 tardiness와 makespan을 목적에 포함하므로,
+시간 제약의 형태 자체는 본 연구와 유사하다. 그러나 유연성이 도어 수준에 있어 도어가
+적재 전용·하역 전용·혼합 모드 중 하나를 선택하고 트럭은 순수 입고·출고 트럭으로
+고정되며, 화물은 도어 간 직접 이송이 아니라 저장 구역을 경유해 AGV가 운반한다.
+반면 본 문제의 유연성은 트럭 수준에 있어, 부분 하역된 컴파운드 트럭이 특정 목적지의
+운송 트럭으로 전환되고 화물은 도어 간에 직접 이송된다. 한편 이들을 포함하여 학습 기반
 operator selection이 메타휴리스틱을 개선한다는 보고가 많으나, 본 연구는 강한 지역
 탐색을 갖춘 뒤에는 learned selector의 이득이 작다는 통제된 반례를 더한다.
 
@@ -180,20 +190,25 @@ critical-chain 하한은 $LB_{\mathrm{cc}}=\max_{q\in I\cup F}EF_q$이다. door-
 하한은 각 트럭의 최소 도어 점유
 \[o_i=DE_i+\Big(H_i-\max_d h_{id}\Big)+\min_d\textstyle\sum_{j\in I\setminus\{i\}}h_{jd}+DL_i \qquad (19)\]
 \[o_f=DE_f+\min_d\textstyle\sum_{j\in I}h_{jd}+DL_f \qquad (20)\]
-을 도어 수로 나눈 $LB_{\mathrm{da}}=\frac1{|M|}\big(\sum_i o_i+\sum_f o_f\big)$이다.
-둘 다 제약을 완화하므로 $LB_\tau=\max\{LB_{\mathrm{cc}},LB_{\mathrm{da}}\}$는
-makespan의 유효 하한이며, 각 $EF_q$가 $C_q$의 하한이므로
-$LB_T=\sum_{q:\bar d_q<\infty}\max\{0,EF_q-\bar d_q\}$이고
-$LB_J=LB_\tau+\lambda LB_T$는 식 (16)의 유효 하한이다.
+을 도어 수로 나눈 값이다.
+\[LB_{\mathrm{da}}=\frac{1}{|M|}\Big(\sum_i o_i+\sum_f o_f\Big) \qquad (21)\]
+두 하한 모두 제약을 완화하여 얻으므로 이들의 최댓값
+$LB_\tau=\max\{LB_{\mathrm{cc}},LB_{\mathrm{da}}\}$는 makespan의 유효 하한이다.
+또한 각 $EF_q$가 $C_q$의 하한이므로 구조적 지연 하한은
+\[LB_T=\sum_{q:\bar d_q<\infty}\max\{0,\ EF_q-\bar d_q\} \qquad (22)\]
+이며, $LB_J=LB_\tau+\lambda LB_T$는 식 (16)의 유효 하한이다.
 
 \section{4. VAA-GILS}
 
 VAA-GILS는 iterated local search의 구현체로, 연산자 내부 sampling과 acceptance를
-제외하면 결정론적이다.
+제외하면 결정론적이다. 이하에서 \textbf{원 모델}은 Shahmardan과
+Sajadieh(2020)가 제안한 SA-RL5를 가리키며, VAA 구성 휴리스틱과
+generic 이웃 7종은 이 모델에서 가져왔다.
 
-\textbf{초기해 구성.} VAA는 Vogel식 regret으로 유지 목적지를 정하고, 완료 시각
-우선순위에 따라 출고 목적지를 배정한 뒤 완료 예정 시각이 가장 이른 도어에 삽입한다.
-모든 완료 예정 시각 계산에는 release time을 반영한다.
+\textbf{초기해 구성.} 원 모델의 VAA는 Vogel식 regret으로 컴파운드 트럭의 유지 목적지를
+정하고, 완료 시각 우선순위에 따라 출고 목적지를 배정한다. 도어 배정은 먼저 처리되는
+트럭을 도어 간 이송시간 합이 가장 작은 중앙 도어에 두고, 나머지 트럭은 작업 종료가 가장
+이른 도어에 차례로 삽입한다. 모든 완료 예정 시각 계산에는 release time을 반영한다.
 
 \textbf{Descent.} 세 가지 이동 유형(출고 트럭 재배치, 컴파운드 트럭의 도어 교환/빈 도어 이동, 두
 트럭의 목적지 교환)에 대한 best-improvement 지역탐색으로, local optimum에서
@@ -202,10 +217,13 @@ VAA-GILS는 iterated local search의 구현체로, 연산자 내부 sampling과 
 \textbf{반복 탐색.} 1{,}000회 반복한다. 선택 정책이 연산자 하나를 뽑아
 현재 해에서 후보를 생성하고, 후보가 전역 최선해를 개선하면 descent를 적용해
 incumbent를 갱신한다. acceptance는 초기 온도 $T_0=\max\{1,0.05\,J(s_0)\}$, 기하
-냉각 $T\leftarrow0.995\,T$의 simulated annealing이다. 30회 연속 개선이 없으면 현재 최선해 $s^*$의 복사본에서
-다시 시작한다. 이때 아래 generic 이웃 7종에서 균등 무작위로 뽑은 이동을 3회 연속
-적용하며, 각 이동은 직전 이동의 결과에 적용되고 재시작 직후에는 descent를 수행하지
-않는다. 이어서 $T\leftarrow\max\{T,0.02\,J(s^*)\}$로 reheat한다.
+냉각 $T\leftarrow0.995\,T$의 simulated annealing이다.
+
+\textbf{Kick restart와 reheating.} 30회 연속 개선이 없으면 \textbf{kick restart}를
+수행한다. 현재 최선해 $s^*$의 복사본에서 다시 시작하되, 아래 generic 이웃 7종에서
+균등 무작위로 뽑은 이동(kick)을 3회 연속 적용한다. 각 이동은 직전 이동의 결과에
+적용되며, 재시작 직후에는 descent를 수행하지 않는다. 이어서
+$T\leftarrow\max\{T,0.02\,J(s^*)\}$로 온도를 reheat한다.
 
 \textbf{Operator pool.} generic 이웃 7종은 원 모델의 이웃 구조를 그대로 사용한다:
 (k1) 두 트럭의 목적지 교환, (k2) 컴파운드 트럭 간 도어 교환, (k3) 출고 트럭 간 도어
@@ -220,30 +238,34 @@ g1/g2로 fallback). 고속 증분 evaluator(평가당 수십 $\mu$s)가 descent�
 저렴하게 만든다.
 
 \textbf{선택 정책과 원 모델의 비교.} 선택 정책은 교체할 수 있으며 기본값은
-균등 무작위 선택이다. 학습 정책(SA-RL5의 tabular Q-learning, 규모 불변 특징(feature)으로
-오프라인 학습한 transfer DQN)는 ablation 목적으로만 평가하며 제안 방법의 일부가
-아니다. 원 모델 SA-RL5는 RL이 단일 이동을 고르고 SA accept/reject로 한 단계가 끝나는
-\emph{순수} simulated annealing인 반면, VAA-GILS는 그 한 연산자 적용 단계를 iterated
+균등 무작위 선택이다. 학습 정책(SA-RL5의 tabular
+Q-learning~\cite{watkins1992}, 규모 불변 특징(feature)으로 오프라인 학습한 transfer
+DQN~\cite{mnih2015})은 ablation 목적으로만 평가하며 제안 방법의 일부가 아니다.
+tabular Q는 원 모델과 같이 무개선 구간 5-상태에서 $\varepsilon$-greedy 탐험과 룰렛
+활용을 쓰되, 보상은 원 모델의 이진 보상(후보가 현재 해보다 나쁘지 않으면 1, 아니면 0)
+대신 신규 incumbent 2·비악화 1·그 외 0의 셰이핑 보상을 사용한다. 이는 학습 신호를
+강화할 뿐이므로 비교 대상 selector를 불리하게 만들지 않는다. 원 모델 SA-RL5는 RL이 단일 이동을 고르고 SA accept/reject로 한 단계가 끝나는
+\textbf{순수} simulated annealing인 반면, VAA-GILS는 그 한 연산자 적용 단계를 iterated
 local search 안에 넣고 guided 연산자, 개선 이동마다의 full descent, kick
 restart를 더한다. 가장 중요한 차이는 개선 이동 이후의 descent이며, ablation은
-이것이 품질 이득의 대부분을 설명함을 보인다. 표~\ref{tab:base}가 두 방법의 구조적
+이것이 품질 이득의 대부분을 설명함을 보인다. Table~\ref{tab:base}가 두 방법의 구조적
 차이를 요약한다.
 
 \begin{table}[H]\centering
-\caption{Structural comparison of the base SA-RL5 and VAA-GILS.}
+\caption{Table 1. Structural comparison of the base SA-RL5 and VAA-GILS.}
 \label{tab:base}\small
 \begin{tabular}{@{}p{0.24\columnwidth}p{0.33\columnwidth}p{0.33\columnwidth}@{}}
 \toprule
 Aspect & SA-RL5 (base) & VAA-GILS (proposed) \\
 \midrule
-전체 틀 & 순수 simulated annealing & iterated local search (SA는 acceptance만) \\
-반복당 연산자 & 1개 & 1개 (동일) \\
-연산자 집합 & 이웃 7종 & 그 7종 + guided 4종 \\
-연산자 선택 & online Q-learning/roulette & uniform random (학습은 ablation 전용) \\
-개선 이동 이후 & 없음(SA step이 전부) & full best-improvement descent \\
-정체 처리 & 없음 & kick restart + reheat \\
-acceptance & SA(Metropolis) & SA(Metropolis; ablation상 생략 가능) \\
-목적함수 & makespan & makespan + λ · tardiness \\
+Overall framework & Pure simulated annealing & Iterated local search (SA only as acceptance) \\
+Operators per iteration & One & One (same) \\
+Operator set & 7 generic neighborhoods & Those 7 + 4 guided \\
+Operator selection & Online Q-learning / roulette & Uniform random (learning only in ablation) \\
+After an improving move & None (the SA step is the whole iteration) & Full best-improvement descent \\
+Stagnation handling & None & Kick restart + reheating \\
+Acceptance & SA (Metropolis) & SA (Metropolis; dispensable per ablation) \\
+Objective & Makespan & Makespan + λ · total tardiness \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -255,7 +277,7 @@ $t_k\sim U[1,5]$, 도어는 $100\times100$ 랜덤 배치이다. 시간 제약 �
 none/medium/tight이며 medium/tight에서 $r\sim U[0,\rho H]$, $\bar d=r+\delta H$,
 $(\rho,\delta)=(0.25,0.60),(0.50,0.35)$이다.
 
-seed는 서로소인 train/tuning/test 집합으로 분리한다. 주 해품질 비교(표~\ref{tab:main})는
+seed는 서로소인 train/tuning/test 집합으로 분리한다. 주 해품질 비교(Table~\ref{tab:main})는
 실험 조건당 test 인스턴스 20개 $\times$ replication 5회를 사용하고, 통제된 ablation은
 동일예산·동일구조 분해이므로 원래의 5-인스턴스 설계를 유지한다. 인스턴스별로
 replication을 평균한 뒤 짝지은 인스턴스 평균에 양측 Wilcoxon signed-rank test를
@@ -266,7 +288,7 @@ $\Delta_{bo}$이다.
 
 \section{6. 실험 결과}
 \subsection{6.1 해 품질}
-표~\ref{tab:main}이 20-인스턴스 test 결과를 요약한다. CP-SAT가 기준해를 제공한
+Table~\ref{tab:main}이 20-인스턴스 test 결과를 요약한다. CP-SAT가 기준해를 제공한
 실험 조건에서 GILS는 이에 근접하며, 기본 selector인 uniform 기준 0.11--0.21\%이다
 (학습 selector를 포함한 전체 변형은 0.1--0.6\%). 같은 selector 기준으로 GILS는
 VAA를 평균 2.65\%($n=180$, $p<10^{-4}$), SA-RL5를 1.38\%($n=60$, $p<10^{-4}$)
@@ -274,7 +296,7 @@ VAA를 평균 2.65\%($n=180$, $p<10^{-4}$), SA-RL5를 1.38\%($n=60$, $p<10^{-4}$
 CP-SAT(76, 237, 376초)보다 두세 자릿수 짧다.
 
 \begin{table}[t]\centering
-\caption{Test results over 20 instances per experimental condition (20 instances $\times$ 5 replications). $\Delta_{bo}$ is the mean gap to the best observed solution and time is the mean per run. The vs CP-SAT column is computed only on the subset for which CP-SAT returned a reference (5 instances per S condition, 2 for M-none); optimality was proven only for S-none. On that subset the mean CP-SAT runtime is 76 s (S) and 237 s (M-none).}
+\caption{Table 2. Test results over 20 instances per experimental condition (20 instances $\times$ 5 replications). $\Delta_{bo}$ is the mean gap to the best observed solution and time is the mean per run. The vs CP-SAT column is computed only on the subset for which CP-SAT returned a reference (5 instances per S condition, 2 for M-none); optimality was proven only for S-none. On that subset the mean CP-SAT runtime is 76 s (S) and 237 s (M-none).}
 \label{tab:main}\small
 \begin{tabular}{@{}llrrrr@{}}
 \toprule
@@ -328,36 +350,36 @@ L-tight & VAA & 119671.9 ± 32475.3 & 0.77 & --- & 0.02\\
 
 \textbf{Operator pool.} selection을 uniform으로 고정하고 연산자 집합만 generic(7)/
 critical(+g1,g2)/full(+g3,g4)로 바꾸면 $\Delta_{bo}$가 9개 실험 조건 전부에서
-generic $\ge$ critical $\ge$ full로 단조 감소한다(그림~\ref{fig:op}). 짝지은
-Wilcoxon(표~\ref{tab:b1})은 유도 연산자가 목적값을 일관되게·유의하게 낮춤을
+generic $\ge$ critical $\ge$ full로 단조 감소한다(Figure~\ref{fig:op}). 짝지은
+Wilcoxon(Table~\ref{tab:b1})은 유도 연산자가 목적값을 일관되게·유의하게 낮춤을
 보인다.
 
 \begin{table}[H]\centering
-\caption{Operator-pool ablation (5 instances $\times$ 5 replications per condition, budget fixed at 1,000 iterations; two-sided Wilcoxon, positive mean favors the richer operator set).}
+\caption{Table 3. Operator-pool ablation (5 instances $\times$ 5 replications per condition, budget fixed at 1,000 iterations; two-sided Wilcoxon, positive mean favors the richer operator set).}
 \label{tab:b1}\small
 \begin{tabular}{@{}lrrl@{}}
 \toprule
 Contrast & n & Gain(\%p) & p\\
 \midrule
-generic → critical (g1,g2 추가) & 136 & +0.114 & <0.0001\\
-critical → full (g3,g4 추가) & 172 & +0.048 & <0.0001\\
-generic → full (전체 유도) & 166 & +0.161 & <0.0001\\
+generic → critical (add g1, g2) & 136 & +0.114 & <0.0001\\
+critical → full (add g3, g4) & 172 & +0.048 & <0.0001\\
+generic → full (all guided) & 166 & +0.161 & <0.0001\\
 \bottomrule
 \end{tabular}
 \end{table}
 
 \begin{figure}[H]\centering
 \includegraphics[width=0.82\columnwidth]{fig2_operator_pool.pdf}
-\caption{Mean gap to the best observed solution by operator set.}\label{fig:op}
+\caption{Figure 1. Mean gap to the best observed solution by operator set.}\label{fig:op}
 \end{figure}
 
 \textbf{Engine components.} 연산자 집합을 full, selection을 uniform으로 고정하고 구성요소를
-하나씩 제거하면(표~\ref{tab:b2}), best-improvement descent의 기여가 가장 크고 kick
+하나씩 제거하면(Table~\ref{tab:b2}), best-improvement descent의 기여가 가장 크고 kick
 restart가 그다음이며, VAA 초기해는 통계적으로 유의하지 않고 확률적 acceptance는
-제거해도 목적값이 나빠지지 않는다(그림~\ref{fig:comp}).
+제거해도 목적값이 나빠지지 않는다(Figure~\ref{fig:comp}).
 
 \begin{table}[H]\centering
-\caption{Engine-component ablation (5 instances $\times$ 5 replications per condition; leave-one-out, relative objective degradation when a component is removed).}
+\caption{Table 4. Engine-component ablation (5 instances $\times$ 5 replications per condition; leave-one-out, relative objective degradation when a component is removed).}
 \label{tab:b2}\small
 \begin{tabular}{@{}lrrl@{}}
 \toprule
@@ -373,26 +395,26 @@ stochastic acceptance & 45 & −0.026 & 0.0014\\
 
 \begin{figure}[H]\centering
 \includegraphics[width=0.82\columnwidth]{fig3_component_ablation.pdf}
-\caption{Objective degradation when each component is removed.}\label{fig:comp}
+\caption{Figure 2. Objective degradation when each component is removed.}\label{fig:comp}
 \end{figure}
 
 \subsection{6.3 보조 분석: 학습 기반 연산자 선택}
-연산자 집합과 구성요소를 full로 고정하고 selection만 바꾸면(표~\ref{tab:sel}), 어떤
+연산자 집합과 구성요소를 full로 고정하고 selection만 바꾸면(Table~\ref{tab:sel}), 어떤
 learned policy도 uniform을 실용적으로 능가하지 못한다. 50--3{,}000회의 모든 예산
-구간에서도 결과는 같고 우열의 방향이 예산에 따라 뒤집히며(부록 그림~\ref{fig:sel}),
+구간에서도 결과는 같고 우열의 방향이 예산에 따라 뒤집히며(Figure~\ref{fig:sel}),
 이러한 부정적 결과는 무제약 조건만으로도 성립하므로 시간 제약 확장 때문에 나타난
 결과가 아니다.
 
 \begin{table}[H]\centering
-\caption{Effect of the selection policy (5 instances $\times$ 5 replications per condition, 1,000-iteration budget; two-sided Wilcoxon, positive mean favors the first method).}
+\caption{Table 5. Effect of the selection policy (5 instances $\times$ 5 replications per condition, 1,000-iteration budget; two-sided Wilcoxon, positive mean favors the first method).}
 \label{tab:sel}\small
 \begin{tabular}{@{}lrrl@{}}
 \toprule
 Comparison & Mean diff.(\%p) & p & Verdict\\
 \midrule
-tabular vs uniform & −0.01 & 0.150 & 차이 없음\\
-tabular vs DQN & +0.10 & <0.0001 & DQN 열세\\
-uniform vs DQN & +0.11 & <0.0001 & DQN 열세\\
+tabular vs uniform & −0.01 & 0.150 & No difference\\
+tabular vs DQN & +0.10 & <0.0001 & DQN worse\\
+uniform vs DQN & +0.11 & <0.0001 & DQN worse\\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -400,7 +422,7 @@ uniform vs DQN & +0.11 & <0.0001 & DQN 열세\\
 \subsection{6.4 Tardiness-weight 민감도}
 식 (16)이 시간 단위 성분 둘을 합치므로 tuning 집합에서
 $\lambda\in\{0,0.25,0.5,1,2,4,8\}$을 스윕한다. 물리적 makespan과 총 tardiness를
-인스턴스별로 min--max 정규화해 평균한다(그림~\ref{fig:lam}). tardiness 감소의
+인스턴스별로 min--max 정규화해 평균한다(Figure~\ref{fig:lam}). tardiness 감소의
 대부분은 $\lambda=0$에서 $1$ 사이에서 일어나고 이후에는 그 폭이 줄어든다. 전체 스윕 구간에서 평균
 makespan은 약 1\% 상승, 평균 tardiness는 2--3\% 하락한다. $\lambda=1$을 채택한다:
 완만한 makespan 비용으로 tardiness가 거의 최소에 이르고 두 시간 성분에 동일
@@ -408,7 +430,7 @@ makespan은 약 1\% 상승, 평균 tardiness는 2--3\% 하락한다. $\lambda=1$
 
 \begin{figure}[H]\centering
 \includegraphics[width=0.72\textwidth]{fig4_lambda_tradeoff.pdf}
-\caption{Normalized makespan-tardiness trade-off on tuning instances.}\label{fig:lam}
+\caption{Figure 3. Normalized makespan-tardiness trade-off on tuning instances.}\label{fig:lam}
 \end{figure}
 
 \section{7. 논의}
@@ -454,11 +476,13 @@ target network는 500 step마다 동기화한다. reward는 shaped signal(신규
 
 \begin{figure}[H]\centering
 \includegraphics[width=0.72\textwidth]{fig1_selector_budget.pdf}
-\caption{Mean gap to the best observed solution across iteration budgets.}\label{fig:sel}
+\caption{Figure 4. Mean gap to the best observed solution across iteration budgets.}\label{fig:sel}
 \end{figure}
 
 \section*{생성형 AI 활용 공개}
-본 논문의 작성 과정에서 저자는 OpenAI Codex(GPT-5, OpenAI)와 Claude Code(Anthropic)를 원고의 맞춤법·가독성 개선 및 계산 코드 개발·검토 보조를 위해 사용하였다. 저자는 해당 도구 사용 후 그 내용을 검토 및 수정하였으며, 논문의 모든 내용에 대한 책임은 저자에게 있다.
+본 논문의 작성 과정에서 저자는 OpenAI Codex(GPT-5, OpenAI)와 Claude Code(Anthropic)를
+본문의 맞춤법 및 가독성 개선을 위해 사용하였다. 저자는 해당 도구 사용 후 그 내용을
+검토 및 수정하였으며, 논문의 모든 내용에 대한 책임은 저자에게 있다.
 
 \section*{참고문헌}
 \begin{description}\small

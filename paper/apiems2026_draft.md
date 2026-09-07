@@ -380,10 +380,12 @@ evaluated only as ablation arms (Section 6.2), not as part of the proposed
 method.
 
 - **Uniform** (default): uniform random choice over the operator pool.
-- **Tabular Q** (the policy of SA-RL5 [5]): Q-learning [9] over five
-  stagnation-bin states, trained online within the run; $\varepsilon$-greedy with roulette
-  exploitation, shaped reward (2 for a new incumbent, 1 for a non-worsening
-  move, 0 otherwise).
+- **Tabular Q** (following the SA-RL5 selector of [5]): Q-learning [9] over five
+  stagnation-bin states, trained online within the run, with $\varepsilon$-greedy
+  exploration and roulette exploitation as in the original. Where [5] rewards a move
+  with 1 when the candidate is no worse than the current solution and 0 otherwise, we
+  use a finer shaped reward (2 for a new incumbent, 1 for a non-worsening move, 0
+  otherwise), which only sharpens the learning signal.
 - **Transfer DQN**: a two-layer deep Q-network [10] over a 27-dimensional
   scale-invariant state (instance descriptors such as compound-truck fraction,
   flow concentration, window tightness; search descriptors such as progress,

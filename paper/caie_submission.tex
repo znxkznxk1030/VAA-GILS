@@ -567,11 +567,15 @@ learned policies below are evaluated only as ablation arms (Section
   \textbf{Uniform} (default): uniform random choice over the operator
   pool.
 \item
-  \textbf{Tabular Q} (the policy of SA-RL5 in Shahmardan and Sajadieh,
-  2020): Q-learning (Watkins \& Dayan, 1992) over five stagnation-bin
-  states, trained online within the run; \(\varepsilon\)-greedy with
-  roulette exploitation, shaped reward (2 for a new incumbent, 1 for a
-  non-worsening move, 0 otherwise).
+  \textbf{Tabular Q} (following the SA-RL5 selector of Shahmardan and
+  Sajadieh, 2020): Q-learning (Watkins \& Dayan, 1992) over five
+  stagnation-bin states, trained online within the run, with
+  \(\varepsilon\)-greedy exploration and roulette exploitation as in the
+  original. The original rewards a move with 1 when the candidate is no
+  worse than the current solution and 0 otherwise; we use a slightly
+  finer shaped reward (2 for a new incumbent, 1 for a non-worsening move,
+  0 otherwise), which can only sharpen the learning signal and therefore
+  does not weaken the selector we report against.
 \item
   \textbf{Transfer DQN}: a two-layer deep Q-network (Mnih et al., 2015)
   over a 27-dimensional scale-invariant state (instance descriptors such

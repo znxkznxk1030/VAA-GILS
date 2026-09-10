@@ -53,7 +53,7 @@ def _line(x1, y1, x2, y2, stroke=AXIS, w=1.0, dash=None):
 # ---- Figure 1: selection-policy budget sweep --------------------------------
 def fig1():
     budgets = [50, 200, 1000, 3000]
-    series = {  # mean gap% to per-instance best-known (outputs/k1_stats.txt)
+    series = {  # mean gap% to per-instance best observed (outputs/k1_stats.txt)
         "Uniform (proposed)": [0.47, 0.38, 0.23, 0.16],
         "Tabular Q-learning": [0.56, 0.46, 0.23, 0.09],
         "Transfer DQN":       [0.56, 0.51, 0.38, 0.26],
@@ -86,8 +86,8 @@ def fig1():
     body += _line(L, T, L, T + ph, AXIS, 1.2)
     body += _line(L, T + ph, L + pw, T + ph, AXIS, 1.2)
     # axis titles
-    body += _txt(L + pw / 2, H - 12, "Iteration budget", 13, "middle", INK)
-    body += _txt(18, T + ph / 2, "Mean gap to best-known (%)", 13, "middle",
+    body += _txt(L + pw / 2, H - 12, "Number of iterations", 13, "middle", INK)
+    body += _txt(18, T + ph / 2, "Mean gap to best observed (%)", 13, "middle",
                  INK, rot=-90)
     # series
     for i, (name, ys) in enumerate(series.items()):
@@ -136,7 +136,7 @@ def fig2():
         body += _txt(L - 10, y + 4, f"{gy:.1f}", 11, "end", AXIS)
     body += _line(L, T, L, T + ph, AXIS, 1.2)
     body += _line(L, T + ph, L + pw, T + ph, AXIS, 1.2)
-    body += _txt(18, T + ph / 2, "Mean gap to best-known (%)", 13, "middle",
+    body += _txt(18, T + ph / 2, "Mean gap to best observed (%)", 13, "middle",
                  INK, rot=-90)
     for ci, cell in enumerate(cells):
         gx = L + ci * group_w + group_w / 2
@@ -154,7 +154,7 @@ def fig2():
                  f'fill="{C_FILL[k]}"/>\n')
         body += _txt(lx + 20, H - 23, lab, 11.5, "start", INK)
     body += _txt(L, T - 16, "Adding bottleneck-guided operators lowers the "
-                 "gap in every cell (generic > critical > full)",
+                 "gap in every cell (generic \u2265 critical \u2265 full)",
                  12, "start", "#555", weight="bold")
     with open(os.path.join(OUT, "fig2_operator_pool.svg"), "w") as f:
         f.write(_svg(W, H, body))

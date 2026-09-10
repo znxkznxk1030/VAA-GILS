@@ -9,7 +9,7 @@ University, Seoul, Republic of Korea (znxkznxk1030@yonsei.ac.kr)
 
 ## Abstract
 
-This paper considers a multi-door cross-dock in which a compound truck is partially unloaded and then departs as the outbound carrier of one destination. Existing compound-truck models assume that every truck is available at time zero and minimize makespan only. We extend the problem with per-truck release times and soft due dates — deadlines that may be violated at a tardiness cost rather than hard constraints — and minimize makespan plus total tardiness. The problem is formulated as a mixed-integer program and as a CP-SAT model, and evaluated under a reproducible protocol with disjoint train, tuning, and test seed sets. The proposed method, VAA-GILS, is an iterated local search that starts from a Vogel-style construction and combines best-improvement descent, bottleneck-guided operators, and kick restarts. On the conditions for which CP-SAT returned a reference solution, VAA-GILS is within 0.11–0.21% of that reference in under one second, compared with 76–237 seconds for CP-SAT; on the small unconstrained condition, where CP-SAT proved optimality, the proposed method averages 0.21% above the proven optimum. On the larger time-constrained conditions, where CP-SAT found no feasible schedule within 600 seconds, it returns the best solutions observed among the tested methods. A controlled ablation attributes the improvement to the deterministic search structure — descent, the bottleneck-guided operators, and kick restarts — whereas learned operator selection provides no additional benefit over uniform selection under equal computational budgets.
+This paper considers a multi-door cross-dock in which a compound truck is partially unloaded and then departs as the outbound carrier of one destination. Existing compound-truck models assume that every truck is available at time zero and minimize makespan only. We extend the problem with per-truck release times and soft due dates — deadlines that may be violated at a tardiness cost rather than hard constraints — and minimize makespan plus total tardiness. The problem is formulated as a mixed-integer program and as a CP-SAT model, and evaluated under a reproducible protocol with disjoint train, tuning, and test seed sets. The proposed method, VAA-GILS, is an iterated local search that starts from a Vogel-style construction and combines best-improvement descent, bottleneck-guided operators, and kick restarts. On the conditions for which CP-SAT returned a reference solution, VAA-GILS is within 0.11–0.21% of that reference in under one second, compared with 76–237 seconds for CP-SAT; on the small unconstrained condition, where CP-SAT proved optimality, the proposed method averages 0.21% above the proven optimum. On the larger time-constrained conditions, where CP-SAT found no feasible schedule within 600 seconds, it returns the best solutions observed among the tested methods. A controlled ablation attributes the improvement to the deterministic search structure — descent, the bottleneck-guided operators, and kick restarts — whereas learned operator selection provides no additional benefit over uniform selection at an equal number of iterations.
 
 **Keywords:** cross-docking; truck scheduling; release times; soft due dates; iterated local search; constraint programming
 
@@ -62,12 +62,12 @@ by removing kick restarts. In contrast, the final quality changes little when
 VAA is replaced by a random feasible start or when simulated-annealing
 acceptance is removed. We obtained a similar result for operator selection:
 neither tabular Q-learning nor a transfer-trained DQN gave a meaningful gain
-over uniform sampling over budgets of 50–3,000 iterations.
+over uniform sampling across iteration counts from 50 to 3,000.
 
 These comparisons concern our reimplementation and benchmark. They should not
 be read as a replication claim about [5], whose experimental setting and code
 differ. Their narrower implication is methodological: when a learned selector
-is embedded in a strong search engine, a uniform, equal-budget control is
+is embedded in a strong search engine, a uniform control at an equal number of iterations is
 needed to establish its incremental value.
 
 ## 2. Related work
@@ -444,7 +444,7 @@ DQN was trained on the train pool; every number below is the single test-pool
 run. The main solution-quality comparison (Table 2 and its Wilcoxon tests) uses
 20 instances per cell × 5 replications (9 cells: 3 sizes × 3 window levels); the
 controlled ablations (Tables 3–5 and Figure 3) keep the original 5-instance
-design, since they are equal-budget, equal-structure decompositions rather than
+design, since they are equal-iteration, equal-structure decompositions rather than
 generalization claims. CP-SAT runs once per instance with 8 threads: 300 s on S
 (5 instances) and 600 s on M and L (2 instances per cell). $\lambda=1$ on window
 cells.
@@ -468,13 +468,12 @@ remaining cells CP-SAT returns no feasible solution within 600 s; there our
 claim is dominance over the tested baselines, and the reported solutions are,
 to our knowledge, the best observed among the tested methods. Accordingly,
 Table 2 reports the gap to the *best observed* solution per instance
-($\Delta_{bo}$, over all methods, all budgets, and
+($\Delta_{bo}$, over all methods, all iteration counts, and
 CP-SAT) as the primary quality measure, and the gap to the CP-SAT reference
 where one exists.
 
 **Table 2.** Test-pool results. Mean obj ± std and $\Delta_{bo}$ are over 20 instances ×
-5 reps per cell (Phase D1); $\Delta_{bo}$ is the mean gap to the per-instance best-known
-solution (over all methods and CP-SAT where available). vs CP-SAT is over the
+5 reps per cell (Phase D1); $\Delta_{bo}$ is the mean gap to the per-instance best observed solution (over all methods and CP-SAT where available). vs CP-SAT is over the
 exact-referenced subset only (5 per S cell — S-none: proven optima; 2 for
 M-none) and is unchanged from the original exact runs.
 
@@ -553,7 +552,7 @@ the paired comparisons differ only in the component named in each table.
 and vary only the operator pool: *generic* (the seven paper neighborhoods),
 *critical* (generic plus the two makespan-critical guided operators g1, g2), and
 *full* (critical plus the two tardiness-guided operators g3, g4). The mean gap
-to the per-instance best-known solution is monotone — generic $\ge$ critical $\ge$ full
+to the per-instance best observed solution is monotone — generic $\ge$ critical $\ge$ full
 — in every one of the nine cells (e.g., S-none 0.45 / 0.17 / 0.10; M-medium
 0.45 / 0.37 / 0.28). Table 3 gives the paired tests.
 
@@ -567,11 +566,11 @@ replication means; +mean = the richer pool is better).
 | critical → full | TW cells | 28 | +0.045 | 0.0003 | significant |
 | generic → full (all guided) | all | 43 | +0.161 | $<10^{-4}$ | significant |
 
-![Operator-pool ablation: mean gap to best-known per cell for the generic,
+![Operator-pool ablation: mean gap to the best observed solution per cell for the generic,
 critical, and full pools.](figures/fig2_operator_pool.svg)
 
 **Figure 1.** Operator-pool ablation. Adding the bottleneck-guided operators
-lowers the mean gap to best-known in every one of the nine cells; the ordering
+lowers the mean gap to the best observed solution in every one of the nine cells; the ordering
 generic > critical > full is monotone throughout.
 
 The guided operators lower the objective consistently and significantly, and
@@ -613,14 +612,13 @@ acceptance slightly improves the mean objective in this experiment.
 **Learned operator selection.** Finally we vary the selection policy itself,
 holding pool and components at *full*: uniform random, the base model's tabular
 Q-learning, and a transfer-trained deep Q-network (Table 5). No learned policy
-beats uniform by a practically meaningful margin. Across budgets (mean gap to
-best-known) uniform runs 0.47 → 0.16%, tabular 0.56 → 0.09%, and DQN 0.56 →
+beats uniform by a practically meaningful margin. Across iteration counts (mean gap to the best observed solution) uniform runs 0.47 → 0.16%, tabular 0.56 → 0.09%, and DQN 0.56 →
 0.26% from 50 to 3,000 iterations: at 50 iterations uniform is *better* than
 tabular (+0.08%, $p=0.0055$), at 3,000 tabular edges uniform (+0.07%, $p<10^{-4}$),
-and the transfer DQN never wins at any budget and is significantly worse at
+and the transfer DQN never wins at any iteration count and is significantly worse at
 1,000 and 3,000. All selection effects are $\le 0.17$ percentage points — below the
 guided-operator effect of Table 3 and an order of magnitude below the
-method-level differences of Table 2 — and their direction flips with budget.
+method-level differences of Table 2 — and their direction flips with the number of iterations.
 
 Crucially, the same picture holds on the no-time-window cells alone, which are
 exactly the original problem of [5] with all trucks available at time zero: at
@@ -640,13 +638,11 @@ on paired instance replication means; positive mean = first method better).
 | tabular vs DQN | +0.10 | $<10^{-4}$ | DQN worse |
 | uniform vs DQN | +0.11 | $<10^{-4}$ | DQN worse |
 
-![Selection-policy budget sweep: mean gap to best-known versus iteration budget
-for uniform, tabular Q-learning, and transfer DQN.](figures/fig1_selector_budget.svg)
+![Selection-policy iteration sweep: mean gap to the best observed solution versus the number of iterations for uniform, tabular Q-learning, and transfer DQN.](figures/fig1_selector_budget.svg)
 
-**Figure 3.** Selection-policy budget sweep. Across budgets from 50 to 3,000
-iterations, neither learned policy beats uniform random selection by a
+**Figure 3.** Selection-policy iteration sweep. Across iteration counts from 50 to 3,000, neither learned policy beats uniform random selection by a
 practically meaningful margin; the transfer DQN is consistently worse and the
-tabular policy only edges uniform at the largest budget.
+tabular policy only edges uniform at the largest iteration count.
 
 Across the three experiments, descent has the largest measured effect. Guided
 moves and restarts provide smaller but repeatable gains. The initial solution,
@@ -691,7 +687,7 @@ The selector result should be interpreted within the search process used here.
 A candidate can be evaluated in tens of microseconds, so an unhelpful operator
 choice is inexpensive. More importantly, every new incumbent is followed by a
 deterministic descent. Two runs that enter the same basin can therefore end at
-the same schedule even if their preceding moves differ. The budget curves
+the same schedule even if their preceding moves differ. The gap-versus-iterations curves
 suggest that this happens before 1,000 iterations for most test instances. For
 the same reason, the simulated-annealing acceptance and reheating are retained
 mainly for comparability with the base SA-RL5 framework: the component ablation
@@ -703,13 +699,12 @@ and all releases are known before optimization begins. This is quite different
 from online dock control, where arrivals are revealed over time, or from a
 simulation model in which evaluating one move is costly. Learned selection may
 matter more in either setting. It may also matter on instances large enough
-that descent cannot reach saturation within the available budget. We did not
+that descent cannot reach saturation within the available number of iterations. We did not
 test those cases, so they remain hypotheses rather than consequences of the
 present experiments.
 
 What the results do support is a narrower recommendation. A learned selector
-should be compared with uniform sampling inside the same engine and under the
-same evaluation budget. Without that control, gains due to descent, restart, or
+should be compared with uniform sampling inside the same engine and under the same number of iterations. Without that control, gains due to descent, restart, or
 a stronger move set can be attributed to the policy itself.
 
 ## 8. Conclusion

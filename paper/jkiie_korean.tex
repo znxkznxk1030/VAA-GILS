@@ -21,7 +21,7 @@
 \setlength{\parindent}{1em}
 
 \title{\vspace{-8mm}\textbf{도착 시각(release time)과 soft due date를 갖는\\
-컴파운드 트럭 크로스도킹 스케줄링:\\
+입출고 병행 트럭 크로스도킹 스케줄링:\\
 CP-SAT로 검증한 병목 유도 Iterated Local Search}}
 \author{김영수\thanks{제1저자.} \quad 권상진\thanks{교신저자. Email: [지도교수 이메일 기입].}\\
 \small 연세대학교 인공지능학과, 서울}
@@ -33,8 +33,8 @@ CP-SAT로 검증한 병목 유도 Iterated Local Search}}
 
 \begin{abstract}
 \noindent
-컴파운드 트럭(compound truck)이 부분 하역된 뒤 특정 목적지의 출고 트럭으로
-전환되는 다중 도어 크로스도킹 스케줄링 문제를 다룬다. 기존 컴파운드 트럭 모델은
+입고와 출고를 병행하는 트럭(compound truck, 이하 병행 트럭)이 부분 하역된 뒤 특정 목적지의 출고 트럭으로
+전환되는 다중 도어 크로스도킹 스케줄링 문제를 다룬다. 기존 병행 트럭 모델은
 모든 트럭이 시각 0에 도착한다고 가정하고 총 작업완료시간(makespan)만 최소화한다.
 본 연구는 트럭별 도착 시각(release time)과, 위반을 허용하되 지연 비용을 부과하는
 soft due date를 도입하고, makespan과 총 납기지연(tardiness)의 합을 최소화하는
@@ -49,7 +49,7 @@ VAA-GILS는 그 기준해 대비 평균 0.11--0.21\%의 목적값을 1초 미만
 찾지 못한 대형 시간 제약 조건에서도, 제안 방법은 비교 방법 가운데 가장 우수한 해를
 제공하였다. Ablation 실험 결과, 성능 향상에는 descent, 병목 유도 연산자, restart로
 구성된 결정론적 탐색 구조가 주요하게 기여한 것으로 나타났다. 한편 학습 기반 연산자
-선택은 동일 예산의 균등 선택 대비 추가 이득을 보이지 않았다.
+선택은 동일한 반복 횟수의 균등 선택 대비 추가 이득을 보이지 않았다.
 
 \smallskip
 \noindent\textbf{주제어:} cross-docking; compound truck; release time; soft due date;
@@ -61,19 +61,19 @@ iterated local search; constraint programming; guided local search
 크로스도킹은 입고 화물을 창고에 보관하지 않고 곧바로 출고 트럭으로 환적하여
 재고와 리드타임을 줄이는 물류 방식이다~\cite{boysen2010,vanbelle2012}. Joo와
 Kim~\cite{joo2013}이 도입하고 Shahmardan과 Sajadieh~\cite{shahmardan2020}가
-발전시킨 컴파운드 트럭 변형에서는 한 대의 트럭이 두 역할을 겸한다. 여러 목적지
+발전시킨 병행 트럭 변형에서는 한 대의 트럭이 두 역할을 겸한다. 여러 목적지
 화물을 싣고 도착한 뒤 한 목적지의 화물은 유지하고 나머지만 \textbf{부분적으로} 하역하며,
 이후 해당 목적지의 나머지 화물을 적재해 출고 운송 트럭으로 출발한다. 부분 하역은 전량 하역 대비
 makespan을 크게 줄이는 것으로 보고되어 LTL 통합 네트워크에서 실용적 매력이 크다.
 
-기존 컴파운드 트럭 모델의 두 가정이 현실성을 제약한다. 첫째, 모든 트럭이 시각
+기존 병행 트럭 모델의 두 가정이 현실성을 제약한다. 첫째, 모든 트럭이 시각
 0에 가용하다고 가정하지만 실제 도크에서는 트럭마다 예약 도착 시각이 다르다. 둘째,
 목적함수가 순수 makespan이지만 출고 트럭의 출발은 위반 시 비용이 발생하는 due date에
 묶여 있다.
 
 도착 시각(release time), 시간창(time window), 납기지연(tardiness)은 일반 크로스도킹 스케줄링에서 이미
 연구되어 왔다~\cite{vanbelle2013,assadi2016,bodnar2017,molavi2018,rijal2019,li2026}.
-그러나 컴파운드 트럭 설정은 temporal constraint의 의미를 바꾼다. 컴파운드 트럭은
+그러나 병행 트럭 설정은 temporal constraint의 의미를 바꾼다. 병행 트럭은
 순수 입고 트럭도 출고 트럭도 아니다. 부분 하역 후 한 목적지의 화물을 유지하고, 해당
 목적지로 들어오는 이송 화물을 기다린 뒤 비로소 출고 운송 트럭으로 출발한다. 이 부분 하역
 변환은 하나의 precedence chain --- 도착 $\to$
@@ -85,13 +85,13 @@ tardiness 비용으로 바꾼다. 본 연구의 기여는 이 상호작용 --- �
 soft due date가 부분 하역 후 출고 운송 트럭으로 전환되는 과정과 결합되는 방식 --- 을 정식화하고 분석하는
 것이며, 저자가 아는 한 이 결합은 이전에 모형화된 바 없다.
 
-본 논문의 기여는 세 가지다. 첫째, 부분 하역 컴파운드 트럭 스케줄링을 트럭별
+본 논문의 기여는 세 가지다. 첫째, 부분 하역 병행 트럭 스케줄링을 트럭별
 release time과 soft due date를 갖는 문제로 확장하고, 이를 독립적인 스케줄 평가기와
 일치하는 big-$M$ MILP 및 reified CP-SAT로 정식화한다. 둘째, 기존 VAA construction과
 generic neighborhood에 full best-improvement descent, 병목 유도 연산자, kick
 restart를 더한 VAA-GILS를 제안한다. 셋째, CP-SAT 기준해와 기존 방법과의 비교실험을
 통해 제안 방법의 해 품질과 계산 시간을 검증한다. 이와 별도로, 학습 기반 연산자
-선택의 추가 효과는 동일 예산의 균등 선택과 비교하는 보조적인 ablation으로 검토한다.
+선택의 추가 효과는 동일한 반복 횟수의 균등 선택과 비교하는 보조적인 ablation으로 검토한다.
 
 \section{관련 연구}
 
@@ -122,7 +122,7 @@ optimization을 제시한다. 본 모형은 결정론적이며 각 release time�
 시간 제약의 형태 자체는 본 연구와 유사하다. 그러나 유연성이 도어 수준에 있어 도어가
 적재 전용·하역 전용·혼합 모드 중 하나를 선택하고 트럭은 순수 입고·출고 트럭으로
 고정되며, 화물은 도어 간 직접 이송이 아니라 저장 구역을 경유해 AGV가 운반한다.
-반면 본 문제의 유연성은 트럭 수준에 있어, 부분 하역된 컴파운드 트럭이 특정 목적지의
+반면 본 문제의 유연성은 트럭 수준에 있어, 부분 하역된 병행 트럭이 특정 목적지의
 운송 트럭으로 전환되고 화물은 도어 간에 직접 이송된다. 한편 이들을 포함하여 학습 기반
 operator selection이 메타휴리스틱을 개선한다는 보고가 많으나, 본 연구는 강한 지역
 탐색을 갖춘 뒤에는 learned selector의 이득이 작다는 통제된 반례를 더한다.
@@ -130,21 +130,21 @@ operator selection이 메타휴리스틱을 개선한다는 보고가 많으나,
 \section{문제 정의}
 
 \subsection{기본 모델}
-$I$, $F$, $D$, $K$, $M$을 각각 컴파운드 트럭, 출고 트럭, 목적지, 상품 종류,
-도어의 집합이라 하고 $|I|+|F|=|D|$, $|I|\le|M|$이라 하자. 컴파운드 트럭 $i$는
+$I$, $F$, $D$, $K$, $M$을 각각 병행 트럭, 출고 트럭, 목적지, 상품 종류,
+도어의 집합이라 하고 $|I|+|F|=|D|$, $|I|\le|M|$이라 하자. 병행 트럭 $i$는
 목적지 $d$행 상품 $k$를 $f_{idk}$ 단위 싣는다. 단위 처리시간 $t_k$, 도어
 $m,n$ 간 배치 이송시간 $t_{mn}$, 트럭 $i$의 진입·출차 전환시간
 $DE_i,DL_i$에 대해 $h_{id}=\sum_k f_{idk}t_k$, $H_i=\sum_d h_{id}$로 둔다. 각
-컴파운드 트럭은 유지할 목적지 하나와 도어 하나를(도어당 컴파운드 최대 1대), 각
+병행 트럭은 유지할 목적지 하나와 도어 하나를(도어당 병행 트럭 최대 1대), 각
 출고 트럭은 남은 목적지 하나와 도어를 고르며, 같은 도어의 출고 트럭은
 작업 순서를 정한다. 각 목적지에는 정확히 하나의 운송 트럭이 배정된다.
 
 각 트럭 $q\in I\cup F$의 release time을 $r_q$로 나타낸다. 따라서 $r_i$는
-컴파운드 트럭 $i\in I$가 도어 작업을 시작할 수 있는 가장 이른 시각이고, $r_f$는
+병행 트럭 $i\in I$가 도어 작업을 시작할 수 있는 가장 이른 시각이고, $r_f$는
 출고 트럭 $f\in F$가 도어 작업을 시작할 수 있는 가장 이른 시각이다. 위반이
 허용되는 soft due date $\bar d_q$와 그에 따른 납기지연 $T_q$는 3.3절에서 정의한다.
 
-시간 계산은 스케줄 평가기 규칙을 따른다. 컴파운드 트럭 $i$(목적지 $d$ 유지)의 하역은
+시간 계산은 스케줄 평가기 규칙을 따른다. 병행 트럭 $i$(목적지 $d$ 유지)의 하역은
 $r_i+DE_i+\sum_{d'\ne d}h_{id'}$에 끝난다. 운송 트럭은 화물을 보내는 모든 트럭의 하역과
 도어 간 이송이 끝나야 적재할 수 있다. 출고 운송 트럭 $f$는 추가로 자신의
 release와 도어의 선행 점유가 끝나는 시점에 도어 작업을 시작하여
@@ -154,11 +154,11 @@ $S_f+DE_f+L_d+DL_f$이다. 즉 $S_f$는 적재 시작이 아니라 도어 작업
 적재는 $S_f+DE_f$에 시작한다. makespan $\tau=C_{\max}$는 최대 완료 시각이다.
 
 \subsection{Mixed-integer 정식화}
-이진 변수 $x_{idm}$은 컴파운드 트럭 $i\in I$를 유지 목적지 $d$·도어 $m$에,
+이진 변수 $x_{idm}$은 병행 트럭 $i\in I$를 유지 목적지 $d$·도어 $m$에,
 $z_{fdm}$은 출고 트럭 $f\in F$를 배정한다. $X_{im}=\sum_d x_{idm}$,
 $Z_{fm}=\sum_d z_{fdm}$, $Z_{fd}=\sum_m z_{fdm}$로 두고, $b_{fgm}$은 도어 $m$에서
-$f$가 $g$에 선행하면 1이다. 연속 변수 $U_i,C_i,S_f,C_f,C_{\max}$는 각각 컴파운드
-하역 완료, 컴파운드 완료, 출고 도어 작업 시작, 출고 완료, makespan이다.
+$f$가 $g$에 선행하면 1이다. 연속 변수 $U_i,C_i,S_f,C_f,C_{\max}$는 각각 병행 트럭의 하역 완료,
+병행 트럭의 도어 작업 완료, 출고 도어 작업 시작, 출고 완료, makespan이다.
 $L_{id}=\sum_{j\ne i}h_{jd}$, $L_d=\sum_i h_{id}$, $B$는 유효한 horizon 상한이다.
 
 배정 제약은 다음과 같다.
@@ -167,7 +167,7 @@ $L_{id}=\sum_{j\ne i}h_{jd}$, $L_d=\sum_i h_{id}$, $B$는 유효한 horizon 상�
 \begin{equation}\textstyle\sum_{i,m}x_{idm}+\sum_{f,m}z_{fdm}=1\quad\forall d\tag{3}\end{equation}
 \begin{equation}\textstyle\sum_{i,d}x_{idm}\le1\quad\forall m\tag{4}\end{equation}
 
-컴파운드 트럭의 시간 관계와 유입 이송 선행 제약은 다음과 같다.
+병행 트럭의 시간 관계와 유입 이송 선행 제약은 다음과 같다.
 \begin{equation}U_i=r_i+DE_i+H_i-\textstyle\sum_{d,m}h_{id}x_{idm}\quad\forall i\tag{5}\end{equation}
 \begin{equation}C_i\ge U_i+L_{id}+DL_i-B(1-x_{idm})\quad\forall i,d,m\tag{6}\end{equation}
 \begin{equation}C_i\ge U_j+t_{nm}+L_{id}+DL_i-B(2-x_{idm}-X_{jn})\tag{7}\end{equation}
@@ -202,7 +202,7 @@ $r_q=0$, $\bar d_q=\infty$이면 기존 makespan 모델로 환원된다. CP-SAT�
 
 \subsection{조합적 하한}
 CP-SAT가 제공하는 하한이 약한 실험 조건에서 gap을 보고하기 위해 도어 경합을 완화한 두 유효 하한을
-사용한다. 컴파운드 트럭 $i$(목적지 $d$ 유지)의 최속 완료와 출고 트럭 $f$의 최속
+사용한다. 병행 트럭 $i$(목적지 $d$ 유지)의 최속 완료와 출고 트럭 $f$의 최속
 완료는
 \begin{equation}EF_i=r_i+DE_i+\min_{d\in D}\Big(H_i-h_{id}+\textstyle\sum_{j\in I\setminus\{i\}}h_{jd}\Big)+DL_i\tag{17}\end{equation}
 \begin{equation}EF_f=r_f+DE_f+\min_{d\in D}\textstyle\sum_{j\in I}h_{jd}+DL_f\tag{18}\end{equation}
@@ -225,12 +225,12 @@ VAA-GILS는 iterated local search의 구현체로, 연산자 내부 sampling과 
 Sajadieh~\cite{shahmardan2020}가 제안한 SA-RL5를 가리키며, VAA 구성 휴리스틱과
 generic 이웃 7종은 이 모델에서 가져왔다.
 
-\textbf{초기해 구성.} 원 모델의 VAA는 Vogel식 regret으로 컴파운드 트럭의 유지 목적지를
+\textbf{초기해 구성.} 원 모델의 VAA는 Vogel식 regret으로 병행 트럭의 유지 목적지를
 정하고, 완료 시각 우선순위에 따라 출고 목적지를 배정한다. 도어 배정은 먼저 처리되는
 트럭을 도어 간 이송시간 합이 가장 작은 중앙 도어에 두고, 나머지 트럭은 작업 종료가 가장
 이른 도어에 차례로 삽입한다. 모든 완료 예정 시각 계산에는 release time을 반영한다.
 
-\textbf{Descent.} 세 가지 이동 유형(출고 트럭 재배치, 컴파운드 트럭의 도어 교환/빈 도어 이동, 두
+\textbf{Descent.} 세 가지 이동 유형(출고 트럭 재배치, 병행 트럭의 도어 교환/빈 도어 이동, 두
 트럭의 목적지 교환)에 대한 best-improvement 지역탐색으로, local optimum에서
 종료하며 초기해·모든 신규 incumbent·최종해에 적용한다.
 
@@ -246,10 +246,9 @@ incumbent를 갱신한다. acceptance는 초기 온도 $T_0=\max\{1,0.05\,J(s_0)
 $T\leftarrow\max\{T,0.02\,J(s^*)\}$로 온도를 reheat한다.
 
 \textbf{Operator pool.} generic 이웃 7종은 원 모델의 이웃 구조를 그대로 사용한다:
-(k1) 두 트럭의 목적지 교환, (k2) 컴파운드 트럭 간 도어 교환, (k3) 출고 트럭 간 도어
-교환, (k4) 출고 트럭을 다른 도어로 삽입, (k6) 하역시간 기반 룰렛 선택으로 컴파운드
-트럭을 도어에 삽입, (k7) 적재시간 기반 룰렛 선택으로 출고 트럭을 도어에 삽입,
-(k8) 룰렛 선택으로 컴파운드 트럭에 목적지를 배정. 원 모델은 이동을 k1--k8로
+(k1) 두 트럭의 목적지 교환, (k2) 병행 트럭 간 도어 교환, (k3) 출고 트럭 간 도어
+교환, (k4) 출고 트럭을 다른 도어로 삽입, (k6) 하역시간 기반 룰렛 선택으로 병행 트럭을 도어에 삽입, (k7) 적재시간 기반 룰렛 선택으로 출고 트럭을 도어에 삽입,
+(k8) 룰렛 선택으로 병행 트럭에 목적지를 배정. 원 모델은 이동을 k1--k8로
 번호매기나 k5는 정의하지 않아 실제 구현은 7종이다. 여기에 현재 병목을 먼저 식별한 뒤 그
 주변에서 가능한 후보를 모두 평가해 최선을 택하는 guided 연산자 4종을 더한다: (g1) critical door의 마지막
 출고 트럭을 최선 도어·위치로 재배치, (g2) critical 트럭의 목적지를 전 트럭과
@@ -291,7 +290,7 @@ acceptance & SA(Metropolis) & SA(Metropolis; ablation상 생략 가능) \\
 \end{table}
 
 \section{실험 설계}
-세 규모 $(|I|,|D|,|M|)$: S $(6,9,6)$, M $(12,18,12)$, L $(20,30,20)$, 컴파운드
+세 규모 $(|I|,|D|,|M|)$: S $(6,9,6)$, M $(12,18,12)$, L $(20,30,20)$, 병행 트럭
 비율 $2/3$을 사용한다. flow는 상품 3종에 대해 $[0,20]$의 균등 정수,
 $t_k\sim U[1,5]$, 도어는 $100\times100$ 랜덤 배치이다. 시간 제약 수준은
 none/medium/tight이며 medium/tight에서 $r\sim U[0,\rho H]$, $\bar d=r+\delta H$,
@@ -299,11 +298,11 @@ $(\rho,\delta)=(0.25,0.60),(0.50,0.35)$이다.
 
 seed는 서로소인 train/tuning/test 집합으로 분리한다. 주 해품질 비교(표~\ref{tab:main})는
 실험 조건당 test 인스턴스 20개 $\times$ replication 5회를 사용하고, 통제된 ablation은
-동일예산·동일구조 분해이므로 원래의 5-인스턴스 설계를 유지한다. 인스턴스별로
+동일한 반복 횟수·동일 구조 분해이므로 원래의 5-인스턴스 설계를 유지한다. 인스턴스별로
 replication을 평균한 뒤 짝지은 인스턴스 평균에 양측 Wilcoxon signed-rank test를
-적용한다. GILS는 1{,}000회 반복한다. CP-SAT는 인스턴스당 1회, 8 thread로 S
+적용한다. GILS의 종료 조건은 반복 횟수 1{,}000회다. CP-SAT는 인스턴스당 1회, 8 thread로 S
 300초(5개), M/L 600초(조건당 2개) 실행하며 S-none 5개만 최적이 증명된다. 주 지표는
-모든 방법과 예산 및 CP-SAT 결과를 포함하여 관측된 최선해에 대한 인스턴스별 gap
+모든 방법과 반복 횟수 및 CP-SAT 결과를 포함하여 관측된 최선해에 대한 인스턴스별 gap
 $\Delta_{bo}$이다.
 
 \section{실험 결과}
@@ -316,7 +315,7 @@ VAA를 평균 2.65\%($n=180$, $p<10^{-4}$), SA-RL5를 1.38\%($n=60$, $p<10^{-4}$
 CP-SAT(76, 237, 376초)보다 두세 자릿수 짧다.
 
 \begin{table}[t]\centering
-\caption{20-인스턴스 test 결과(실험 조건당 인스턴스 20개 $\times$ 반복 5회).
+\caption{20-인스턴스 test 결과(실험 조건당 인스턴스 20개 $\times$ replication 5회).
 $\Delta_{bo}$는 관측된 최선해 대비 평균 gap, 시간은 1회 실행 평균이다. vs CP-SAT는
 CP-SAT가 기준해를 제공한 부분집합(S 조건 각 5개, M-none 2개)에서만 계산하였으며,
 이 가운데 S-none만 최적성이 증명되었다. 같은 부분집합에서 CP-SAT의 평균 실행시간은
@@ -370,7 +369,7 @@ L-tight & VAA & $119671.9\pm32475.3$ & 0.77 & --- & 0.02\\
 \end{table}
 
 \subsection{핵심 구성요소 분석: 성능은 어디에서 오는가}
-세 가지 통제된 ablation(예산 1{,}000회 고정)으로 엔진을 분해한다.
+세 가지 통제된 ablation(반복 횟수 1{,}000회 고정)으로 엔진을 분해한다.
 
 \textbf{Operator pool.} selection을 uniform으로 고정하고 연산자 집합만 generic(7)/
 critical(+g1,g2)/full(+g3,g4)로 바꾸면 $\Delta_{bo}$가 9개 실험 조건 전부에서
@@ -379,8 +378,7 @@ Wilcoxon(표~\ref{tab:b1})은 유도 연산자가 목적값을 일관되게·유
 보인다.
 
 \begin{table}[H]\centering
-\caption{Operator-pool ablation(실험 조건당 인스턴스 5개 $\times$ 반복 5회, 1{,}000회
-예산 고정; 양측 Wilcoxon, $+$평균 = 더 풍부한 연산자 집합이 우세).}
+\caption{Operator-pool ablation(실험 조건당 인스턴스 5개 $\times$ replication 5회, 반복 횟수 1{,}000회 고정; 양측 Wilcoxon, $+$평균 = 더 풍부한 연산자 집합이 우세).}
 \label{tab:b1}\small
 \begin{tabular}{@{}lrrl@{}}
 \toprule
@@ -404,7 +402,7 @@ restart가 그다음이며, VAA 초기해는 통계적으로 유의하지 않고
 제거해도 목적값이 나빠지지 않는다(그림~\ref{fig:comp}).
 
 \begin{table}[H]\centering
-\caption{Engine-component ablation(실험 조건당 인스턴스 5개 $\times$ 반복 5회;
+\caption{Engine-component ablation(실험 조건당 인스턴스 5개 $\times$ replication 5회;
 leave-one-out 방식, 제거 시 상대 목적값 악화율).}
 \label{tab:b2}\small
 \begin{tabular}{@{}lrrl@{}}
@@ -426,13 +424,13 @@ stochastic acceptance & 45 & $-0.026$ & 0.0014\\
 
 \subsection{보조 분석: 학습 기반 연산자 선택}
 연산자 집합과 구성요소를 full로 고정하고 selection만 바꾸면(표~\ref{tab:sel}), 어떤
-learned policy도 uniform을 실용적으로 능가하지 못한다. 50--3{,}000회의 모든 예산
-구간에서도 결과는 같고 우열의 방향이 예산에 따라 뒤집히며(부록 그림~\ref{fig:sel}),
+learned policy도 uniform을 실용적으로 능가하지 못한다. 반복 횟수를 50--3{,}000회로 바꾸어도 결과는 같고 우열의 방향이
+반복 횟수에 따라 뒤집히며(부록 그림~\ref{fig:sel}),
 이러한 부정적 결과는 무제약 조건만으로도 성립하므로 시간 제약 확장 때문에 나타난
 결과가 아니다.
 
 \begin{table}[H]\centering
-\caption{selection 효과(실험 조건당 인스턴스 5개 $\times$ 반복 5회, 1{,}000회 예산;
+\caption{selection 효과(실험 조건당 인스턴스 5개 $\times$ replication 5회, 반복 횟수 1{,}000회;
 양측 Wilcoxon, 양의 평균 = 앞 방법 우세).}
 \label{tab:sel}\small
 \begin{tabular}{@{}lrrl@{}}
@@ -461,25 +459,24 @@ makespan은 약 1\% 상승, 평균 tardiness는 2--3\% 하락한다. $\lambda=1$
 \end{figure}
 
 \section{논의}
-학습 기반 selector가 uniform 대비 이득을 주지 못한 결과는 학습 자체에 대한 일반적
-결론이 아니라, 본 논문의 탐색 구조 안에서 해석되어야 한다. 이 엔진은 selector가
-개입할 여지를 거의 남기지 않기 때문이다. 후보 평가가 수십 $\mu$s로
-저렴하고, 모든 신규 incumbent 뒤에 결정론적 descent가 따른다. 같은 basin에
-들어간 두 실행은 선행 이동이 달라도 같은 해로 수렴할 수 있으며, budget 곡선은 이
-수렴이 대부분의 test 인스턴스에서 1{,}000회 이전에 일어남을 시사한다. 같은
-이유로 SA acceptance와 reheating은 기저 SA-RL5 framework와의 comparability를 위해
-유지하였으나, ablation은 본 설정에서 이들이 해 품질에 필수적이지 않음을 보인다.
+학습 기반 selector가 uniform 대비 이득을 주지 못한 것은 학습 일반에 대한 결론이
+아니라 본 논문의 탐색 구조가 낳은 결과다. 후보 하나의 평가에 수십 $\mu$s밖에 들지
+않아 연산자를 잘 고르는 것보다 많이 시도하는 편이 유리하고, 모든 신규 최선해 뒤에
+결정론적 descent가 따라붙어 어떤 연산자로 그 지점에 이르렀는지의 차이를 상당 부분
+흡수한다. 반복 횟수별 gap 곡선도 대부분의 test 인스턴스에서 해 품질이 1{,}000회 이전에
+평탄해짐을 보인다. SA acceptance와 reheating은 원 모델과 비교할 수 있도록
+유지하였으나, ablation은 본 설정에서 이 둘이 해 품질에 필수적이지 않음을 보인다.
 
-학습 정책이 예측할 대상도 마땅치 않다. selector가 이득을 내려면 현재 탐색 상태로부터
-다음에 어떤 연산자가 유리한지를 예측할 수 있어야 하는데, 본 문제의 인스턴스는 정적이고
-모든 release time이 최적화 이전에 알려져 있어 실행 도중 새로 드러나는 정보가 없다. 이는 도착 정보가 시간의 흐름에 따라 공개되는 online dock control이나 개별 이동의 평가 비용이
-비싼 simulation 모형과 다르며, 그런 환경에서는 learned selection의 역할이 커질 수
-있다. 본 결과가 뒷받침하는 바는 제한적이다. 즉, learned selector는 동일한 엔진과 동일한
-예산에서 uniform sampling과 비교되어야 하며, 그 통제가 없으면 descent·restart·강한
-이동 집합의 이득이 정책 자체의 것으로 잘못 귀속될 수 있다.
+selector가 예측할 대상이 마땅치 않다는 점도 작용한다. 본 문제의 인스턴스는 정적이고
+모든 release time이 최적화 이전에 알려져 있어, 실행 도중 새로 드러나 정책이 활용할
+정보가 없다. 도착 정보가 시간에 따라 공개되는 동적 도크 운영이나 이동 하나의 평가가
+비싼 시뮬레이션 기반 모형에서는 판단이 달라질 수 있다. 따라서 본 결과의 함의는 학습이
+무용하다는 것이 아니라 비교 조건에 있다. learned selector는 동일한 엔진과 동일한
+반복 횟수 아래 uniform sampling과 견주어야 하며, 그 통제가 없으면 descent·restart·강한
+연산자 집합의 이득이 정책의 성과로 잘못 귀속될 수 있다.
 
 \section{결론}
-본 연구는 부분 하역 컴파운드 트럭 스케줄링에 release time과 soft due date를
+본 연구는 부분 하역 병행 트럭 스케줄링에 release time과 soft due date를
 도입하고, MILP·CP-SAT 정식화와 유효 하한으로 휴리스틱 해를 검증하였다. CP-SAT
 기준해가 있는 실험 조건에서 VAA-GILS의 목적값은 해당 기준해 대비 평균 0.11--0.21\%였고(소형 무제약
 조건에서는 CP-SAT가 최적성을 증명하였다), 대형 시간 제약 조건에서는 수 초 안에 비교 방법 가운데 가장 좋은 해를 제공하였다.
@@ -503,9 +500,9 @@ target network는 500 step마다 동기화한다. reward는 shaped signal(신규
 
 \begin{figure}[H]\centering
 \includegraphics[width=0.72\textwidth]{fig1_selector_budget.pdf}
-\caption{iteration budget별 관측된 최선해 대비 gap. 50--3{,}000회에서 uniform은
+\caption{반복 횟수별 관측된 최선해 대비 gap. 50--3{,}000회에서 uniform은
 $0.47\to0.16\%$, tabular는 $0.56\to0.09\%$, DQN은 $0.56\to0.26\%$로 움직이며,
-어떤 예산에서도 learned selector가 uniform을 뚜렷하게 능가하지 않는다.}\label{fig:sel}
+어떤 반복 횟수에서도 learned selector가 uniform을 뚜렷하게 능가하지 않는다.}\label{fig:sel}
 \end{figure}
 
 \section*{생성형 AI 사용 명시}

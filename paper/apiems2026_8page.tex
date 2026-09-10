@@ -52,8 +52,7 @@ reference, GILS is within 0.1--0.6\% of its incumbents and solves a run in
 0.1--2.3 seconds, versus 76--376 seconds for CP-SAT. On larger time-window
 instances, GILS returns the best solutions among the tested methods. Ablations
 show that descent, bottleneck moves, and restart account for the improvement;
-learned operator selection does not outperform uniform sampling under equal
-budgets.
+learned operator selection does not outperform uniform sampling at an equal number of iterations.
 \end{abstract}
 
 \noindent\textbf{Keywords:} cross-docking; compound truck; time windows;
@@ -91,7 +90,7 @@ adds full best-improvement descent, makespan-critical and tardiness-critical
 moves, and restart to the earlier VAA construction and generic neighborhoods
 \cite{shahmardan2020}. Third, controlled ablations distinguish gains from the
 search engine from gains due to learned operator selection. The latter does
-not improve on a uniform equal-budget control in our experiments.
+not improve on a uniform control at an equal number of iterations in our experiments.
 
 \section{Problem Definition}
 
@@ -223,7 +222,7 @@ comparisons use CP-SAT incumbents.
 Baselines are VAA, our implementation of SA-RL5 \cite{shahmardan2020}, and
 GILS with uniform, tabular-Q, or transfer-DQN selection. The primary metric is
 the per-instance gap $\Delta_{bo}$ to the best solution observed across all
-methods, budgets, and CP-SAT where available.
+methods, iteration counts, and CP-SAT where available.
 
 \section{Results}
 
@@ -291,14 +290,14 @@ Learned selection also has little incremental value. At 1,000 iterations,
 tabular Q-learning differs from uniform by $-0.01$ percentage points
 ($p=0.150$); DQN is 0.11 points worse than uniform ($p<10^{-4}$)
 \cite{watkins1992,mnih2015}. No learned
-selector wins consistently over budgets of 50--3,000 iterations. This negative
+selector wins consistently over iteration counts from 50 to 3,000. This negative
 result also holds on no-window cells, so it is not caused by the extension.
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.72\textwidth]{fig1_selector_budget.pdf}
-\caption{Mean gap to the best observed solution across iteration budgets. The tabular selector
-only edges uniform at the largest budget, while transfer DQN never wins.}
+\caption{Mean gap to the best observed solution versus the number of iterations. The tabular selector
+only edges uniform at the largest iteration count, while transfer DQN never wins.}
 \label{fig:selector-budget}
 \end{figure}
 
@@ -333,8 +332,7 @@ dominance over tested baselines, not optimality.
 
 The ablations change the interpretation of performance. Best-improvement
 descent, guided moves, and restart carry the search. Once those mechanisms are
-present, a uniform selector is as effective as the learned alternatives under
-equal budgets. SA acceptance and reheating are retained for comparability with
+present, a uniform selector is as effective as the learned alternatives at an equal number of iterations. SA acceptance and reheating are retained for comparability with
 the base SA-RL5 framework, although the ablation indicates they are not necessary
 for solution quality in the present setting. This does not imply that learning is
 generally ineffective;

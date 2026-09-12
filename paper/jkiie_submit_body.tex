@@ -139,6 +139,12 @@ $S_f=\max(\text{door available},\ \text{destination ready},\ r_f)$이며, 이후
 $S_f+DE_f+L_d+DL_f$이다. 즉 $S_f$는 적재 시작이 아니라 도어 작업 시작 시각이고,
 적재는 $S_f+DE_f$에 시작한다. 총 작업완료시간 $\tau=C_{\max}$는 최대 완료 시각이다.
 
+\begin{figure}[H]\centering
+\includegraphics[width=0.92\columnwidth]{fig0_compound_timeline.pdf}
+\caption{Figure 1. Processing timeline of a compound truck and the outbound truck
+of its retained destination.}\label{fig:timeline}
+\end{figure}
+
 \subsection{3.2 Mixed-integer 정식화}
 이진 변수 $x_{idm}$은 병행 트럭 $i\in I$를 유지 목적지 $d$·도어 $m$에,
 $z_{fdm}$은 출고트럭 $f\in F$를 배정한다. $X_{im}=\sum_d x_{idm}$,
@@ -285,14 +291,35 @@ CP-SAT가 제한시간 안에 최적성을 증명할 수 있는 규모이고 L�
 규모여서 두 극단을 함께 본다. 병행 트럭 비율을 높게 잡은 것은, 이 비율이 낮으면 문제가
 일반 크로스도킹 스케줄링에 가까워져 부분 하역 구조의 영향이 드러나지 않기 때문이다.
 
-상품은 3종이며 트럭 $q\in I\cup F$에 대해 $f_{idk}\sim U[0,20]$, $t_k\sim U[1,4]$,
-$DE_q,DL_q\sim U[1,5]$로 모두 정수 균등분포에서 뽑는다. 화물이 특정 목적지로 쏠리는
-정도는 이와 별개의 조건이며, 보고하는 모든 실험은 쏠림이 없는 조건을 사용한다(쏠린
-조건과 군집 조건은 부록 A의 transfer DQN 학습에만 쓴다). 도어는 $[0,100]^2$에 균등 랜덤
-좌표로 배치하고 도어 간 이송시간 $t_{mn}$은 두 좌표 사이 유클리드 거리를 10으로 나눈
-값이다. 도어를 일렬로 늘어놓으면 이송시간이 도어 번호 차이로 정해져 도어 배정이 해에
-미치는 영향이 작아지므로, 배정 결정이 실제로 품질을 가르도록 무작위 배치를 쓴다. 거리를
-10으로 나누는 것은 이송시간을 처리시간과 같은 크기 범위에 두기 위해서다.
+나머지 생성 파라미터는 <Table~\ref{tab:param}>에 정리하였다. 화물이 특정 목적지로
+쏠리는 정도는 이와 별개의 조건이며, 보고하는 모든 실험은 쏠림이 없는 조건을 사용한다(쏠린
+조건과 군집 조건은 부록 A의 transfer DQN 학습에만 쓴다). 도어를 일렬로 늘어놓으면
+이송시간이 도어 번호 차이로 정해져 도어 배정이 해에 미치는 영향이 작아지므로, 배정
+결정이 실제로 품질을 가르도록 무작위 배치를 쓴다. 이송 거리를 10으로 나누는 것은
+이송시간을 처리시간과 같은 크기 범위에 두기 위해서다.
+
+\begin{table}[H]\centering
+\caption{Table 2. Instance generation parameters. Flow, handling and
+enter/leave times are drawn from integer uniform distributions.}
+\label{tab:param}\small
+\begin{tabular}{@{}llp{0.40\columnwidth}@{}}
+\toprule
+Item & Symbol & Value \\
+\midrule
+Size (compound/outbound/destination/door) & $(|I|,|F|,|D|,|M|)$ & S $(6,3,9,6)$; M $(12,6,18,12)$; L $(20,10,30,20)$ \\
+Compound-truck ratio & $|I|/|D|$ & $2/3$ \\
+Number of product types & $|K|$ & 3 \\
+Flow & $f_{idk}$ & $U[0,20]$ \\
+Unit handling time & $t_k$ & $U[1,4]$ \\
+Enter/leave time & $DE_q,DL_q$ & $U[1,5]$ \\
+Door coordinates & --- & uniform on $[0,100]^2$ \\
+Inter-door travel time & $t_{mn}$ & Euclidean distance $/\,10$ \\
+Release time & $r_q$ & none: $0$; otherwise $U[0,\rho H]$ \\
+Soft due date & $\bar d_q$ & none: $\infty$; otherwise $r_q+\delta H$ \\
+Time-constraint level & $(\rho,\delta)$ & medium $(0.25,0.60)$; tight $(0.50,0.35)$ \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \subsection{5.2 시간 제약 수준}
 시간 제약은 none, medium, tight 세 수준이다. none은 $r_q=0$, $\bar d_q=\infty$로 두어
@@ -343,7 +370,7 @@ VAA를 평균 2.65\%($n=180$, $p<10^{-4}$), SA-RL5를 1.38\%($n=60$, $p<10^{-4}$
 CP-SAT(76, 237, 376초)보다 두세 자릿수 짧다.
 
 \begin{table}[t]\centering
-\caption{Table 2. Test results over 20 instances per experimental condition (20 instances $\times$ 5 replications). $\Delta_{bo}$ is the mean gap to the best observed solution and time is the mean per run. The vs CP-SAT column is computed only on the subset for which CP-SAT returned a reference (5 instances per S condition, 2 for M-none); optimality was proven only for S-none. On that subset the mean CP-SAT runtime is 76 s (S) and 237 s (M-none).}
+\caption{Table 3. Test results over 20 instances per experimental condition (20 instances $\times$ 5 replications). $\Delta_{bo}$ is the mean gap to the best observed solution and time is the mean per run. The vs CP-SAT column is computed only on the subset for which CP-SAT returned a reference (5 instances per S condition, 2 for M-none); optimality was proven only for S-none. On that subset the mean CP-SAT runtime is 76 s (S) and 237 s (M-none).}
 \label{tab:main}\small
 \begin{tabular}{@{}llrrrr@{}}
 \toprule
@@ -402,7 +429,7 @@ Wilcoxon(<Table~\ref{tab:b1}>)은 유도 연산자가 목적값을 일관되게�
 보인다.
 
 \begin{table}[H]\centering
-\caption{Table 3. Operator-pool ablation (5 instances $\times$ 5 replications per condition, the number of iterations fixed at 1,000; two-sided Wilcoxon, positive mean favors the richer operator set).}
+\caption{Table 4. Operator-pool ablation (5 instances $\times$ 5 replications per condition, the number of iterations fixed at 1,000; two-sided Wilcoxon, positive mean favors the richer operator set).}
 \label{tab:b1}\small
 \begin{tabular}{@{}lrrl@{}}
 \toprule
@@ -417,7 +444,7 @@ generic → full (all guided) & 166 & +0.161 & <0.0001\\
 
 \begin{figure}[H]\centering
 \includegraphics[width=0.82\columnwidth]{fig2_operator_pool.pdf}
-\caption{Figure 1. Mean gap to the best observed solution by operator set.}\label{fig:op}
+\caption{Figure 2. Mean gap to the best observed solution by operator set.}\label{fig:op}
 \end{figure}
 
 \textbf{Engine components.} 연산자 집합을 전체로, 선택 정책을 균등 선택으로 고정하고 구성요소를
@@ -426,7 +453,7 @@ restart가 그다음이며, VAA 초기해는 통계적으로 유의하지 않고
 제거해도 목적값이 나빠지지 않는다(<Figure~\ref{fig:comp}>).
 
 \begin{table}[H]\centering
-\caption{Table 4. Engine-component ablation (5 instances $\times$ 5 replications per condition; leave-one-out, relative objective degradation when a component is removed).}
+\caption{Table 5. Engine-component ablation (5 instances $\times$ 5 replications per condition; leave-one-out, relative objective degradation when a component is removed).}
 \label{tab:b2}\small
 \begin{tabular}{@{}lrrl@{}}
 \toprule
@@ -442,7 +469,7 @@ stochastic acceptance & 45 & −0.026 & 0.0014\\
 
 \begin{figure}[H]\centering
 \includegraphics[width=0.82\columnwidth]{fig3_component_ablation.pdf}
-\caption{Figure 2. Objective degradation when each component is removed.}\label{fig:comp}
+\caption{Figure 3. Objective degradation when each component is removed.}\label{fig:comp}
 \end{figure}
 
 \subsection{6.3 보조 분석: 학습 기반 연산자 선택}
@@ -453,7 +480,7 @@ stochastic acceptance & 45 & −0.026 & 0.0014\\
 결과가 아니다.
 
 \begin{table}[H]\centering
-\caption{Table 5. Effect of the selection policy (5 instances $\times$ 5 replications per condition, 1,000 iterations; two-sided Wilcoxon, positive mean favors the first method).}
+\caption{Table 6. Effect of the selection policy (5 instances $\times$ 5 replications per condition, 1,000 iterations; two-sided Wilcoxon, positive mean favors the first method).}
 \label{tab:sel}\small
 \begin{tabular}{@{}lrrl@{}}
 \toprule
@@ -477,7 +504,7 @@ $\lambda\in\{0,0.25,0.5,1,2,4,8\}$을 스윕한다. 물리적 총 작업완료�
 
 \begin{figure}[H]\centering
 \includegraphics[width=0.72\textwidth]{fig4_lambda_tradeoff.pdf}
-\caption{Figure 3. Normalized makespan-tardiness trade-off on tuning instances.}\label{fig:lam}
+\caption{Figure 4. Normalized makespan-tardiness trade-off on tuning instances.}\label{fig:lam}
 \end{figure}
 
 \section{7. 논의}
@@ -522,7 +549,7 @@ target network는 500 step마다 동기화한다. reward는 shaped signal(신규
 
 \begin{figure}[H]\centering
 \includegraphics[width=0.72\textwidth]{fig1_selector_budget.pdf}
-\caption{Figure 4. Mean gap to the best observed solution versus the number of iterations.}\label{fig:sel}
+\caption{Figure 5. Mean gap to the best observed solution versus the number of iterations.}\label{fig:sel}
 \end{figure}
 
 \section*{생성형 AI 활용 공개}

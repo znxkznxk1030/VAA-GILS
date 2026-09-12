@@ -327,10 +327,66 @@ def fig5():
     print("wrote", os.path.join("paper/figures", "fig5_landscape_fdc.svg"))
 
 
+# ---- Figure 0: compound-truck processing timeline ---------------------------
+def fig0():
+    """Schematic timeline of one compound truck and one outbound truck."""
+    W, H = 720, 272
+    L, R = 84, W - 16
+    body = ""
+
+    def bar(x, w, y, h, fill, label, sz=10, tc="white"):
+        out = (f'<rect x="{x:.1f}" y="{y}" width="{w:.1f}" height="{h}" '
+               f'fill="{fill}" stroke="{AXIS}" stroke-width="0.6"/>\n')
+        if label:
+            out += _txt(x + w / 2, y + h / 2 + 3.5, label, sz, "middle", tc)
+        return out
+
+    body += ('<defs><marker id="ah" viewBox="0 0 8 8" refX="7" refY="4" '
+             'markerWidth="6" markerHeight="6" orient="auto">'
+             f'<path d="M0,0 L8,4 L0,8 z" fill="{AXIS}"/></marker></defs>\n')
+    body += _txt(L - 6, 34, "Compound truck i keeps destination d, unloads the rest, "
+                 "then departs as the carrier for d.", 11, "start", "#555")
+
+    y1, bh = 66, 28
+    body += _txt(L - 10, y1 + 18, "compound i", 11.5, "end", INK, "bold")
+    for off, w, f, lab, sz in [(0, 30, C_FILL[2], "DE", 9.5),
+                               (30, 122, C_FILL[0], "partial unload (keep d)", 10),
+                               (152, 96, "#ffffff", "wait for transfers", 9.5),
+                               (248, 88, C_FILL[1], "load", 10),
+                               (336, 30, C_FILL[2], "DL", 9.5)]:
+        body += bar(L + off, w, y1, bh, f, lab, sz, INK if f == "#ffffff" else "white")
+    body += _line(L, y1 + bh + 3, L, y1 + bh + 13)
+    body += _txt(L, y1 + bh + 25, "r_i", 10, "middle", AXIS)
+    body += _line(L + 366, y1 + bh + 3, L + 366, y1 + bh + 13)
+    body += _txt(L + 366, y1 + bh + 25, "C_i", 10, "middle", AXIS)
+
+    y2 = 174
+    body += _txt(L - 10, y2 + 18, "outbound f", 11.5, "end", INK, "bold")
+    for off, w, f, lab in [(196, 30, C_FILL[2], "DE"),
+                           (226, 126, C_FILL[1], "load L_d"),
+                           (352, 30, C_FILL[2], "DL")]:
+        body += bar(L + off, w, y2, bh, f, lab)
+    body += _line(L + 382, y2 + bh + 3, L + 382, y2 + bh + 13)
+    body += _txt(L + 382, y2 + bh + 25, "C_f", 10, "middle", AXIS)
+
+    # dependency arrow: end of partial unload -> outbound loading start
+    body += (f'<line x1="{L+152:.1f}" y1="{y1+bh:.1f}" x2="{L+194:.1f}" y2="{y2-4:.1f}" '
+             f'stroke="{AXIS}" stroke-width="1" stroke-dasharray="3,3" '
+             f'marker-end="url(#ah)"/>\n')
+    body += _txt(L + 146, (y1 + bh + y2) / 2 + 4, "transfer t_mn", 9.5, "end", AXIS)
+    body += _txt(L + 200, y2 - 10, "S_f = max(door free, destination ready, r_f)",
+                 9.5, "start", INK)
+
+    body += _line(L, H - 28, R, H - 28, AXIS, 1.2)
+    body += _txt((L + R) / 2, H - 11, "time", 11, "middle", AXIS)
+    with open(os.path.join(OUT, "fig0_compound_timeline.svg"), "w") as f:
+        f.write(_svg(W, H, body))
+
+
 if __name__ == "__main__":
-    fig1(); fig2(); fig3()
-    for fn in ("fig1_selector_budget", "fig2_operator_pool",
-               "fig3_component_ablation"):
+    fig0(); fig1(); fig2(); fig3()
+    for fn in ("fig0_compound_timeline", "fig1_selector_budget",
+               "fig2_operator_pool", "fig3_component_ablation"):
         print("wrote", os.path.join("paper/figures", fn + ".svg"))
     fig4()
     fig5()

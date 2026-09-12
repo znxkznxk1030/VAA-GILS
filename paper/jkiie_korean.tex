@@ -160,6 +160,12 @@ $S_f=\max(\text{door available},\ \text{destination ready},\ r_f)$이며, 이후
 $S_f+DE_f+L_d+DL_f$이다. 즉 $S_f$는 적재 시작이 아니라 도어 작업 시작 시각이고,
 적재는 $S_f+DE_f$에 시작한다. 총 작업완료시간 $\tau=C_{\max}$는 최대 완료 시각이다.
 
+\begin{figure}[H]\centering
+\includegraphics[width=0.92\columnwidth]{fig0_compound_timeline.pdf}
+\caption{Processing timeline of a compound truck and the outbound truck of its
+retained destination.}\label{fig:timeline}
+\end{figure}
+
 \subsection{Mixed-integer 정식화}
 이진 변수 $x_{idm}$은 병행 트럭 $i\in I$를 유지 목적지 $d$·도어 $m$에,
 $z_{fdm}$은 출고트럭 $f\in F$를 배정한다. $X_{im}=\sum_d x_{idm}$,
@@ -306,14 +312,35 @@ CP-SAT가 제한시간 안에 최적성을 증명할 수 있는 규모이고 L�
 규모여서 두 극단을 함께 본다. 병행 트럭 비율을 높게 잡은 것은, 이 비율이 낮으면 문제가
 일반 크로스도킹 스케줄링에 가까워져 부분 하역 구조의 영향이 드러나지 않기 때문이다.
 
-상품은 3종이며 트럭 $q\in I\cup F$에 대해 $f_{idk}\sim U[0,20]$, $t_k\sim U[1,4]$,
-$DE_q,DL_q\sim U[1,5]$로 모두 정수 균등분포에서 뽑는다. 화물이 특정 목적지로 쏠리는
-정도는 이와 별개의 조건이며, 보고하는 모든 실험은 쏠림이 없는 조건을 사용한다(쏠린
-조건과 군집 조건은 부록 A의 transfer DQN 학습에만 쓴다). 도어는 $[0,100]^2$에 균등 랜덤
-좌표로 배치하고 도어 간 이송시간 $t_{mn}$은 두 좌표 사이 유클리드 거리를 10으로 나눈
-값이다. 도어를 일렬로 늘어놓으면 이송시간이 도어 번호 차이로 정해져 도어 배정이 해에
-미치는 영향이 작아지므로, 배정 결정이 실제로 품질을 가르도록 무작위 배치를 쓴다. 거리를
-10으로 나누는 것은 이송시간을 처리시간과 같은 크기 범위에 두기 위해서다.
+나머지 생성 파라미터는 <Table~\ref{tab:param}>에 정리하였다. 화물이 특정 목적지로
+쏠리는 정도는 이와 별개의 조건이며, 보고하는 모든 실험은 쏠림이 없는 조건을 사용한다(쏠린
+조건과 군집 조건은 부록 A의 transfer DQN 학습에만 쓴다). 도어를 일렬로 늘어놓으면
+이송시간이 도어 번호 차이로 정해져 도어 배정이 해에 미치는 영향이 작아지므로, 배정
+결정이 실제로 품질을 가르도록 무작위 배치를 쓴다. 이송 거리를 10으로 나누는 것은
+이송시간을 처리시간과 같은 크기 범위에 두기 위해서다.
+
+\begin{table}[H]\centering
+\caption{Instance generation parameters.}
+\label{tab:param}\small
+\begin{tabular}{@{}llp{0.40\columnwidth}@{}}
+\toprule
+항목 & 기호 & 값 \\
+\midrule
+규모(병행/출고/목적지/도어) & $(|I|,|F|,|D|,|M|)$ & S $(6,3,9,6)$ · M $(12,6,18,12)$ · L $(20,10,30,20)$ \\
+병행 트럭 비율 & $|I|/|D|$ & $2/3$ \\
+상품 종류 수 & $|K|$ & 3 \\
+화물량 & $f_{idk}$ & $U[0,20]$ \\
+단위 처리시간 & $t_k$ & $U[1,4]$ \\
+진입·출차 시간 & $DE_q,DL_q$ & $U[1,5]$ \\
+도어 좌표 & --- & $[0,100]^2$ 균등 \\
+도어 간 이송시간 & $t_{mn}$ & 유클리드 거리 $/\,10$ \\
+도착 시각 & $r_q$ & none $0$ / 그 외 $U[0,\rho H]$ \\
+soft due date & $\bar d_q$ & none $\infty$ / 그 외 $r_q+\delta H$ \\
+시간 제약 수준 & $(\rho,\delta)$ & medium $(0.25,0.60)$ · tight $(0.50,0.35)$ \\
+\bottomrule
+\end{tabular}\\[2pt]
+{\footnotesize 화물량·처리시간·진입·출차 시간은 정수 균등분포이다.}
+\end{table}
 
 \subsection{시간 제약 수준}
 시간 제약은 none, medium, tight 세 수준이다. none은 $r_q=0$, $\bar d_q=\infty$로 두어

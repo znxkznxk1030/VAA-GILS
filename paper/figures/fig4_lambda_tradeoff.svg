@@ -39,5 +39,5 @@
 <text x="385.3" y="322.6" font-size="10.5" text-anchor="start" fill="#333" font-weight="normal">λ=4</text>
 <circle cx="425.5" cy="332.3" r="3.8" fill="#2b6cb0"/>
 <text x="433.5" y="325.3" font-size="10.5" text-anchor="start" fill="#333" font-weight="normal">λ=8</text>
-<text x="70.0" y="24.0" font-size="11.5" text-anchor="start" fill="#555" font-weight="bold">Increasing λ trades makespan for tardiness; λ=1 keeps tardiness near-minimal at moderate makespan cost</text>
+<text x="70.0" y="24.0" font-size="11.5" text-anchor="start" fill="#555" font-weight="bold">λ=1 keeps tardiness near-minimal at a moderate makespan cost</text>
 </svg>

@@ -253,9 +253,8 @@ def fig4():
         body += _txt(x + 8, y - 7, lab, 10.5, "start",
                      C[1] if highlight else "#333",
                      weight="bold" if highlight else "normal")
-    body += _txt(L, T - 16, "Increasing λ trades makespan for tardiness; "
-                 "λ=1 keeps tardiness near-minimal at moderate makespan cost",
-                 11.5, "start", "#555", weight="bold")
+    body += _txt(L, T - 16, "λ=1 keeps tardiness near-minimal at a moderate "
+                 "makespan cost", 11.5, "start", "#555", weight="bold")
     with open(os.path.join(OUT, "fig4_lambda_tradeoff.svg"), "w") as f:
         f.write(_svg(W, H, body))
     print("wrote", os.path.join("paper/figures", "fig4_lambda_tradeoff.svg"))

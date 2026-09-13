@@ -170,6 +170,36 @@ Amirkabir University of Technology).
 
 ---
 
+## 🆕 2026-09-13 추가 8편 (심사 지적: 참고문헌 부족) — **7편 원문 대조 완료, 1편 원문 미확보**
+
+`jkiie_submit_body.tex`·`.docx`에만 반영(총 17편 → 25편). 검증 자료: 저자 제공 PDF 7편
+(`~/Desktop/05. 물류 ai/018`–`025`, 021 없음). 결과는 **내용 주장 불일치 2건**(Nowak & Puladi의 병행 트럭
+누락, Pan이 "가장 가깝다"는 서술)과 **서술 보강 1건**(Theophilus의 도착·지연 출발 비용)이며, 모두 원고에
+반영 완료했다.
+
+| 문헌 | 우리 주장 | 판정 | 원문 근거 |
+|---|---|---|---|
+| **Karimi-Mamaghan, Mohammadi, Pasdeloup & Meyer (2023)** EJOR 304(3), 1296–1330 (`018`) | "iterated greedy에 Q-learning 연산자 선택을 통합", 학습 제어가 개선을 보고 | ✅ 정확 | p.1296 헤더 "EJOR 304 (2023) 1296–1330". 초록 "incorporates Q-learning to select appropriate perturbation operators during the search process … against non-learning versions of the iterated greedy algorithm and seven state-of-the-art algorithms … show the better performance". ⚠️ 부기: 선택 대상은 **perturbation 연산자**. 서론 p.1297은 Turkeš et al. (2021)을 인용해 "the added-value of simple methods of AOS is not significant"라 적는다 → 본 연구 §7 negative result와 정합하는 추가 인용 후보 |
+| **Li, Hao & Wu (2024)** EJOR 312(2), 473–492 (`020`) | "cross-dock door assignment에 강화학습 기반 strategic oscillation을 적용", 개선 보고 | ✅ 정확 | p.473 헤더 "EJOR 312 (2024) 473–492". 초록 "a reinforcement learning based heuristic approach … relies on a Q-learning reinforced procedure to guide the search toward promising areas, and a strategic oscillation method … improved the best solutions (new upper bounds) for 43 of the 99 tested instances". 대상은 트럭 스케줄링이 아닌 **door assignment(CDAP)**이며 원고도 그렇게 씀 |
+| **Theophilus et al. (2021)** C&IE 156, 107240 (`025`) | (수정 전) "신선 화물의 부패를 고려한 cold-chain 트럭 스케줄링" | ⚠️ **보강 → 수정 완료** | 제목·초록은 "perishable products"(신선 화물로 한정 아님). p.5 Table 1: 도착 시각 $\tau^{at}_t$, 예정 출발 시각 $\tau^{sd}_t$, 지연 출발 시간 $\tau^{dt}_t$와 단위 비용 $c^{dt}_t$; p.7 §3.3 "Whenever the service completion of a truck extends beyond the deadline, a unit delayed departure cost … is incurred". p.5 §3.1 "$T^{in}\cup T^{out}=T$, $T^{in}\cap T^{out}=\emptyset$", p.6 segregated door mode → **입고·출고트럭 구분**. 원고를 "부패성 제품의 품질 저하, 트럭 도착 시각, 예정 출발 시각을 넘긴 지연 출발 비용을 함께 고려하지만 입고트럭과 출고트럭은 서로 구분된다"로 수정 |
+| **Nowak & Puladi (2025)** C&IE 209, 111423 (`022`) | (수정 전) "선점과 혼합 서비스 도어를 함께 허용하는 트럭 스케줄링의 메타휴리스틱"으로만 서술 | 🔴 **불일치(누락) → 수정 완료** | p.2 "We apply the commonly used term 'compound' truck to refer to those that may experience both inbound and outbound operations"; p.3 "We extend the work … by considering compounds trucks" → **병행 트럭 후속 연구**인데 원고가 이를 빠뜨림. 단 부분 하역 없음: p.3 $O\subset I$, "A truck will not leave the dock before it is completely unloaded or loaded", 식 (10) $b_i=a_i+\sum_j PD_{ij}$(전량 하역 후 적재). 도착 시각 없음: 식 (21) $a_i\ge0$, p.4 Lemma 3.1 증명 "the arrival time of the truck … for each dock m is zero". 납기 없음: 목적식 (1) $\min c_{max}$만. 해법 GA·VNS(p.5 §4). 원고를 "혼합 서비스 도어와 작업 선점을 허용하면서 하역을 마친 트럭이 다시 적재되는 병행 트럭을 다루고 메타휴리스틱으로 총 작업완료시간을 최소화하지만, 트럭은 싣고 온 화물을 모두 하역한 뒤 적재되고 도착 시각이나 납기는 두지 않는다"로 수정 |
+| **Pan, Fan, Qi, Chen & Zhang (2021)** Math. Probl. Eng. 2021, Article ID 5592122 (`023`) | (수정 전) "반복 적재를 허용한 Pan 등이 **가장 가깝지만** 부분 하역 후 출고 전환은 다루지 않는다" | 🔴 **"가장 가깝다" 불일치 → 수정 완료** (전환 부재는 ✅) | p.4 §3.1 "a receiving dock … designated to serve a set R of inbound trucks and a shipping dock … a set S of outbound trucks", "the inbound truck i needs to unload all of its fresh produce before leaving", 가정 (1) "All inbound and outbound trucks are available at time zero" → 병행 트럭·도착 시각 없음. 가장 가까운 것은 Nowak & Puladi (2025)이므로 최상급 삭제, "병행 트럭을 다루지 않으며 모든 트럭이 시각 0에 가용하다고 가정한다"로 수정 |
+| **Ropke & Pisinger (2006)** Transp. Sci. 40(4), 455–472 (`024`) | ALNS 원전 | ✅ 정확 | p.455 헤더 "Vol. 40, No. 4, November 2006, pp. 455–472", DOI 10.1287/trsc.1050.0135. 초록 "This general framework is denoted adaptive large neighborhood search" |
+| **Kirkpatrick, Gelatt & Vecchi (1983)** Science 220(4598), 671–680 (`019`) | SA 원전 | ✅ 정확 | JSTOR 표지 "Science, May 13, 1983, New Series, Vol. 220, No. 4598, pp. 671-680"; p.671 제목 "Optimization by Simulated Annealing" |
+| **Lourenço, Martin & Stützle (2019)** Handbook of Metaheuristics, 129–168 | ILS 틀 원전 | ⏸ **원문 미확보** | 저자 PDF 없음(구하지 못함). Crossref로 서지만 확인: DOI 10.1007/978-3-319-91086-4_5, 편집자 Gendreau & Potvin, Springer, Cham, 129–168 |
+
+**신규성 재스캔 (2026-09-13)**: Semantic Scholar에서 Shahmardan & Sajadieh (2020)를 인용한 50편
+(2019–2026)의 제목을 전수 확인했다. 병행 트럭·부분 하역을 도착 시각·납기·시간창과 결합한 논문은 없었다.
+원문 대조 결과, 가장 가까운 후속 연구는 제목에 병행 트럭이 드러나지 않는 **Nowak & Puladi (2025)**다(병행 트럭 +
+혼합 도어 + 선점, 단 전량 하역·도착 시각 없음·makespan 단일 목적). 제목 스캔만으로는 이를 놓쳤으므로, 향후
+신규성 스캔은 인용 문헌의 모델 절까지 확인해야 한다. §2의 "인용 문헌 가운데 확인되지 않았다"는 문장의 근거이며,
+인용 목록이 불완전할 수 있다는 한계는 `literature_scan_tw.md`와 같다.
+
+**형식 확인 필요**: Lourenço et al. (2019)의 **단행본 챕터 표기**(`In 편집자(Eds.), 서명, 출판사, 도시, 쪽`)는
+JKIIE 투고요령(hwp) 원문으로 확인하지 못했다.
+
+---
+
 ## 참고: AI가 이미 검증 완료한 항목 (재확인 불필요)
 
 - 참고문헌 17편 **전부 본문에서 인용됨** (미인용 0)

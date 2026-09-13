@@ -10,6 +10,8 @@
 \usepackage{float}
 \usepackage{booktabs,array}
 \usepackage[font=small,labelfont=bf]{caption}
+\captionsetup{labelformat=empty,labelsep=none}
+\setcounter{secnumdepth}{0}
 \usepackage{setspace}
 \setstretch{2.0}
 \usepackage[hidelinks]{hyperref}
@@ -25,13 +27,12 @@
 \begin{document}
 \begin{center}
 {\Large\bfseries 도착 시각(release time)과 연성 납기(soft due date)를 갖는 입출고 병행 트럭 크로스도킹 스케줄링: CP-SAT 기준해 비교를 동반한 병목 유도 반복 지역탐색}\\[2mm]
-{\large Compound-Truck Cross-Docking Scheduling with Release Times and Soft Due Dates: A Bottleneck-Guided Iterated Local Search with CP-SAT Benchmarking}\\[4mm]
-{\small 이곳에 저자명 및 소속을 넣지 마십시오. 심사 완료 후 최종본 작성 시 추가.}
+{\large Compound-Truck Cross-Docking Scheduling with Release Times and Soft Due Dates: A Bottleneck-Guided Iterated Local Search with CP-SAT Benchmarking}
 \end{center}
 
 
 \begin{abstract}
-\noindent We study truck scheduling in a multi-door cross-dock where a compound truck is partially unloaded and then departs as an outbound carrier. Existing models assume all trucks are available at time zero and minimize makespan only. We extend the problem with per-truck release times and soft due dates (violable at a tardiness cost), minimizing makespan plus total tardiness, and formulate it as a mixed-integer program and a CP-SAT model under a reproducible seed protocol. VAA-GILS is an iterated local search combining Vogel-style construction, best-improvement descent, bottleneck-guided operators, kick restarts, and greedy acceptance. Where CP-SAT provides a reference solution, VAA-GILS is within 0.06–0.25\% of that reference while requiring substantially less computation time (under 0.5 versus 76–606 seconds); where optimality was proven, it averages 0.23\% above the optimum. Where CP-SAT finds no feasible schedule within 600 seconds, it returns the best solutions observed. Ablation attributes the gain to this deterministic structure, not to learned operator selection or stochastic acceptance.
+\noindent We study truck scheduling in a multi-door cross-dock where a compound truck is partially unloaded and then departs as an outbound carrier. Existing models assume all trucks are available at time zero and minimize makespan only. We extend the problem with per-truck release times and soft due dates (violable at a tardiness cost), minimizing makespan plus total tardiness, and formulate it as a mixed-integer program and a CP-SAT model under a reproducible seed protocol. VAA-GILS is an iterated local search combining Vogel-style construction, best-improvement descent, bottleneck-guided operators, kick restarts, and greedy acceptance. Where CP-SAT provides a reference solution, VAA-GILS is within 0.06–0.25\% of that reference while requiring substantially less computation time (under 0.5 versus 76–606 seconds); where optimality was proven, it averages 0.23\% above the optimum. Where CP-SAT finds no feasible schedule within 600 seconds, VAA-GILS returns the best solutions observed among the compared methods. Ablation attributes the gain to this deterministic structure, not to learned operator selection or stochastic acceptance.
 
 \smallskip
 \noindent\textbf{Keywords:} Cross-Docking, Compound Truck, Release Time, Soft Due Date, Iterated Local Search, Constraint Programming
@@ -90,7 +91,15 @@ VAA-GILS를 서술하고, 제 5장과 제 6장에서 실험 설계와 결과를 
 door를 다룬다. Molavi 등(2018)은 경성 납기(hard due date)를, Rijal
 등(2019)은 truck scheduling과 door assignment의 통합을 다룬다. 이들은
 release/due date가 새롭지 않음을 보이나, 입고·출고트럭을 구분하며 부분
-하역 후 출고 운송 트럭으로 전환되는 트럭을 모형화하지 않는다.
+하역 후 출고 운송 트럭으로 전환되는 트럭을 모형화하지 않는다. 최근의 Theophilus 등(2021)도 cold-chain
+터미널에서 부패성 제품의 품질 저하, 트럭 도착 시각, 예정 출발 시각을 넘긴 지연 출발 비용을 함께 고려하지만
+입고트럭과 출고트럭은 서로 구분된다.
+병행 트럭 계열의 후속 연구는 드물다. Nowak과 Puladi(2025)는 혼합 서비스 도어와 작업 선점을 허용하면서
+하역을 마친 트럭이 다시 적재되는 병행 트럭을 다루고 메타휴리스틱으로 총 작업완료시간을 최소화하지만,
+트럭은 싣고 온 화물을 모두 하역한 뒤 적재되고 도착 시각이나 납기는 두지 않는다. 출고트럭의 반복 적재를
+허용한 Pan 등(2021)은 병행 트럭을 다루지 않으며 모든 트럭이 시각 0에 가용하다고 가정한다.
+Shahmardan과 Sajadieh(2020)를 인용한 문헌 가운데에서도 부분 하역 병행 트럭에 도착 시각과 납기를 결합한
+연구는 확인되지 않았다.
 
 \textbf{불확실·불완전 도착 정보.} 도착 정보의 불확실성은 앞서 다룬 결정론적 시간 제약 연구들과는 별개의 흐름을 이룬다. Konur와
 Golias는 bounded arrival window(2013a)와 unknown arrival 하의 cost-stable
@@ -103,14 +112,15 @@ optimization을 제시한다. 본 모형은 결정론적이며 각 도착 시각
 
 \textbf{가장 유사한 문제와 학습형 메타휴리스틱.} Li 등(2026)은 무인
 배송센터(distribution center)를 대상으로 mixed service mode dock의 통합 트럭
-배정·스케줄링을 Q-learning 기반 ALNS로 푼다. 이들 역시 도착 시각과 연장 가능한
+배정·스케줄링을 Q-learning 기반 ALNS(adaptive large neighborhood search; Ropke and Pisinger, 2006)로 푼다. 이들 역시 도착 시각과 연장 가능한
 출발 예정 시각을 시간창 $(r_i,d_i)$로 두고 납기지연과 총 작업완료시간을 목적에 포함하므로,
 시간 제약의 형태 자체는 본 연구와 유사하다. 그러나 유연성이 도어 수준에 있어 도어가
 적재 전용·하역 전용·혼합 모드 중 하나를 선택하고 트럭은 순수 입고·출고트럭으로
 고정되며, 화물은 도어 간 직접 이송이 아니라 저장 구역을 경유해 AGV가 운반한다.
 반면 본 문제의 유연성은 트럭 수준에 있어, 부분 하역된 병행 트럭이 특정 목적지의
-운송 트럭으로 전환되고 화물은 도어 간에 직접 이송된다. 한편 이들을 포함하여 학습 기반
-연산자 선택이 메타휴리스틱을 개선한다는 보고가 많으나, 본 연구는 강한 지역
+운송 트럭으로 전환되고 화물은 도어 간에 직접 이송된다. 한편 이들과 함께 cross-dock door assignment에
+강화학습 기반 strategic oscillation을 적용한 Li 등(2024), iterated greedy에 Q-learning 연산자 선택을 통합한
+Karimi-Mamaghan 등(2023)처럼 학습 기반 탐색 제어가 메타휴리스틱을 개선한다는 보고가 많으나, 본 연구는 강한 지역
 탐색을 갖춘 뒤에는 학습 기반 선택 정책의 이득이 작다는 통제된 반례를 더한다.
 
 \section{3. 문제 정의}
@@ -169,6 +179,7 @@ $L_{id}=\sum_{j\ne i}h_{jd}$, $L_d=\sum_i h_{id}$, $B$는 유효한 horizon 상�
 \[S_f\ge r_f\quad\forall f \qquad (8)\]
 \[C_f\ge S_f+DE_f+L_d+DL_f-B(1-Z_{fd})\quad\forall f,d \qquad (9)\]
 \[S_f\ge U_i+t_{nm}-B(2-z_{fdm}-X_{in}) \qquad (10)\]
+식~(10)은 모든 $f,d,m,n$과 $\sum_k f_{idk}>0$인 기여 병행 트럭 $i$에 대해 성립한다.
 \[S_f\ge C_i-B(2-Z_{fm}-X_{im})\quad\forall f,i,m \qquad (11)\]
 
 같은 도어 $m$을 쓰는 출고트럭 쌍 $f<g$에 대한 순서 결정과 non-overlap 제약은
@@ -212,7 +223,7 @@ $LB_\tau=\max\{LB_{\mathrm{cc}},LB_{\mathrm{da}}\}$는 총 작업완료시간의
 
 \section{4. 휴리스틱 알고리즘}
 
-VAA-GILS는 iterated local search의 구현체로, 연산자 선택, 연산자 내부 sampling, kick을
+VAA-GILS는 iterated local search(Lourenço 등, 2019)의 구현체로, 연산자 선택, 연산자 내부 sampling, kick을
 제외하면 결정론적이다. 이하에서 \textbf{원 모델}은 Shahmardan과
 Sajadieh(2020)가 제안한 SA-RL5를 가리키며, VAA 구성 휴리스틱과
 기본 이웃 7종은 이 모델에서 가져왔다.
@@ -229,7 +240,7 @@ Sajadieh(2020)가 제안한 SA-RL5를 가리키며, VAA 구성 휴리스틱과
 \textbf{반복 탐색.} 1{,}000회 반복한다. 선택 정책이 연산자 하나를 뽑아
 현재 해에서 후보를 생성하고, 후보가 전역 최선해를 개선하면 descent를 적용해
 incumbent를 갱신한다. acceptance는 후보가 현재 해를 엄격히 개선할 때만 받아들이는
-greedy 규칙이다. 이 규칙은 조정 집합에서 simulated annealing acceptance(초기 온도
+greedy 규칙이다. 이 규칙은 조정 집합에서 simulated annealing(Kirkpatrick 등, 1983) acceptance(초기 온도
 $T_0=\max\{1,0.05\,J(s_0)\}$, 기하 냉각 $T\leftarrow0.995\,T$, 재시작 시 reheating)와 비교해
 정하였다. 조정 집합 45개 인스턴스 중 33개에서 SA acceptance의 목적값이 greedy보다 높았고(인스턴스별
 차이의 중앙값 $+0.017$\%p, 양측 Wilcoxon $p=0.023$), 평균 차이는 한 인스턴스의 큰 차이 때문에 $-0.011$\%p였다.
@@ -254,8 +265,8 @@ g1/g2로 fallback). 고속 증분 evaluator(평가당 수십 $\mu$s)가 descent�
 
 \textbf{선택 정책과 원 모델의 비교.} 선택 정책은 교체할 수 있으며 기본값은
 균등 무작위 선택이다. 학습 정책(SA-RL5의 tabular
-Q-learning~\cite{watkins1992}, 규모 불변 특징(feature)으로 오프라인 학습한 transfer
-DQN~\cite{mnih2015})은 ablation 목적으로만 평가하며 제안 방법의 일부가 아니다.
+Q-learning(Watkins and Dayan, 1992), 규모 불변 특징(feature)으로 오프라인 학습한 transfer
+DQN(Mnih 등, 2015))은 ablation 목적으로만 평가하며 제안 방법의 일부가 아니다.
 tabular Q는 원 모델과 같이 무개선 구간 5-상태에서 $\varepsilon$-greedy 탐험과 룰렛
 활용을 쓰되, 보상은 원 모델의 이진 보상(후보가 현재 해보다 나쁘지 않으면 1, 아니면 0)
 대신 신규 incumbent 2·비악화 1·그 외 0의 셰이핑 보상을 사용한다. 이는 학습 신호를
@@ -280,7 +291,7 @@ Operator selection & Online Q-learning / roulette & Uniform random (learning onl
 After an improving move & None (the SA step is the whole iteration) & Full best-improvement descent \\
 Stagnation handling & None & Kick restart \\
 Acceptance & SA (Metropolis) & Greedy (improving candidates only) \\
-Objective & Makespan & Makespan + λ · total tardiness \\
+Objective & Makespan & Makespan + $\lambda$ · total tardiness \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -366,7 +377,10 @@ ablation(<Table~\ref{tab:b1}>, <Table~\ref{tab:b2}>)은 같은 엔진에서 구�
 횟수, CP-SAT 결과까지 통틀어 관측된 가장 좋은 목적값을 기준으로 삼는다. 대형 조건에서는
 CP-SAT 기준해가 없어 최적해 대비 갭을 쓸 수 없기 때문이다.
 
-GILS 계열의 종료 조건은 반복 횟수 1{,}000회로 통일한다. CP-SAT는 인스턴스당 1회, 8
+Paper-SA-RL5와 Extended SA-RL5를 포함한 모든 메타휴리스틱의 종료 조건은 반복 횟수 1{,}000회로 통일한다.
+한 반복은 선택된 연산자 하나로 후보해를 생성·평가하는 단계이며, GILS는 여기에 개선 시 descent를 더 수행한다.
+원 모델은 CPU 시간으로 종료하지만 본 연구는 모든 방법에 같은 반복 횟수를 부여하였고, 반복당 계산량이 방법마다
+다르므로 실행 시간은 <Table~\ref{tab:main}>에 함께 보고한다. CP-SAT는 인스턴스당 1회, 8
 thread로 S에 300초(5개), M과 L에 600초(조건당 2개)를 부여하며 S-none 5개에서만 최적성이
 증명된다. 실험은 Apple M2 칩(8코어)과 16\,GB 메모리를 갖춘 macOS 환경에서 Python 3.12와 OR-Tools 9.15로 수행하였다.
 
@@ -376,10 +390,11 @@ thread로 S에 300초(5개), M과 L에 600초(조건당 2개)를 부여하며 S-
 실험 조건에서 GILS는 이에 근접하며, 기본 선택 정책인 균등 선택 기준으로 그 격차는
 평균 0.06--0.25\%이다(학습 선택 정책을 포함한 전체 변형은 0.06--0.47\%). 같은 선택 정책 기준으로 VAA 대비
 격차는 평균 2.66\%($n=180$, $p<0.0001$), SA-RL5 대비 격차는 1.38\%($n=60$, $p<0.0001$)이다.
-medium과 tight 조건에서 Extended SA-RL5 대비 격차는 평균 0.89\%($n=120$, $p<0.0001$)이다. 실행 시간은 S/M/L에서 각각 0.09, 0.55, 3.17초로, 같은 조건의
-CP-SAT(76, 237, 376초)보다 100배 이상 빠르다.
+medium과 tight 조건에서 Extended SA-RL5 대비 격차는 평균 0.89\%($n=120$, $p<0.0001$)이다. 실행 시간은 S/M/L에서 각각 0.09, 0.55, 3.17초이다.
+CP-SAT가 기준해를 반환한 조건에서 CP-SAT의 평균 계산 시간은 S 76초, M-none 606초로 같은 조건의 GILS(0.09, 0.48초)보다
+100배 이상 길며, M의 시간 제약 조건과 L의 모든 조건에서는 CP-SAT가 제한시간 안에 실행 가능해를 반환하지 못했다.
 
-\begin{table}[t]\centering
+\begin{table}[H]\centering
 \caption{Table 3. Test results over 20 instances per experimental condition (20 instances $\times$ 5 replications). $\Delta_{bo}$ is the mean gap to the best observed solution and time is the mean per run. The vs CP-SAT column is computed only on the subset for which CP-SAT returned a reference (5 instances per S condition, 2 for M-none); optimality was proven only for S-none. On that subset the mean CP-SAT runtime is 76 s (S) and 606 s (M-none).}
 \label{tab:main}\small
 \begin{tabular}{@{}llrrrr@{}}
@@ -593,15 +608,23 @@ target network는 500 step마다 동기화한다. reward는 shaped signal(신규
 \item Bodnar, P., de Koster, R., and Azadeh, K.(2017), Scheduling Trucks in a Cross-Dock with Mixed Service Mode Dock Doors, \emph{Transportation Science}, 51(1), 112-131.
 \item Boysen, N. and Fliedner, M.(2010), Cross Dock Scheduling: Classification, Literature Review and Research Agenda, \emph{Omega}, 38(6), 413-422.
 \item Joo, C. M. and Kim, B. S.(2013), Scheduling Compound Trucks in Multi-Door Cross-Docking Terminals, \emph{International Journal of Advanced Manufacturing Technology}, 64, 977-988.
+\item Karimi-Mamaghan, M., Mohammadi, M., Pasdeloup, B., and Meyer, P.(2023), Learning to Select Operators in Meta-Heuristics: An Integration of Q-Learning into the Iterated Greedy Algorithm for the Permutation Flowshop Scheduling Problem, \emph{European Journal of Operational Research}, 304(3), 1296-1330.
+\item Kirkpatrick, S., Gelatt, C. D., and Vecchi, M. P.(1983), Optimization by Simulated Annealing, \emph{Science}, 220(4598), 671-680.
 \item Konur, D. and Golias, M. M.(2013a), Analysis of Different Approaches to Cross-Dock Truck Scheduling with Truck Arrival Time Uncertainty, \emph{Computers \& Industrial Engineering}, 65(4), 663-672.
 \item Konur, D. and Golias, M. M.(2013b), Cost-Stable Truck Scheduling at a Cross-Dock Facility with Unknown Truck Arrivals: A Meta-Heuristic Approach, \emph{Transportation Research Part E}, 49(1), 71-91.
 \item Ladier, A.-L. and Alpan, G.(2016), Robust Cross-Dock Scheduling with Time Windows, \emph{Computers \& Industrial Engineering}, 99, 16-28.
 \item Larbi, R., Alpan, G., Baptiste, P., and Penz, B.(2011), Scheduling Cross Docking Operations under Full, Partial and No Information on Inbound Arrivals, \emph{Computers \& Operations Research}, 38(6), 889-900.
+\item Li, M., Hao, J.-K., and Wu, Q.(2024), A Flow Based Formulation and a Reinforcement Learning Based Strategic Oscillation for Cross-Dock Door Assignment, \emph{European Journal of Operational Research}, 312(2), 473-492.
 \item Li, Y., Mohammadi, M., Zhang, X., Lan, Y., and van Jaarsveld, W.(2026), Integrated Trucks Assignment and Scheduling Problem with Mixed Service Mode Docks, \emph{European Journal of Operational Research}, 333(1), 117-137.
+\item Lourenço, H. R., Martin, O. C., and Stützle, T.(2019), Iterated Local Search: Framework and Applications, In Gendreau, M. and Potvin, J.-Y.(Eds.), \emph{Handbook of Metaheuristics}, Springer, Cham, 129-168.
 \item Mnih, V., Kavukcuoglu, K., Silver, D., Rusu, A. A., Veness, J., Bellemare, M. G., Graves, A., Riedmiller, M., Fidjeland, A. K., Ostrovski, G., Petersen, S., Beattie, C., Sadik, A., Antonoglou, I., King, H., Kumaran, D., Wierstra, D., Legg, S., and Hassabis, D.(2015), Human-Level Control through Deep Reinforcement Learning, \emph{Nature}, 518, 529-533.
 \item Molavi, D., Shahmardan, A., and Sajadieh, M. S.(2018), Truck Scheduling in a Cross Docking Systems with Fixed Due Dates and Shipment Sorting, \emph{Computers \& Industrial Engineering}, 117, 29-40.
+\item Nowak, M. and Puladi, S.(2025), Value of Operational Flexibility in Cross-Docking, \emph{Computers \& Industrial Engineering}, 209, 111423.
+\item Pan, F., Fan, T., Qi, X., Chen, J., and Zhang, C.(2021), Truck Scheduling for Cross-Docking of Fresh Produce with Repeated Loading, \emph{Mathematical Problems in Engineering}, 2021, 5592122.
 \item Rijal, A., Bijvank, M., and de Koster, R.(2019), Integrated Scheduling and Assignment of Trucks at Unit-Load Cross-Dock Terminals with Mixed Service Mode Dock Doors, \emph{European Journal of Operational Research}, 278(3), 752-771.
+\item Ropke, S. and Pisinger, D.(2006), An Adaptive Large Neighborhood Search Heuristic for the Pickup and Delivery Problem with Time Windows, \emph{Transportation Science}, 40(4), 455-472.
 \item Shahmardan, A. and Sajadieh, M. S.(2020), Truck Scheduling in a Multi-Door Cross-Docking Center with Partial Unloading: Reinforcement Learning-Based Simulated Annealing Approaches, \emph{Computers \& Industrial Engineering}, 139, 106134.
+\item Theophilus, O., Dulebenets, M. A., Pasha, J., Lau, Y.-y., Fathollahi-Fard, A. M., and Mazaheri, A.(2021), Truck Scheduling Optimization at a Cold-Chain Cross-Docking Terminal with Product Perishability Considerations, \emph{Computers \& Industrial Engineering}, 156, 107240.
 \item Van Belle, J., Valckenaers, P., and Cattrysse, D.(2012), Cross-Docking: State of the Art, \emph{Omega}, 40(6), 827-846.
 \item Van Belle, J., Valckenaers, P., Vanden Berghe, G., and Cattrysse, D.(2013), A Tabu Search Approach to the Truck Scheduling Problem with Multiple Docks and Time Windows, \emph{Computers \& Industrial Engineering}, 66(4), 818-826.
 \item Watkins, C. J. C. H. and Dayan, P.(1992), Q-Learning, \emph{Machine Learning}, 8, 279-292.

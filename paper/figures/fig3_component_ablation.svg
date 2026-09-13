@@ -11,16 +11,16 @@
 <line x1="530.0" y1="40.0" x2="530.0" y2="255.0" stroke="#d9d9d9" stroke-width="1"/>
 <text x="530.0" y="273.0" font-size="10.5" text-anchor="middle" fill="#4d4d4d" font-weight="normal">0.40</text>
 <line x1="220.0" y1="40.0" x2="220.0" y2="255.0" stroke="#4d4d4d" stroke-width="1.4"/>
-<rect x="220.0" y="55.9" width="282.9" height="22" fill="#3182ce"/>
+<rect x="220.0" y="55.9" width="282.9" height="22" fill="#2b6cb0"/>
 <text x="208.0" y="70.9" font-size="12" text-anchor="end" fill="#1a1a1a" font-weight="normal">Remove kick restart</text>
 <text x="538.0" y="70.9" font-size="10.5" text-anchor="start" fill="#333" font-weight="normal">+0.365 (p&lt;0.0001)</text>
-<rect x="220.0" y="109.6" width="33.3" height="22" fill="#3182ce"/>
+<rect x="220.0" y="109.6" width="33.3" height="22" fill="#2b6cb0"/>
 <text x="208.0" y="124.6" font-size="12" text-anchor="end" fill="#1a1a1a" font-weight="normal">Random start instead of VAA</text>
 <text x="538.0" y="124.6" font-size="10.5" text-anchor="start" fill="#333" font-weight="normal">+0.043 (p=0.048)</text>
-<rect x="220.0" y="163.4" width="31.8" height="22" fill="#3182ce"/>
+<rect x="220.0" y="163.4" width="31.8" height="22" fill="#2b6cb0"/>
 <text x="208.0" y="178.4" font-size="12" text-anchor="end" fill="#1a1a1a" font-weight="normal">Remove descent</text>
 <text x="538.0" y="178.4" font-size="10.5" text-anchor="start" fill="#333" font-weight="normal">+0.041 (p=0.003)</text>
-<rect x="220.0" y="217.1" width="20.9" height="22" fill="#ed8936"/>
+<rect x="220.0" y="217.1" width="20.9" height="22" fill="#2e9a86"/>
 <text x="208.0" y="232.1" font-size="12" text-anchor="end" fill="#1a1a1a" font-weight="normal">Add SA acceptance + reheating</text>
 <text x="538.0" y="232.1" font-size="10.5" text-anchor="start" fill="#333" font-weight="normal">+0.027 (p=0.001)</text>
 <text x="375.0" y="290.0" font-size="12" text-anchor="middle" fill="#1a1a1a" font-weight="normal">Objective degradation after the change (%)</text>

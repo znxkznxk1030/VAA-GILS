@@ -24,8 +24,14 @@ INK = "#1a1a1a"
 GRID = "#d9d9d9"
 AXIS = "#4d4d4d"
 # grayscale-safe, colourblind-friendly trio
-C = ["#2b6cb0", "#dd6b20", "#718096"]  # blue, orange, gray
-C_FILL = ["#3182ce", "#ed8936", "#a0aec0"]
+# Journal print palette: blue, teal, purple (validated with the dataviz
+# validate_palette.js six checks on a light surface: all PASS).
+C = ["#2b6cb0", "#2e9a86", "#8a63a8"]
+C_FILL = C
+# Line dash patterns so series stay distinct in grayscale print.
+DASH = [None, "7,4", "2,3"]
+# Ordinal single-hue ramp (light -> dark) for nested operator pools.
+SEQ = ["#a9c9e8", "#5b93c9", "#1f5a96"]
 
 
 def _svg(w, h, body):
@@ -92,14 +98,15 @@ def fig1():
     # series
     for i, (name, ys) in enumerate(series.items()):
         pts = " ".join(f"{X(b):.1f},{Y(v):.1f}" for b, v in zip(budgets, ys))
+        dash = f' stroke-dasharray="{DASH[i]}"' if DASH[i] else ""
         body += (f'<polyline points="{pts}" fill="none" stroke="{C[i]}" '
-                 f'stroke-width="2.4"/>\n')
+                 f'stroke-width="2.4"{dash}/>\n')
         for b, v in zip(budgets, ys):
             body += (f'<circle cx="{X(b):.1f}" cy="{Y(v):.1f}" r="3.6" '
                      f'fill="{C[i]}"/>\n')
         # legend
         ly = T + 6 + i * 20
-        body += _line(L + pw + 16, ly, L + pw + 40, ly, C[i], 2.4)
+        body += _line(L + pw + 16, ly, L + pw + 40, ly, C[i], 2.4, DASH[i])
         body += _txt(L + pw + 46, ly + 4, name, 11.5, "start", INK)
     body += _txt(L, T - 12, "Learned policies never beat uniform",
                  12, "start", "#555", weight="bold")
@@ -145,13 +152,13 @@ def fig2():
             bx = gx + (k - 1) * (bar_w + 3) - bar_w / 2
             by = Y(v)
             body += (f'<rect x="{bx:.1f}" y="{by:.1f}" width="{bar_w:.1f}" '
-                     f'height="{T + ph - by:.1f}" fill="{C_FILL[k]}"/>\n')
+                     f'height="{T + ph - by:.1f}" fill="{SEQ[k]}"/>\n')
         body += _txt(gx, T + ph + 16, cell, 10.5, "middle", AXIS)
     # legend
     for k, lab in enumerate(labels):
         lx = L + 20 + k * 200
         body += (f'<rect x="{lx}" y="{H - 34}" width="14" height="14" '
-                 f'fill="{C_FILL[k]}"/>\n')
+                 f'fill="{SEQ[k]}"/>\n')
         body += _txt(lx + 20, H - 23, lab, 11.5, "start", INK)
     body += _txt(L, T - 16, "Guided operators g1, g2 lower the gap in every "
                  "cell; g3, g4 add little", 12, "start", "#555", weight="bold")
@@ -251,7 +258,7 @@ def fig4():
         body += f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{r}" fill="{col}"/>\n'
         lab = f"λ={p['lam']:g}"
         body += _txt(x + 8, y - 7, lab, 10.5, "start",
-                     C[1] if highlight else "#333",
+                     INK if highlight else "#333",
                      weight="bold" if highlight else "normal")
     body += _txt(L, T - 16, "λ=1 keeps tardiness near-minimal at a moderate "
                  "makespan cost", 11.5, "start", "#555", weight="bold")

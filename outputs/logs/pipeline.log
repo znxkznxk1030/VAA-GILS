@@ -16,3 +16,6 @@
 [2026-09-13 20:36:09] DONE  7 pytest
 ALL DONE
 pipeline exit=0
+[2026-09-13 21:02:49] START dqn500 retrain + rerun
+[2026-09-13 21:11:43] DONE  dqn500 retrain + rerun
+dqn500 exit=0

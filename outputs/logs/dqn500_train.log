@@ -1,0 +1,1 @@
+trained 500 episodes in 115.1s | improvement over VAA: first-100 avg 0.0851 -> last-100 avg 0.0796 | checkpoint: /Users/yskim/Documents/Codex/2026-06-30/files-mentioned-by-the-user-codex/outputs/models/gvaa_dqn.pt

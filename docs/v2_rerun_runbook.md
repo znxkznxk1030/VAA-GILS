@@ -40,10 +40,11 @@ SA 제거 결정 자체를 다시 검토해야 하므로 2단계 이후를 진�
 
 ```
 cp outputs/models/gvaa_dqn.pt outputs/models/gvaa_dqn_sa_engine.pt
-python experiments/train_gvaa.py
+python experiments/train_gvaa.py --episodes 500
 ```
 
 - 기존 체크포인트는 SA 엔진으로 학습되어 덮어쓰기 전에 백업한다
+- `--episodes 500`을 반드시 준다. 스크립트 기본값은 300이지만 부록 A와 기존 체크포인트는 500회다
 - `v2-GILS-dqn-*` 메서드가 이 체크포인트를 읽으므로 3단계보다 먼저 끝나야 한다
 
 ## 3. 주 실험 (Table 3, Table 6, Figure 1)

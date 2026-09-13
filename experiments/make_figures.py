@@ -3,8 +3,8 @@
 
 matplotlib is unusable in this environment (NumPy 2.x ABI break), so we emit
 clean, dependency-free vector SVG directly. All numbers are the frozen
-test-pool results reported in docs/b1_results.md, docs/b2_results.md and
-outputs/k1_stats.txt.
+test-pool results of the final greedy-acceptance engine (v2 rerun) reported in
+outputs/k1_stats.txt, outputs/b1_summary.txt and outputs/b2_summary.txt.
 
 Figures written to paper/figures/:
   fig1_selector_budget.svg   selection-policy budget sweep (line)
@@ -54,9 +54,9 @@ def _line(x1, y1, x2, y2, stroke=AXIS, w=1.0, dash=None):
 def fig1():
     budgets = [50, 200, 1000, 3000]
     series = {  # mean gap% to per-instance best observed (outputs/k1_stats.txt)
-        "Uniform (proposed)": [0.47, 0.38, 0.23, 0.16],
-        "Tabular Q-learning": [0.56, 0.46, 0.23, 0.09],
-        "Transfer DQN":       [0.56, 0.51, 0.38, 0.26],
+        "Uniform (proposed)": [0.53, 0.40, 0.15, 0.12],
+        "Tabular Q-learning": [0.57, 0.47, 0.19, 0.13],
+        "Transfer DQN":       [0.57, 0.48, 0.26, 0.24],
     }
     W, H = 560, 380
     L, R, T, B = 70, 200, 30, 55
@@ -111,11 +111,11 @@ def fig1():
 def fig2():
     cells = ["S-none", "S-med", "S-tight", "M-none", "M-med", "M-tight",
              "L-none", "L-med", "L-tight"]
-    # docs/b1_results.md gap% (generic, critical, full)
+    # outputs/b1_summary.txt gap% (generic, critical, full), final greedy engine
     data = {
-        "generic":  [0.45, 0.41, 0.35, 0.39, 0.45, 0.25, 0.22, 0.09, 0.01],
-        "critical": [0.17, 0.17, 0.17, 0.28, 0.37, 0.19, 0.17, 0.07, 0.01],
-        "full":     [0.10, 0.08, 0.16, 0.24, 0.28, 0.11, 0.12, 0.06, 0.00],
+        "generic":  [0.45, 0.29, 0.30, 0.42, 0.41, 0.25, 0.30, 0.16, 0.04],
+        "critical": [0.21, 0.10, 0.23, 0.24, 0.29, 0.12, 0.16, 0.10, 0.02],
+        "full":     [0.12, 0.12, 0.24, 0.21, 0.26, 0.11, 0.10, 0.07, 0.03],
     }
     labels = ["generic (7 ops)", "critical (+g1,g2)", "full (+g3,g4)"]
     W, H = 640, 380
@@ -153,26 +153,26 @@ def fig2():
         body += (f'<rect x="{lx}" y="{H - 34}" width="14" height="14" '
                  f'fill="{C_FILL[k]}"/>\n')
         body += _txt(lx + 20, H - 23, lab, 11.5, "start", INK)
-    body += _txt(L, T - 16, "Adding bottleneck-guided operators lowers the "
-                 "gap in every cell (generic \u2265 critical \u2265 full)",
-                 12, "start", "#555", weight="bold")
+    body += _txt(L, T - 16, "Guided operators g1, g2 lower the gap in every "
+                 "cell; g3, g4 add little", 12, "start", "#555", weight="bold")
     with open(os.path.join(OUT, "fig2_operator_pool.svg"), "w") as f:
         f.write(_svg(W, H, body))
 
 
 # ---- Figure 3: engine-component leave-one-out -------------------------------
 def fig3():
-    # docs/b2_results.md aggregate degradation% when component removed
+    # outputs/b2_summary.txt aggregate degradation% after one change to the
+    # final greedy engine (n=45 instances each)
     comps = [
-        ("Best-improvement descent", 0.156, "p<0.0001"),
-        ("Kick restart",             0.069, "p<0.0001"),
-        ("VAA initial solution",     0.022, "n.s. by cell"),
-        ("Stochastic acceptance",   -0.026, "greedy no worse"),
+        ("Remove kick restart",           0.365, "p<0.0001"),
+        ("Random start instead of VAA",   0.043, "p=0.048"),
+        ("Remove descent",                0.041, "p=0.003"),
+        ("Add SA acceptance + reheating", 0.027, "p=0.001"),
     ]
-    W, H = 660, 300
-    L, R, T, B = 200, 150, 40, 45
+    W, H = 680, 300
+    L, R, T, B = 220, 150, 40, 45
     pw, ph = W - L - R, H - T - B
-    vmin, vmax = -0.06, 0.18
+    vmin, vmax = 0.0, 0.40
     rows = len(comps)
     rh = ph / rows
 
@@ -181,14 +181,14 @@ def fig3():
 
     body = ""
     x0 = X(0.0)
-    for gv in [-0.05, 0.0, 0.05, 0.10, 0.15]:
+    for gv in [0.0, 0.10, 0.20, 0.30, 0.40]:
         x = X(gv)
         body += _line(x, T, x, T + ph, GRID, 1)
-        body += _txt(x, T + ph + 18, f"{gv:+.2f}", 10.5, "middle", AXIS)
+        body += _txt(x, T + ph + 18, f"{gv:.2f}", 10.5, "middle", AXIS)
     body += _line(x0, T, x0, T + ph, AXIS, 1.4)  # zero line
     for i, (name, val, note) in enumerate(comps):
         cy = T + i * rh + rh / 2
-        col = C_FILL[0] if val > 0 else C_FILL[1]
+        col = C_FILL[1] if name.startswith("Add") else C_FILL[0]
         bx = min(x0, X(val))
         bw = abs(X(val) - x0)
         body += (f'<rect x="{bx:.1f}" y="{cy - 11:.1f}" width="{bw:.1f}" '
@@ -197,10 +197,10 @@ def fig3():
         body += _txt(L + pw + 8, cy + 4, f"{val:+.3f} ({note})", 10.5,
                      "start", "#333")
     body += _txt(L + pw / 2, H - 10,
-                 "Objective degradation when component removed (%)", 12,
+                 "Objective degradation after the change (%)", 12,
                  "middle", INK)
-    body += _txt(L, T - 16, "Descent and restart carry the engine; "
-                 "initialization and acceptance do not", 12, "start", "#555",
+    body += _txt(L, T - 16, "Kick restart carries the engine; "
+                 "adding SA acceptance makes it worse", 12, "start", "#555",
                  weight="bold")
     with open(os.path.join(OUT, "fig3_component_ablation.svg"), "w") as f:
         f.write(_svg(W, H, body))

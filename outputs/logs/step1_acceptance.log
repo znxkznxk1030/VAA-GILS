@@ -1,0 +1,6 @@
+acceptance tuning: executed 450 new jobs -> /Users/yskim/Documents/Codex/2026-06-30/files-mentioned-by-the-user-codex/outputs/acceptance_tuning.jsonl
+SA vs greedy [all ] n= 45  mean=-0.011%p  p=0.0233
+SA vs greedy [none] n= 15  mean=+0.084%p  p=0.0833
+SA vs greedy [TW  ] n= 30  mean=-0.058%p  p=0.0507
+Positive mean = SA acceptance gives a worse objective than greedy.
+exit=0

@@ -140,7 +140,7 @@ $S_f+DE_f+L_d+DL_f$이다. 즉 $S_f$는 적재 시작이 아니라 도어 작업
 적재는 $S_f+DE_f$에 시작한다. 총 작업완료시간 $\tau=C_{\max}$는 최대 완료 시각이다.
 
 \begin{figure}[H]\centering
-\includegraphics[width=0.92\columnwidth]{fig0_compound_timeline.pdf}
+\includegraphics[width=0.92\columnwidth]{fig0.png}
 \caption{Figure 1. Processing timeline of a compound truck and the outbound truck
 of its retained destination.}\label{fig:timeline}
 \end{figure}
@@ -188,7 +188,8 @@ evaluator의 완료 시각이 재현되어 model fidelity가 확인된다.
 각 트럭 $q\in I\cup F$는 앞서 정의한 도착 시각 $r_q\ge0$과 연성 납기 $\bar d_q$를 갖고
 $T_q\ge\max\{0,C_q-\bar d_q\}$이다. 목적식은
 \[\min\ J=C_{\max}+\lambda\sum_{q\in I\cup F}T_q,\qquad \lambda=1 \qquad (16)\]
-$r_q=0$, $\bar d_q=\infty$이면 기존 총 작업완료시간 모델로 환원된다. CP-SAT는 incumbent와
+$\lambda$는 납기지연 한 단위 시간에 부과하는 벌점 계수(penalty coefficient)로, 작업완료시간과 납기 준수 사이의
+관리적 선호를 반영하는 파라미터이다(6.4절). $r_q=0$, $\bar d_q=\infty$이면 기존 총 작업완료시간 모델로 환원된다. CP-SAT는 incumbent와
 증명된 하한을 함께 반환하며, 하한과 일치가 증명될 때에만 최적으로 부른다.
 
 \subsection{3.4 조합적 하한}
@@ -515,8 +516,12 @@ uniform vs DQN & \textbf{[TBD]} & \textbf{[TBD]} & \textbf{[TBD]} & \textbf{[TBD
 인스턴스별로 min--max 정규화해 평균한다(<Figure~\ref{fig:lam}>). 납기지연 감소의
 대부분은 $\lambda=0$에서 $1$ 사이에서 일어나고 이후에는 그 폭이 줄어든다. 전체 탐색 구간에서 평균
 총 작업완료시간은 약 \textbf{[TBD]}\% 상승, 평균 납기지연은 \textbf{[TBD]}\% 하락한다. $\lambda=1$을 채택한다:
-완만한 총 작업완료시간 비용으로 납기지연이 거의 최소에 이르고 두 시간 성분에 동일
-가중을 준다. 이 탐색은 시험이 아닌 조정 인스턴스를 사용한 설계 정당화이다.
+완만한 총 작업완료시간 비용으로 납기지연이 거의 최소에 이르며, 총 작업완료시간과 납기지연에
+단위 시간당 동일한 벌점 계수를 부여한다. 다만 $C_{\max}$는 단일 최댓값이고
+$\sum_q T_q$는 여러 트럭의 합이므로 계수가 같다고 두 성분이 목적식에 미치는 실질적 영향까지
+같은 것은 아니다. $\lambda$는 운영자가 작업완료시간 대비 납기 준수를 얼마나 중시하는지를 나타내는
+관리적 선호(managerial preference) 파라미터이며, 실제 적용에서는 운영 여건에 맞게 조정할 수 있다.
+이 탐색은 시험이 아닌 조정 인스턴스를 사용한 설계 정당화이다.
 
 \begin{figure}[H]\centering
 \includegraphics[width=0.72\textwidth]{fig4_lambda_tradeoff.pdf}
@@ -571,9 +576,10 @@ target network는 500 step마다 동기화한다. reward는 shaped signal(신규
 \end{figure}
 
 \section*{생성형 AI 활용 공개}
-본 논문의 작성 과정에서 저자는 OpenAI Codex(GPT-5, OpenAI)와 Claude Code(Anthropic)를
-본문의 맞춤법 및 가독성 개선을 위해 사용하였다. 저자는 해당 도구 사용 후 그 내용을
-검토 및 수정하였으며, 논문의 모든 내용에 대한 책임은 저자에게 있다.
+본 논문의 연구 및 작성 과정에서 저자는 OpenAI Codex(GPT-5, OpenAI)와 Claude Code(Anthropic)를
+코드 작성 및 디버깅 보조와 논문의 문장 표현 및 가독성 개선을 위해 활용하였다. 생성형 AI의
+도움을 받은 내용은 저자가 검토 및 수정하였으며, 논문의 모든 내용과 결과에 대한 책임은
+저자에게 있다.
 
 \section*{참고문헌}
 \begin{description}\small

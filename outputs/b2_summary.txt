@@ -1,29 +1,29 @@
 === Mean objective degradation%% when a component is removed, by cell ===
-cell              init   descent        sa   restart
-L-medium          0.10      0.27     -0.06      0.02
-L-tight           0.11      0.26     -0.01      0.00
-L-none            0.05      0.13     -0.10      0.06
-M-medium         -0.08      0.21     -0.03      0.11
-M-tight           0.05      0.16     -0.07      0.06
-M-none            0.07      0.19     -0.07      0.04
-S-medium         -0.02      0.16      0.06      0.17
-S-tight          -0.10     -0.04      0.04     -0.00
-S-none            0.02      0.08      0.02      0.17
+cell              init   descent   restart     addsa
+L-medium          0.13      0.07      0.09      0.06
+L-tight           0.08      0.05      0.01      0.01
+L-none            0.09      0.10      0.20      0.10
+M-medium         -0.08     -0.08      0.26      0.03
+M-tight           0.07      0.07      0.22      0.07
+M-none            0.07      0.04      0.21      0.07
+S-medium          0.14      0.14      0.60     -0.06
+S-tight          -0.11     -0.05      0.42     -0.04
+S-none           -0.00      0.03      1.27     -0.02
 
 === Paired Wilcoxon on instance replication means ===
 component removed   scope         n  degrade%         p       verdict
-init                all          45    +0.022    0.1140 no difference
-init                none         15    +0.047    0.2078 no difference
-init                TW           30    +0.010    0.2942 no difference
-descent             all          45    +0.156    0.0000   significant
-descent             none         15    +0.132    0.0004   significant
-descent             TW           30    +0.169    0.0000   significant
-sa                  all          45    -0.026    0.0014   significant
-sa                  none         15    -0.051    0.0256   significant
-sa                  TW           30    -0.014    0.0190   significant
-restart             all          43    +0.069    0.0000   significant
-restart             none         15    +0.090    0.0012   significant
-restart             TW           28    +0.058    0.0003   significant
+init                all          45    +0.043    0.0482   significant
+init                none         15    +0.053    0.1514 no difference
+init                TW           30    +0.038    0.1682 no difference
+descent             all          45    +0.041    0.0032   significant
+descent             none         15    +0.058    0.0730 no difference
+descent             TW           30    +0.033    0.0055   significant
+restart             all          45    +0.365    0.0000   significant
+restart             none         15    +0.563    0.0001   significant
+restart             TW           30    +0.266    0.0000   significant
+addsa               all          45    +0.027    0.0014   significant
+addsa               none         15    +0.051    0.0256   significant
+addsa               TW           30    +0.014    0.0190   significant
 
-Reading: degrade%% > 0 means removing the component worsens the objective,
-so the component contributes. Larger = more important.
+Reading: degrade%% > 0 means the change worsens the objective. For removals the
+component contributes; for addsa, adding SA acceptance hurts.

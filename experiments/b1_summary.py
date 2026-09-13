@@ -33,7 +33,7 @@ from experiments.k1_stats import wilcoxon_signed_rank
 
 RESULTS = ROOT / "outputs" / "b1_guided_ablation.jsonl"
 POOLS = ("generic", "critical", "full")
-METHOD = {pool: f"GILS-{pool}-1000" for pool in POOLS}
+METHOD = {pool: f"v2-GILS-{pool}-1000" for pool in POOLS}
 
 
 def load() -> dict:
@@ -42,6 +42,8 @@ def load() -> dict:
         if not line.strip():
             continue
         r = json.loads(line)
+        if r["method"].startswith("GILS-"):
+            continue  # legacy SA-acceptance engine, superseded by v2-GILS
         obj = r.get("objective", r.get("makespan"))
         if obj is None:
             continue

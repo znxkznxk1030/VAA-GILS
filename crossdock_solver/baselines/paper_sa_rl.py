@@ -61,13 +61,16 @@ def run_paper_sa_rl(
     start_time = time.perf_counter()
 
     current = initial_solution.copy() if initial_solution is not None else vaa_solution(instance)
+    weight = config.tardiness_weight
     current_result = evaluate_solution(instance, current)
+    current_score = _score(current_result, weight)
     best = current.copy()
     best_result = current_result
+    best_score = current_score
     temperature = (
         config.initial_temperature
         if config.initial_temperature is not None
-        else max(1.0, 0.05 * current_result.makespan)
+        else max(1.0, 0.05 * current_score)
     )
 
     actions = tuple(NEIGHBORHOODS)
@@ -91,8 +94,9 @@ def run_paper_sa_rl(
 
         candidate = NEIGHBORHOODS[action](instance, current, rng)
         candidate_result = evaluate_solution(instance, candidate)
+        candidate_score = _score(candidate_result, weight)
 
-        reward = 1.0 if candidate_result.makespan <= current_result.makespan else 0.0
+        reward = 1.0 if candidate_score <= current_score else 0.0
         next_no_improvement = 0 if reward > 0 else no_improvement_count + 1
         next_state = _state_from_no_improvement(next_no_improvement, config.thresholds)
         q_values[(state, action)] += config.learning_rate * (
@@ -102,19 +106,21 @@ def run_paper_sa_rl(
         )
 
         accepted = accept_by_sa(
-            current_result.makespan,
-            candidate_result.makespan,
+            current_score,
+            candidate_score,
             temperature,
             rng,
         )
         if accepted:
             current = candidate
             current_result = candidate_result
+            current_score = candidate_score
 
         no_improvement_count = next_no_improvement
-        if candidate_result.makespan < best_result.makespan:
+        if candidate_score < best_score:
             best = candidate.copy()
             best_result = candidate_result
+            best_score = candidate_score
 
         temperature *= config.cooling_rate
 
@@ -136,6 +142,10 @@ def paper_sa_rl6(instance: CrossDockInstance, *, seed: int | None = None) -> Bas
         instance,
         PaperSARLConfig(seed=seed, thresholds=(10, 20, 50, 100), name="Paper-SA-RL6"),
     )
+
+
+def _score(result: ScheduleResult, tardiness_weight: float) -> float:
+    return result.makespan + tardiness_weight * result.total_tardiness
 
 
 def _state_from_no_improvement(

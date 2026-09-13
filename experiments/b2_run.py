@@ -4,11 +4,11 @@ Holds the selection policy fixed (uniform) and the operator pool fixed (full),
 and removes one engine component at a time to measure its marginal contribution
 to the near-optimal attractor:
 
-    none    -> full engine (reference, == GILS-uniform-1000);
+    none    -> final greedy engine (reference, == v2-GILS-uniform-1000);
     init    -> VAA construction replaced by a random feasible start;
     descent -> best-improvement descent removed;
-    sa      -> SA acceptance replaced by greedy;
-    restart -> kick-restart on stagnation removed.
+    restart -> kick-restart on stagnation removed;
+    addsa   -> SA acceptance with reheating added back.
 
 Together with B1 (operator-pool ablation) this decomposes where the quality
 comes from: engine skeleton (this file) vs guided operators (B1) vs learned
@@ -39,7 +39,7 @@ SIZES = ("S", "M", "L")
 TW_LEVELS = (None, "medium", "tight")
 INDICES = (0, 1, 2, 3, 4)
 REPS = (0, 1, 2, 3, 4)
-DROPS = ("none", "init", "descent", "sa", "restart")
+DROPS = ("none", "init", "descent", "restart", "addsa")
 
 
 def ablation_jobs() -> list[Job]:
@@ -56,7 +56,7 @@ def ablation_jobs() -> list[Job]:
                 )
                 for drop in DROPS:
                     for rep in REPS:
-                        jobs.append(Job(method=f"GILS-ablate-{drop}-1000", rep=rep, **common))
+                        jobs.append(Job(method=f"v2-GILS-ablate-{drop}-1000", rep=rep, **common))
     return jobs
 
 

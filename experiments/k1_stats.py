@@ -90,6 +90,8 @@ def load() -> dict:
         if not line.strip():
             continue
         r = json.loads(line)
+        if r["method"].startswith("GILS-"):
+            continue  # legacy SA-acceptance engine, superseded by v2-GILS
         obj = r.get("objective", r.get("makespan"))
         if obj is None:
             continue
@@ -144,11 +146,12 @@ def main() -> None:
     print(f"{'comparison':<42}{'n':>5}{'mean diff%':>11}{'p-value':>10}{'verdict':>14}")
 
     comparisons = [
-        ("GILS-1000", "VAA", None, "instance"),
-        ("GILS-1000", "Paper-SA-RL5-1000", (None,), "instance"),
-        ("GILS-1000", "GILS-uniform-1000", None, "instance"),
-        ("GILS-1000", "GILS-dqn-1000", None, "instance"),
-        ("GILS-uniform-1000", "GILS-dqn-1000", None, "instance"),
+        ("v2-GILS-uniform-1000", "VAA", None, "instance"),
+        ("v2-GILS-uniform-1000", "Paper-SA-RL5-1000", (None,), "instance"),
+        ("v2-GILS-uniform-1000", "Extended-SA-RL5-1000", ("medium", "tight"), "instance"),
+        ("v2-GILS-1000", "v2-GILS-uniform-1000", None, "instance"),
+        ("v2-GILS-1000", "v2-GILS-dqn-1000", None, "instance"),
+        ("v2-GILS-uniform-1000", "v2-GILS-dqn-1000", None, "instance"),
     ]
     for method_a, method_b, tw_filter, mode in comparisons:
         if mode == "run":
@@ -173,7 +176,7 @@ def main() -> None:
             best_known[key] = value
 
     budgets = (50, 200, 1000, 3000)
-    selectors = {"uniform": "GILS-uniform-", "tabular": "GILS-", "dqn": "GILS-dqn-"}
+    selectors = {"uniform": "v2-GILS-uniform-", "tabular": "v2-GILS-", "dqn": "v2-GILS-dqn-"}
     print(f"{'selector':<10}" + "".join(f"{b:>10}" for b in budgets))
     for selector_label, prefix in selectors.items():
         row = []

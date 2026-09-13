@@ -91,6 +91,37 @@ def test_paper_sa_rl5_baseline_runs() -> None:
     assert run.result.makespan > 0
 
 
+def test_extended_sa_rl5_zero_weight_matches_original() -> None:
+    instance = make_toy_instance()
+    original = run_paper_sa_rl(instance, PaperSARLConfig(max_iterations=50, seed=7))
+    extended = run_paper_sa_rl(
+        instance,
+        PaperSARLConfig(max_iterations=50, seed=7, tardiness_weight=0.0, name="Extended-SA-RL5"),
+    )
+    assert extended.solution == original.solution
+    assert extended.result.makespan == original.result.makespan
+
+
+def test_extended_sa_rl5_never_worse_than_vaa_start_on_time_windows() -> None:
+    instance = generate_random_instance(
+        seed=11,
+        num_compounds=3,
+        num_outbounds=5,
+        num_doors=4,
+        num_products=3,
+        tw_tightness="tight",
+    )
+    start = evaluate_solution(instance, vaa_solution(instance))
+    run = run_paper_sa_rl(
+        instance,
+        PaperSARLConfig(max_iterations=200, seed=3, tardiness_weight=1.0, name="Extended-SA-RL5"),
+    )
+    check_feasible(instance, run.solution)
+    assert run.name == "Extended-SA-RL5-200"
+    score = run.result.makespan + run.result.total_tardiness
+    assert score <= start.makespan + start.total_tardiness
+
+
 def test_paper_sa_rl_aliases_run() -> None:
     instance = make_toy_instance()
     rl5 = paper_sa_rl5(instance, seed=1)

@@ -53,11 +53,13 @@ def search_jobs() -> list[Job]:
                 )
                 jobs.append(Job(method="VAA", rep=0, **common))
                 for rep in REPS:
-                    jobs.append(Job(method="GILS-1000", rep=rep, **common))
-                    jobs.append(Job(method="GILS-uniform-1000", rep=rep, **common))
-                    jobs.append(Job(method="GILS-dqn-1000", rep=rep, **common))
+                    jobs.append(Job(method="v2-GILS-1000", rep=rep, **common))
+                    jobs.append(Job(method="v2-GILS-uniform-1000", rep=rep, **common))
+                    jobs.append(Job(method="v2-GILS-dqn-1000", rep=rep, **common))
                     if tw is None:
                         jobs.append(Job(method="Paper-SA-RL5-1000", rep=rep, **common))
+                    else:
+                        jobs.append(Job(method="Extended-SA-RL5-1000", rep=rep, **common))
     return jobs
 
 
@@ -82,7 +84,7 @@ def budget_jobs() -> list[Job]:
                     for selector in ("", "uniform-", "dqn-"):
                         for rep in REPS:
                             jobs.append(
-                                Job(method=f"GILS-{selector}{budget}", rep=rep, **common)
+                                Job(method=f"v2-GILS-{selector}{budget}", rep=rep, **common)
                             )
     return jobs
 

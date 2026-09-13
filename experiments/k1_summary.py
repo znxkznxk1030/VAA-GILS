@@ -25,7 +25,14 @@ from experiments.protocol import BenchmarkCell, cell_instance
 
 
 RESULTS = ROOT / "outputs" / "k1_results.jsonl"
-SEARCH_METHODS = ("VAA", "Paper-SA-RL5-1000", "GILS-uniform-1000", "GILS-1000", "GILS-dqn-1000")
+SEARCH_METHODS = (
+    "VAA",
+    "Paper-SA-RL5-1000",
+    "Extended-SA-RL5-1000",
+    "v2-GILS-uniform-1000",
+    "v2-GILS-1000",
+    "v2-GILS-dqn-1000",
+)
 
 
 def load_records() -> list[dict]:

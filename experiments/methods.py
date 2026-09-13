@@ -80,6 +80,30 @@ def _paper_sa_rl(iterations: int) -> MethodFn:
     return method
 
 
+def _extended_sa_rl(iterations: int) -> MethodFn:
+    """Paper-SA-RL5 search unchanged; score is makespan + lambda * tardiness."""
+
+    def method(instance: CrossDockInstance, seed: int, budget_sec: float | None) -> dict:
+        weight = _auto_weight(instance)
+        run = run_paper_sa_rl(
+            instance,
+            PaperSARLConfig(
+                max_iterations=iterations,
+                tardiness_weight=weight,
+                seed=seed,
+                name="Extended-SA-RL5",
+            ),
+        )
+        return {
+            "makespan": run.result.makespan,
+            "total_tardiness": run.result.total_tardiness,
+            "objective": run.result.makespan + weight * run.result.total_tardiness,
+            "runtime_sec": run.runtime_sec,
+        }
+
+    return method
+
+
 def _vaa_qrl(iterations: int, tardiness_weight: float = 0.0) -> MethodFn:
     def method(instance: CrossDockInstance, seed: int, budget_sec: float | None) -> dict:
         run = run_vaa_qrl(
@@ -123,6 +147,7 @@ def _gils(iterations: int, selector_name: str = "tabular") -> MethodFn:
                 time_budget_sec=budget_sec,
                 tardiness_weight=weight,
                 seed=seed,
+                use_sa_acceptance=False,
             ),
             selector=selector,
         )
@@ -158,6 +183,7 @@ def _gils_pool(iterations: int, pool: str) -> MethodFn:
                 time_budget_sec=budget_sec,
                 tardiness_weight=weight,
                 seed=seed,
+                use_sa_acceptance=False,
             ),
             selector=UniformSelector(actions),
         )
@@ -172,14 +198,14 @@ def _gils_pool(iterations: int, pool: str) -> MethodFn:
 
 
 def _gils_ablate(iterations: int, drop: str) -> MethodFn:
-    """GILS (uniform selector, full pool) with one engine component removed.
+    """Final GILS engine (uniform selector, full pool, greedy) with one change.
 
-    Leave-one-out component ablation (Phase B2). `drop` in:
-      none    -> full engine (reference, == GILS-uniform);
+    Component ablation (Phase B2). `drop` in:
+      none    -> final engine (reference, == v2-GILS-uniform);
       init    -> VAA construction replaced by a random feasible start;
       descent -> best-improvement descent removed;
-      sa      -> SA acceptance replaced by greedy (accept only improvements);
-      restart -> kick-restart on stagnation removed.
+      restart -> kick-restart on stagnation removed;
+      addsa   -> SA acceptance with reheating added back.
     """
 
     def method(instance: CrossDockInstance, seed: int, budget_sec: float | None) -> dict:
@@ -202,7 +228,7 @@ def _gils_ablate(iterations: int, drop: str) -> MethodFn:
                 tardiness_weight=weight,
                 seed=seed,
                 use_descent=(drop != "descent"),
-                use_sa_acceptance=(drop != "sa"),
+                use_sa_acceptance=(drop == "addsa"),
                 use_restart=(drop != "restart"),
             ),
             initial_solution=initial,
@@ -250,31 +276,34 @@ METHOD_REGISTRY: dict[str, MethodFn] = {
     "VAA": _vaa,
     "Paper-SA-RL5-300": _paper_sa_rl(300),
     "Paper-SA-RL5-1000": _paper_sa_rl(1000),
+    "Extended-SA-RL5-1000": _extended_sa_rl(1000),
     "VAA-QRL-50": _vaa_qrl(50),
     "VAA-QRL-300": _vaa_qrl(300),
     "VAA-QRL-1000": _vaa_qrl(1000),
     "VAA-QRL-300-tw1": _vaa_qrl(300, tardiness_weight=1.0),
     "VAA-QRL-1000-tw1": _vaa_qrl(1000, tardiness_weight=1.0),
-    "GILS-1000": _gils(1000, "tabular"),
-    "GILS-uniform-1000": _gils(1000, "uniform"),
-    "GILS-dqn-1000": _gils(1000, "dqn"),
-    "GILS-50": _gils(50, "tabular"),
-    "GILS-uniform-50": _gils(50, "uniform"),
-    "GILS-dqn-50": _gils(50, "dqn"),
-    "GILS-200": _gils(200, "tabular"),
-    "GILS-uniform-200": _gils(200, "uniform"),
-    "GILS-dqn-200": _gils(200, "dqn"),
-    "GILS-3000": _gils(3000, "tabular"),
-    "GILS-uniform-3000": _gils(3000, "uniform"),
-    "GILS-dqn-3000": _gils(3000, "dqn"),
-    "GILS-generic-1000": _gils_pool(1000, "generic"),
-    "GILS-critical-1000": _gils_pool(1000, "critical"),
-    "GILS-full-1000": _gils_pool(1000, "full"),
-    "GILS-ablate-none-1000": _gils_ablate(1000, "none"),
-    "GILS-ablate-init-1000": _gils_ablate(1000, "init"),
-    "GILS-ablate-descent-1000": _gils_ablate(1000, "descent"),
-    "GILS-ablate-sa-1000": _gils_ablate(1000, "sa"),
-    "GILS-ablate-restart-1000": _gils_ablate(1000, "restart"),
+    # v2- = final greedy-acceptance engine; legacy SA-engine records keep the old
+    # GILS- names in the result files and are ignored by the summaries.
+    "v2-GILS-1000": _gils(1000, "tabular"),
+    "v2-GILS-uniform-1000": _gils(1000, "uniform"),
+    "v2-GILS-dqn-1000": _gils(1000, "dqn"),
+    "v2-GILS-50": _gils(50, "tabular"),
+    "v2-GILS-uniform-50": _gils(50, "uniform"),
+    "v2-GILS-dqn-50": _gils(50, "dqn"),
+    "v2-GILS-200": _gils(200, "tabular"),
+    "v2-GILS-uniform-200": _gils(200, "uniform"),
+    "v2-GILS-dqn-200": _gils(200, "dqn"),
+    "v2-GILS-3000": _gils(3000, "tabular"),
+    "v2-GILS-uniform-3000": _gils(3000, "uniform"),
+    "v2-GILS-dqn-3000": _gils(3000, "dqn"),
+    "v2-GILS-generic-1000": _gils_pool(1000, "generic"),
+    "v2-GILS-critical-1000": _gils_pool(1000, "critical"),
+    "v2-GILS-full-1000": _gils_pool(1000, "full"),
+    "v2-GILS-ablate-none-1000": _gils_ablate(1000, "none"),
+    "v2-GILS-ablate-init-1000": _gils_ablate(1000, "init"),
+    "v2-GILS-ablate-descent-1000": _gils_ablate(1000, "descent"),
+    "v2-GILS-ablate-restart-1000": _gils_ablate(1000, "restart"),
+    "v2-GILS-ablate-addsa-1000": _gils_ablate(1000, "addsa"),
     "CPSAT-300": _cpsat(300.0),
     "CPSAT-600": _cpsat(600.0),
 }

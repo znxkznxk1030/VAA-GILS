@@ -25,7 +25,8 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from crossdock_solver.baselines.vaa_qrl import VaaQRLConfig, run_vaa_qrl
+from crossdock_solver.baselines.vaa_qrl import ACTIONS_TW, VaaQRLConfig, run_vaa_qrl
+from crossdock_solver.rl.selectors import UniformSelector
 from experiments.protocol import BenchmarkCell, cell_instance
 
 LAMBDAS: tuple[float, ...] = (0.0, 0.25, 0.5, 1.0, 2.0, 4.0, 8.0)
@@ -55,7 +56,9 @@ def main() -> None:
                                 max_iterations=ITERATIONS,
                                 tardiness_weight=lam,
                                 seed=seed,
+                                use_sa_acceptance=False,
                             ),
+                            selector=UniformSelector(ACTIONS_TW),
                         )
                         rec = {
                             "cell": cell.name,

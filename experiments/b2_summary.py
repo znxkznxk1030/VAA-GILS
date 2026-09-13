@@ -25,9 +25,9 @@ if str(ROOT) not in sys.path:
 from experiments.k1_stats import wilcoxon_signed_rank
 
 RESULTS = ROOT / "outputs" / "b2_component_ablation.jsonl"
-DROPS = ("init", "descent", "sa", "restart")
-REFERENCE = "GILS-ablate-none-1000"
-METHOD = {drop: f"GILS-ablate-{drop}-1000" for drop in (*DROPS, "none")}
+DROPS = ("init", "descent", "restart", "addsa")
+REFERENCE = "v2-GILS-ablate-none-1000"
+METHOD = {drop: f"v2-GILS-ablate-{drop}-1000" for drop in (*DROPS, "none")}
 
 
 def load() -> dict:
@@ -102,8 +102,8 @@ def main() -> None:
             print(f"{drop:<20}{scope:<10}{n:>5}{mean_diff:>+10.3f}{p:>10.4f}{verdict:>14}")
 
     print()
-    print("Reading: degrade%% > 0 means removing the component worsens the objective,")
-    print("so the component contributes. Larger = more important.")
+    print("Reading: degrade%% > 0 means the change worsens the objective. For removals the")
+    print("component contributes; for addsa, adding SA acceptance hurts.")
 
 
 if __name__ == "__main__":

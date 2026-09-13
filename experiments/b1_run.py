@@ -50,7 +50,7 @@ def ablation_jobs() -> list[Job]:
                 )
                 for pool in POOLS:
                     for rep in REPS:
-                        jobs.append(Job(method=f"GILS-{pool}-1000", rep=rep, **common))
+                        jobs.append(Job(method=f"v2-GILS-{pool}-1000", rep=rep, **common))
     return jobs
 
 

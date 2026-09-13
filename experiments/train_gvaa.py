@@ -84,6 +84,7 @@ def train(config: GVAATrainConfig) -> tuple[DQNAgent, list[dict]]:
                 max_iterations=config.iterations_per_episode,
                 tardiness_weight=tardiness_weight,
                 seed=config.seed * 100_000 + episode,
+                use_sa_acceptance=False,
             ),
             selector=selector,
         )

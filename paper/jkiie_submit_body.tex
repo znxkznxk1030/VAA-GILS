@@ -32,7 +32,7 @@
 
 
 \begin{abstract}
-\noindent We study truck scheduling in a multi-door cross-dock where a compound truck is partially unloaded and then departs as an outbound carrier. Existing models assume all trucks are available at time zero and minimize makespan only. We extend the problem with per-truck release times and soft due dates (violable at a tardiness cost), minimizing makespan plus total tardiness, and formulate it as a mixed-integer program and a CP-SAT model under a reproducible seed protocol. VAA-GILS is an iterated local search combining Vogel-style construction, best-improvement descent, bottleneck-guided operators, kick restarts, and greedy acceptance. Where CP-SAT provides a reference solution, VAA-GILS is within 0.06–0.25\% of that reference while requiring substantially less computation time (under 0.5 versus 76–606 seconds); where optimality was proven, it averages 0.23\% above the optimum. Where CP-SAT finds no feasible schedule within 600 seconds, VAA-GILS returns the best solutions observed among the compared methods. Ablation attributes the gain to this deterministic structure, not to learned operator selection or stochastic acceptance.
+\noindent We study truck scheduling in a multi-door cross-dock where a compound truck is partially unloaded and then departs as an outbound carrier. Existing models assume all trucks are available at time zero and minimize makespan only. We extend the problem with per-truck release times and soft due dates (violable at a tardiness cost), minimizing makespan plus total tardiness, and formulate it as a mixed-integer program and a CP-SAT model under a reproducible seed protocol. VAA-GILS is an iterated local search combining Vogel-style construction, best-improvement descent, bottleneck-guided operators, kick restarts, and greedy acceptance. Where CP-SAT provides a reference solution, VAA-GILS is within 0.06–0.25\% of that reference while requiring substantially less computation time (under 0.5 versus 76–606 seconds); on the five S-none instances for which CP-SAT proved optimality, VAA-GILS is on average 0.23\% above the optimum. Where CP-SAT finds no feasible schedule within 600 seconds, VAA-GILS returns the best solutions observed among the compared methods. Ablation attributes the gain to this deterministic structure, not to learned operator selection or stochastic acceptance.
 
 \smallskip
 \noindent\textbf{Keywords:} Cross-Docking, Compound Truck, Release Time, Soft Due Date, Iterated Local Search, Constraint Programming
@@ -150,7 +150,7 @@ $S_f+DE_f+L_d+DL_f$이다. 즉 $S_f$는 적재 시작이 아니라 도어 작업
 적재는 $S_f+DE_f$에 시작한다. 총 작업완료시간 $\tau=C_{\max}$는 최대 완료 시각이다.
 
 \begin{figure}[H]\centering
-\includegraphics[width=0.92\columnwidth]{fig0.png}
+\includegraphics[width=0.92\columnwidth]{{fig0_compound_timeline.drawio}.png}
 \caption{Figure 1. Processing timeline of a compound truck and the outbound truck
 of its retained destination.}\label{fig:timeline}
 \end{figure}
@@ -302,8 +302,8 @@ Objective & Makespan & Makespan + $\lambda$ · total tardiness \\
 병행 트럭 $|I|$, 출고트럭 $|F|$, 목적지 $|D|=|I|+|F|$, 도어 $|M|=|I|$로 두고 세 규모를
 사용한다: S $(|I|,|F|)=(6,3)$, M $(12,6)$, L $(20,10)$. 따라서 $(|I|,|D|,|M|)$는 각각
 $(6,9,6)$, $(12,18,12)$, $(20,30,20)$이고 병행 트럭 비율 $|I|/|D|$는 모두 $2/3$이다. S는
-CP-SAT가 제한시간 안에 최적성을 증명할 수 있는 규모이고 L은 실행 가능해조차 얻기 어려운
-규모여서 두 극단을 함께 본다. 병행 트럭 비율을 높게 잡은 것은, 이 비율이 낮으면 문제가
+CP-SAT가 일부 조건에서 제한시간 안에 최적성을 증명할 수 있는 소규모 문제이며, L은 제한시간 안에
+실행 가능해 확보도 어려운 대규모 문제여서 두 극단을 함께 본다. 병행 트럭 비율을 높게 잡은 것은, 이 비율이 낮으면 문제가
 일반 크로스도킹 스케줄링에 가까워져 부분 하역 구조의 영향이 드러나지 않기 때문이다.
 
 나머지 생성 파라미터는 <Table~\ref{tab:param}>에 정리하였다. 화물이 특정 목적지로
@@ -382,7 +382,8 @@ Paper-SA-RL5와 Extended SA-RL5를 포함한 모든 메타휴리스틱의 종료
 원 모델은 CPU 시간으로 종료하지만 본 연구는 모든 방법에 같은 반복 횟수를 부여하였고, 반복당 계산량이 방법마다
 다르므로 실행 시간은 <Table~\ref{tab:main}>에 함께 보고한다. CP-SAT는 인스턴스당 1회, 8
 thread로 S에 300초(5개), M과 L에 600초(조건당 2개)를 부여하며 S-none 5개에서만 최적성이
-증명된다. 실험은 Apple M2 칩(8코어)과 16\,GB 메모리를 갖춘 macOS 환경에서 Python 3.12와 OR-Tools 9.15로 수행하였다.
+증명된다. 보고하는 CP-SAT 계산 시간은 모형 구성과 solver 종료 처리를 포함한 wall-clock 시간이므로
+명목 제한시간(600초)을 약간 넘을 수 있다. 실험은 Apple M2 칩(8코어)과 16\,GB 메모리를 갖춘 macOS 환경에서 Python 3.12와 OR-Tools 9.15로 수행하였다.
 
 \section{6. 실험 결과}
 \subsection{6.1 해 품질}
@@ -395,7 +396,7 @@ CP-SAT가 기준해를 반환한 조건에서 CP-SAT의 평균 계산 시간은 
 100배 이상 길며, M의 시간 제약 조건과 L의 모든 조건에서는 CP-SAT가 제한시간 안에 실행 가능해를 반환하지 못했다.
 
 \begin{table}[H]\centering
-\caption{Table 3. Test results over 20 instances per experimental condition (20 instances $\times$ 5 replications). $\Delta_{bo}$ is the mean gap to the best observed solution and time is the mean per run. The vs CP-SAT column is computed only on the subset for which CP-SAT returned a reference (5 instances per S condition, 2 for M-none); optimality was proven only for S-none. On that subset the mean CP-SAT runtime is 76 s (S) and 606 s (M-none).}
+\caption{Table 3. Test results over 20 instances per experimental condition (20 instances $\times$ 5 replications). $\Delta_{bo}$ is the mean gap to the best observed solution and time is the mean per run. The vs CP-SAT column is computed only on the subset for which CP-SAT returned a reference (5 instances per S condition, 2 for M-none); optimality was proven only for S-none. On that subset the mean CP-SAT runtime is 76 s (S) and 606 s (M-none). Runtimes are wall-clock times including model construction and solver termination overhead and may therefore slightly exceed the nominal 600-s solver limit.}
 \label{tab:main}\small
 \begin{tabular}{@{}llrrrr@{}}
 \toprule

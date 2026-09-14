@@ -91,6 +91,19 @@ def test_paper_sa_rl5_baseline_runs() -> None:
     assert run.result.makespan > 0
 
 
+def test_paper_sa_rl5_time_budget_stops_early_and_counts_iterations() -> None:
+    instance = make_toy_instance()
+    unbounded = run_paper_sa_rl(instance, PaperSARLConfig(max_iterations=40, seed=5))
+    assert unbounded.samples == 40
+    capped = run_paper_sa_rl(
+        instance,
+        PaperSARLConfig(max_iterations=10**9, time_budget_sec=0.05, seed=5),
+    )
+    check_feasible(instance, capped.solution)
+    assert 0 < capped.samples < 10**9
+    assert capped.runtime_sec < 1.0
+
+
 def test_extended_sa_rl5_zero_weight_matches_original() -> None:
     instance = make_toy_instance()
     original = run_paper_sa_rl(instance, PaperSARLConfig(max_iterations=50, seed=7))

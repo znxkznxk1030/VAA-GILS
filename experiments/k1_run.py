@@ -120,6 +120,29 @@ def cpsat_jobs() -> list[Job]:
     return jobs
 
 
+def cpsat_small_jobs() -> list[Job]:
+    """Extra CP-SAT verification on S instances 5-19 (300 s).
+
+    Together with the original CP-SAT batch, every S instance of the 20-instance
+    search batch then has a CP-SAT result, which strengthens the optimality-gap
+    evidence (S-none) and the reference comparison (S-medium/tight).
+    """
+
+    return [
+        Job(
+            method="CPSAT-300",
+            pool="test",
+            size_class="S",
+            flow_pattern="uniform",
+            tw_tightness=tw,
+            index=index,
+            rep=0,
+        )
+        for tw in TW_LEVELS
+        for index in range(5, 20)
+    ]
+
+
 def main() -> None:
     batch = sys.argv[1] if len(sys.argv) > 1 else "search"
     if batch == "search":
@@ -128,8 +151,10 @@ def main() -> None:
         executed = run_jobs(budget_jobs(), OUTPUT, workers=6)
     elif batch == "cpsat":
         executed = run_jobs(cpsat_jobs(), OUTPUT, workers=2)
+    elif batch == "cpsat_s20":
+        executed = run_jobs(cpsat_small_jobs(), OUTPUT, workers=2)
     else:
-        raise SystemExit(f"unknown batch {batch!r} (use: search | budget | cpsat)")
+        raise SystemExit(f"unknown batch {batch!r} (use: search | budget | cpsat | cpsat_s20)")
     print(f"{batch}: executed {executed} new jobs -> {OUTPUT}")
 
 

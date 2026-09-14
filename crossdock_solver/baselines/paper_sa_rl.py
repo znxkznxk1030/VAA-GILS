@@ -31,6 +31,7 @@ class PaperSARLConfig:
     """
 
     max_iterations: int = 300
+    time_budget_sec: float | None = None
     thresholds: tuple[int, int, int, int] = (5, 10, 15, 20)
     learning_rate: float = 0.3
     discount_factor: float = 0.9
@@ -80,8 +81,15 @@ def run_paper_sa_rl(
         for action in actions
     }
     no_improvement_count = 0
+    iterations_done = 0
 
     for _ in range(config.max_iterations):
+        if (
+            config.time_budget_sec is not None
+            and time.perf_counter() - start_time >= config.time_budget_sec
+        ):
+            break
+        iterations_done += 1
         state = _state_from_no_improvement(no_improvement_count, config.thresholds)
         action = _select_action(
             state,
@@ -129,7 +137,7 @@ def run_paper_sa_rl(
         solution=best,
         result=best_result,
         runtime_sec=time.perf_counter() - start_time,
-        samples=config.max_iterations,
+        samples=iterations_done,
     )
 
 

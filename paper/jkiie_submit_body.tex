@@ -215,11 +215,29 @@ critical-chain 하한은 $LB_{\mathrm{cc}}=\max_{q\in I\cup F}EF_q$이다. door-
 \[o_f=DE_f+\min_d\textstyle\sum_{j\in I}h_{jd}+DL_f \qquad (20)\]
 을 도어 수로 나눈 값이다.
 \[LB_{\mathrm{da}}=\frac{1}{|M|}\Big(\sum_i o_i+\sum_f o_f\Big) \qquad (21)\]
-두 하한 모두 제약을 완화하여 얻으므로 이들의 최댓값
-$LB_\tau=\max\{LB_{\mathrm{cc}},LB_{\mathrm{da}}\}$는 총 작업완료시간의 유효 하한이다.
-또한 각 $EF_q$가 $C_q$의 하한이므로 구조적 지연 하한은
+총 작업완료시간 하한과 구조적 지연 하한을 각각
+$LB_\tau=\max\{LB_{\mathrm{cc}},LB_{\mathrm{da}}\}$와
 \[LB_T=\sum_{q:\bar d_q<\infty}\max\{0,\ EF_q-\bar d_q\} \qquad (22)\]
-이며, $LB_J=LB_\tau+\lambda LB_T$는 식 (16)의 유효 하한이다.
+로 두고 $LB_J=LB_\tau+\lambda LB_T$라 하자.
+
+\textbf{명제 1.} 식 (1)--(16)의 모든 실행 가능해에 대해 $C_{\max}\ge LB_\tau$,
+$\sum_{q\in I\cup F}T_q\ge LB_T$이며, 따라서 $\lambda\ge0$이면 $J\ge LB_J$이다.
+
+\textit{증명.} (i) 최속 완료. 도어 경합을 나타내는 식 (4), (11)--(14)와 도어 간 이송시간 $t_{nm}\ge0$을
+제거하면 각 트럭의 완료 시각은 작아질 수만 있다. 병행 트럭 $i$가 목적지 $d$를 유지하면 식 (5), (6)에서
+$C_i\ge r_i+DE_i+(H_i-h_{id})+L_{id}+DL_i$이고, $d$에 대해 최솟값을 취하면 $C_i\ge EF_i$이다.
+출고트럭 $f$가 목적지 $d$를 맡으면 식 (8), (9)에서 $C_f\ge r_f+DE_f+L_d+DL_f$이고,
+$L_d=\sum_{j\in I}h_{jd}$이므로 $C_f\ge EF_f$이다. 식 (15)에 의해 $C_{\max}\ge\max_q EF_q=LB_{\mathrm{cc}}$이다.
+(ii) 도어 점유. 병행 트럭 $i$는 구간 $[r_i,C_i]$ 동안, 출고트럭 $f$는 $[S_f,C_f]$ 동안 한 도어를 점유하며,
+(i)과 같은 부등식에서 두 구간의 길이는 각각 $o_i$와 $o_f$ 이상이다(목적지 선택과 무관하게 하역량과
+적재량을 각각 따로 최소화하였다). 식 (4), (11), (13), (14)에 의해 같은 도어의 점유 구간은 겹치지 않고
+모든 구간은 $[0,C_{\max}]$에 포함되므로 $\sum_i o_i+\sum_f o_f\le|M|\,C_{\max}$, 곧 $C_{\max}\ge LB_{\mathrm{da}}$이다.
+(iii) 지연. $T_q\ge0$과 $T_q\ge C_q-\bar d_q\ge EF_q-\bar d_q$에서 $T_q\ge\max\{0,EF_q-\bar d_q\}$이고,
+$\bar d_q=\infty$인 트럭은 0을 더하므로 $\sum_q T_q\ge LB_T$이다.
+(iv) (i)--(iii)과 $\lambda\ge0$에서 $J=C_{\max}+\lambda\sum_q T_q\ge LB_\tau+\lambda LB_T=LB_J$이다. $\square$
+
+두 항을 서로 독립적으로 완화하므로 $LB_J$는 느슨할 수 있으며, 특히 도어 경합이 큰 대형 시간 제약 조건에서
+그 차이가 커진다.
 
 \section{4. 휴리스틱 알고리즘}
 
@@ -372,7 +390,13 @@ ablation(<Table~\ref{tab:b1}>, <Table~\ref{tab:b2}>)은 같은 엔진에서 구�
 같은 인스턴스의 5회 반복은 서로 독립이 아니므로, 먼저 인스턴스별로 평균해 조건당 값
 하나를 만든 뒤 짝지은 인스턴스 평균에 양측 Wilcoxon signed-rank test를 적용한다. 따라서
 짝의 수 $n$은 비교에 포함된 인스턴스 수를 넘지 않으며, 두 방법의 평균이 같아 차이가 0인
-짝은 검정에서 제외된다. 주
+짝은 검정에서 제외된다.
+
+본 논문은 해를 비교하는 기준을 세 가지로 엄격히 구분한다. \textbf{최적해}(optimal solution)는 CP-SAT가
+반환한 해의 목적값이 증명된 하한과 일치하여 최적성이 증명된 해이다. \textbf{기준해}(reference solution)는
+CP-SAT가 제한시간 안에 반환한 incumbent로, 최적성이 증명되지 않은 해를 포함하며 "최적"으로 부르지 않는다.
+\textbf{관측 최선해}(best observed solution)는 한 인스턴스에 대해 모든 방법, 모든 반복 횟수, CP-SAT 결과를
+통틀어 관측된 가장 좋은 해로, 최적성에 대한 보장이 없다. 주
 지표는 인스턴스별 격차 $\Delta_{bo}$이며, 해당 인스턴스에 대해 모든 방법과 모든 반복
 횟수, CP-SAT 결과까지 통틀어 관측된 가장 좋은 목적값을 기준으로 삼는다. 대형 조건에서는
 CP-SAT 기준해가 없어 최적해 대비 갭을 쓸 수 없기 때문이다.
@@ -394,6 +418,14 @@ thread로 S에 300초(5개), M과 L에 600초(조건당 2개)를 부여하며 S-
 medium과 tight 조건에서 Extended SA-RL5 대비 격차는 평균 0.89\%($n=120$, $p<0.0001$)이다. 실행 시간은 S/M/L에서 각각 0.09, 0.55, 3.17초이다.
 CP-SAT가 기준해를 반환한 조건에서 CP-SAT의 평균 계산 시간은 S 76초, M-none 606초로 같은 조건의 GILS(0.09, 0.48초)보다
 100배 이상 길며, M의 시간 제약 조건과 L의 모든 조건에서는 CP-SAT가 제한시간 안에 실행 가능해를 반환하지 못했다.
+
+GILS는 개선 이동 뒤 descent를 추가로 수행하므로 같은 반복 횟수가 같은 계산량을 뜻하지는 않는다. 이를 통제하기
+위해, 각 시험 실행(조건·인스턴스·반복)에서 GILS가 실제로 사용한 실행 시간을 같은 실행의 SA-RL5(시간 제약 조건은
+Extended SA-RL5)에 그대로 부여하고 시간이 다할 때까지 반복하게 한 동일 wall-clock 비교를 추가로 수행하였다.
+이때 SA-RL5의 평균 반복 횟수는 S/M/L에서 각각 586, 1{,}102, 2{,}020회로, L에서는 반복 1{,}000회 비교보다 약 2배의
+탐색을 수행한다(S에서는 GILS가 더 빨라 1{,}000회보다 적다). 그럼에도 GILS는 동일 시간의 SA-RL5보다 평균
+1.08\%(S 1.23\%, M 1.24\%, L 0.76\%; $n=180$, $p<0.0001$) 좋은 해를 찾았고, 동일 시간의 SA-RL5가 GILS보다 좋은
+인스턴스는 180개 중 하나도 없었다. 따라서 GILS의 성능 향상은 추가 계산량이 아니라 탐색 구조에서 비롯된다.
 
 \begin{table}[H]\centering
 \caption{Table 3. Test results over 20 instances per experimental condition (20 instances $\times$ 5 replications). $\Delta_{bo}$ is the mean gap to the best observed solution and time is the mean per run. The vs CP-SAT column is computed only on the subset for which CP-SAT returned a reference (5 instances per S condition, 2 for M-none); optimality was proven only for S-none. On that subset the mean CP-SAT runtime is 76 s (S) and 606 s (M-none). Runtimes are wall-clock times including model construction and solver termination overhead and may therefore slightly exceed the nominal 600-s solver limit.}

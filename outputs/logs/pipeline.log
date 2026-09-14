@@ -19,3 +19,5 @@ pipeline exit=0
 [2026-09-13 21:02:49] START dqn500 retrain + rerun
 [2026-09-13 21:11:43] DONE  dqn500 retrain + rerun
 dqn500 exit=0
+reviewer-exp exit=1
+[2026-09-14 19:38:02] START cpsat_s20

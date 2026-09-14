@@ -1,0 +1,3 @@
+budget fairness: executed 900 new jobs -> /Users/yskim/Documents/Codex/2026-06-30/files-mentioned-by-the-user-codex/outputs/budget_fairness.jsonl
+GILS-uniform-1000 vs SA-RL5 baselines (positive = GILS better; instance-level Wilcoxon)
+size    n  vs 1000 it.        p  vs time-matched        p   GILS s  SA-1000 s  SA-time s  SA-time it.

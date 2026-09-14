@@ -104,6 +104,39 @@ def _extended_sa_rl(iterations: int) -> MethodFn:
     return method
 
 
+def _sa_rl_timematch(extended: bool) -> MethodFn:
+    """SA-RL5 given a wall-clock budget instead of an iteration count.
+
+    Budget-fairness check: `budget_sec` is the runtime that v2-GILS-uniform-1000
+    used on the same (instance, rep), so the baseline runs for as many
+    iterations as fit in that time.
+    """
+
+    def method(instance: CrossDockInstance, seed: int, budget_sec: float | None) -> dict:
+        if budget_sec is None:
+            raise ValueError("time-matched SA-RL5 needs budget_sec")
+        weight = _auto_weight(instance) if extended else 0.0
+        run = run_paper_sa_rl(
+            instance,
+            PaperSARLConfig(
+                max_iterations=10**9,
+                time_budget_sec=budget_sec,
+                tardiness_weight=weight,
+                seed=seed,
+                name="Extended-SA-RL5" if extended else "Paper-SA-RL5",
+            ),
+        )
+        return {
+            "makespan": run.result.makespan,
+            "total_tardiness": run.result.total_tardiness,
+            "objective": run.result.makespan + weight * run.result.total_tardiness,
+            "runtime_sec": run.runtime_sec,
+            "iterations": run.samples,
+        }
+
+    return method
+
+
 def _vaa_qrl(iterations: int, tardiness_weight: float = 0.0) -> MethodFn:
     def method(instance: CrossDockInstance, seed: int, budget_sec: float | None) -> dict:
         run = run_vaa_qrl(
@@ -277,6 +310,8 @@ METHOD_REGISTRY: dict[str, MethodFn] = {
     "Paper-SA-RL5-300": _paper_sa_rl(300),
     "Paper-SA-RL5-1000": _paper_sa_rl(1000),
     "Extended-SA-RL5-1000": _extended_sa_rl(1000),
+    "Paper-SA-RL5-timematch": _sa_rl_timematch(extended=False),
+    "Extended-SA-RL5-timematch": _sa_rl_timematch(extended=True),
     "VAA-QRL-50": _vaa_qrl(50),
     "VAA-QRL-300": _vaa_qrl(300),
     "VAA-QRL-1000": _vaa_qrl(1000),

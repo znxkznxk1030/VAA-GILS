@@ -9,8 +9,8 @@ v2-GILS-uniform-1000 vs v2-GILS-dqn-1000      179     +0.101    0.0000   signifi
 
 === Budget sensitivity: mean gap% to per-instance best-known ===
 selector          50       200      1000      3000
-uniform         0.53      0.40      0.15      0.12
-tabular         0.57      0.47      0.19      0.13
+uniform         0.53      0.40      0.16      0.12
+tabular         0.57      0.47      0.20      0.13
 dqn             0.57      0.48      0.26      0.24
 
 === Budget sensitivity: selector spread per budget (max-min of the three) ===

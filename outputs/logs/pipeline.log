@@ -21,3 +21,6 @@ pipeline exit=0
 dqn500 exit=0
 reviewer-exp exit=1
 [2026-09-14 19:38:02] START cpsat_s20
+[2026-09-14 20:58:55] DONE  cpsat_s20
+[2026-09-14 20:58:55] DONE  summaries
+cpsat_s20 exit=0

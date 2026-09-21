@@ -3,3 +3,4 @@ __pycache__/
 .pytest_cache/
 tmp/
 .claude/worktrees/
+.DS_Store

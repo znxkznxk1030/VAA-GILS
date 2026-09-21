@@ -37,7 +37,7 @@
 
 
 \begin{abstract}
-\noindent We study truck scheduling in a multi-door cross-dock where a compound truck is partially unloaded and then departs as the carrier for its retained destination. Existing compound-truck models assume all trucks are available at time zero and minimize makespan only, whereas conventional models consider release times and due dates. We develop MIP and CP-SAT formulations incorporating release times, soft due dates, carrier conversion, and freight-transfer precedence. Late arrivals can delay carriers waiting for freight, and soft due dates translate these delays into tardiness costs. This delay-propagation mechanism has not, to our knowledge, been modeled for compound trucks. The objective minimizes makespan and total tardiness. VAA-GILS combines Vogel-style construction with bottleneck-guided local improvement. It remains within 0.06--0.25\% of CP-SAT references in under 0.5 s and averages 0.25\% above optimum on 20 S-none instances. When CP-SAT finds no feasible schedule within 600 s, VAA-GILS yields the best solutions among the compared methods.
+\noindent We study truck scheduling in a multi-door cross-dock where a compound truck is partially unloaded, then departs as the carrier for its retained destination. Prior studies imposed temporal constraints on trucks with fixed roles or on fully unloading compound trucks, whereas partial-unloading models minimize makespan with all trucks available at time zero. We develop MIP and CP-SAT formulations that minimize makespan and total tardiness under release times, soft due dates, carrier conversion, and freight-transfer precedence, so that late arrivals propagate tardiness through carriers waiting for freight. To our knowledge, no previous model combines these temporal constraints with retained-destination partial unloading and carrier conversion. VAA-GILS combines Vogel-style construction with bottleneck-guided local improvement. On the 62 instances with CP-SAT references, its gap is 0.06--0.25\% in under 0.5 s, and it averages 0.25\% above the 20 proven optima. Where CP-SAT finds no feasible schedule within 600 s, it outperforms all compared methods.
 
 \smallskip
 \noindent\textbf{Keywords:} Cross-Docking, Compound Truck, Release Time, Soft Due Date, Iterated Local Search, Constraint Programming
@@ -47,23 +47,25 @@
 
 크로스도킹은 입고 화물을 창고에 보관하지 않고 곧바로 출고트럭으로 환적하여
 재고와 리드타임을 줄이는 물류 방식이다(Boysen and Fliedner, 2010; Van Belle et al., 2012). Joo와
-Kim(2013)이 도입하고 Shahmardan과 Sajadieh(2020)가
-발전시킨 병행 트럭(compound truck) 변형에서는 한 대의 트럭이 두 역할을 겸한다. 여러 목적지
+Kim(2013)이 도입한 병행 트럭(compound truck)은 한 대의 트럭이 입고와 출고 역할을 겸하는 형태이며,
+Shahmardan과 Sajadieh(2020)가 발전시킨 부분 하역 변형에서는 여러 목적지
 화물을 싣고 도착한 뒤 한 목적지의 화물은 유지하고 나머지만 \textbf{부분적으로} 하역하며,
 이후 해당 목적지의 나머지 화물을 적재해 출고 운송 트럭으로 출발한다. 부분 하역은 전량 하역 대비 총 작업완료시간(makespan)을 크게 줄이는 것으로 보고되어 LTL(Less-Than-Truckload, 소량 화물 혼적) 통합 네트워크에서 실용적 매력이 크다.
 
-기존 병행 트럭 모델의 두 가정이 현실성을 제약한다. 첫째, 모든 트럭이 시각 0에 가용하다고 가정하지만
+부분 하역 병행 트럭 모형(Shahmardan and Sajadieh, 2020)의 두 가정이 현실성을 제약한다. 첫째, 모든 트럭이 시각 0에 가용하다고 가정하지만
 실제 도크에서는 트럭마다 예약 도착 시각(release time)이 다르다. 일반 크로스도킹 연구에서도 트럭 도착은
 시간창(time window)이나 도착 구간으로 주어지는 것으로 다루어지며(Van Belle 등, 2013; Konur and Golias, 2013a;
 Ladier and Alpan, 2016), 도착 정보를 얼마나 알고 있는지가 스케줄 품질에 영향을 준다(Larbi 등, 2011). 둘째,
 목적식이 순수 총 작업완료시간이지만 출고트럭의 출발은 위반 시 비용이 발생하는 납기(due date)에 묶여 있다.
 출고 납기는 경성 제약으로 부과되거나(Molavi 등, 2018) 납기지연(tardiness)이나 지연 출발 비용으로 목적식에
-반영되어 왔다(Van Belle 등, 2013; Rijal 등, 2019; Theophilus 등, 2021). 병행 트럭 모형이 이 두 요소를 빼면
+반영되어 왔다(Van Belle 등, 2013; Rijal 등, 2019; Theophilus 등, 2021). 부분 하역 모형이 이 두 요소를 빼면
 부분 하역의 이점이 실제 도착 시각과 출발 일정 아래에서도 유지되는지 평가할 수 없으므로, 두 가정을 완화한 모형이 필요하다.
 
 도착 시각, 시간창, 납기지연은 일반 크로스도킹 스케줄링에서 이미
-연구되어 왔다(Van Belle et al., 2013; Assadi and Bagheri, 2016; Bodnar et al., 2017; Molavi et al., 2018; Rijal et al., 2019; Li et al., 2026).
-그러나 병행 트럭 설정은 temporal constraint의 의미를 바꾼다. 병행 트럭은
+연구되어 왔고(Van Belle et al., 2013; Assadi and Bagheri, 2016; Bodnar et al., 2017; Molavi et al., 2018; Rijal et al., 2019; Li et al., 2026),
+전량 하역 후 다시 적재하는 병행 트럭에도 트럭별 도착 시각(Ozden and Saricicek, 2019; Abtahi, 2025)과
+연성 시간창(Ozden and Saricicek, 2019)이 도입되었다.
+그러나 부분 하역 병행 트럭 설정은 temporal constraint의 의미를 바꾼다. 병행 트럭은
 순수 입고트럭도 출고트럭도 아니다. 부분 하역 후 한 목적지의 화물을 유지하고, 해당
 목적지로 들어오는 이송 화물을 기다린 뒤 비로소 출고 운송 트럭으로 출발한다. 이 부분 하역
 변환은 하나의 precedence chain --- 도착 $\to$
@@ -78,9 +80,11 @@ Ladier and Alpan, 2016), 도착 정보를 얼마나 알고 있는지가 스케�
 본 논문의 기여와 기존 연구 대비 차별성은 다음 세 가지이며, 대표 연구와의 비교는 <Table~\ref{tab:pos}>에
 정리하였다. 첫째, 문제 정식화의 차별성이다. 도착 시각이나 납기를 다룬 기존 연구(Van Belle 등, 2013; Assadi and
 Bagheri, 2016; Bodnar 등, 2017; Rijal 등, 2019; Theophilus 등, 2021; Li 등, 2026)는 모두 입고와 출고 역할이 고정된
-트럭을 전제하고, 병행 트럭을 다룬 연구(Shahmardan and Sajadieh, 2020; Nowak and Puladi, 2025)는 모든 트럭이 시각
-0에 가용하다고 보고 총 작업완료시간만 최소화한다. 본 연구는 부분 하역 병행 트럭이 운송 트럭으로 전환되는 선행 관계에
-트럭별 도착 시각과 연성 납기를 결합한 모형을 저자가 아는 한 처음 제시하고, 이를 독립적인 스케줄 평가기와 일치하는
+트럭을 전제한다. 병행 트럭에 도착 시각을 둔 Ozden과 Saricicek(2019), Abtahi(2025)는 병행 트럭이 화물을 모두 하역한 뒤
+다시 적재하는 구조이고, 부분 하역 병행 트럭 모형(Shahmardan and Sajadieh, 2020)과 병행 트럭 운영의 유연성을 다룬
+Nowak과 Puladi(2025)는 모든 트럭이 시각 0에 가용하다고 보고 총 작업완료시간만 최소화한다. 즉 시간 제약을 다룬 계열과
+부분 하역 병행 트럭 계열은 따로 발전해 왔다. 본 연구는 지정 목적지의 화물을 유지한 채 부분 하역한 병행 트럭이 그 목적지의
+운송 트럭으로 전환되는 선행 관계에 트럭별 도착 시각과 연성 납기를 결합한 모형을 저자가 아는 한 처음 제시하고, 이를 독립적인 스케줄 평가기와 일치하는
 big-$M$ MILP 및 reified CP-SAT로 정식화한다. 이 결합에서는 한 트럭의 늦은 도착이 공유 목적지를 통해 다른 운송
 트럭의 납기지연으로 전파되므로, 두 계열 가운데 어느 한쪽 모형의 단순한 확장으로는 나타나지 않는 지연 구조가 생긴다.
 둘째, 해법의 차별성이다. Shahmardan과 Sajadieh(2020)의 SA-RL5는 한 반복에 이동 하나를 simulated annealing으로
@@ -99,7 +103,11 @@ ready time과 조기완료 및 납기지연(Assadi and Bagheri, 2016), mixed-ser
 경성 납기(hard due date)(Molavi 등, 2018), 트럭 스케줄링과 도어 배정의 통합(Rijal 등, 2019),
 트럭 도착 시각과 지연 출발 비용(Theophilus 등, 2021)처럼 시간 제약을 이미 반영한다. 다만 이들은 모두
 입고트럭과 출고트럭을 구분하며, 부분 하역 후 출고 운송 트럭으로 전환되는 트럭은 모형화하지 않는다.
-병행 트럭 계열의 후속 연구는 드물다. Nowak과 Puladi(2025)는 전량 하역 뒤 다시 적재되는 병행 트럭을 다루되
+병행 트럭 계열의 후속 연구는 드물다. Ozden과 Saricicek(2019)은 입고, 출고, 병행 트럭의 도착 시각을 서로 다르게 두고
+출고 적재의 연성 시간창에 대한 조기완료와 납기지연을 최소화하지만, 병행 트럭은 입고 도어에서 화물을 하역한 뒤 출고 도어로
+이동해 다시 적재하므로 화물을 유지한 채 운송 트럭으로 전환되는 구조는 없다. Abtahi(2025)도 병행 트럭을 포함한
+모든 트럭의 도착 시각을 서로 다르게 두지만, 병행 트럭은 하역 후 출고 구역으로 이동해 새 화물을 적재하며 목적식은
+납기지연이 아니라 주어진 작업 시간 안에 적재되는 제품 수의 최대화이다. Nowak과 Puladi(2025)는 전량 하역 뒤 다시 적재되는 병행 트럭을 다루되
 도착 시각과 납기를 두지 않고, Pan 등(2021)은 출고트럭의 반복 적재를 허용하되 모든 트럭이 시각 0에
 가용하다고 가정한다. 도착 정보가 불확실한 경우를 다룬 연구도 있으나(Larbi 등, 2011; Konur and Golias,
 2013a, 2013b; Ladier and Alpan, 2016; Xi 등, 2020), 본 모형은 결정론적이며 각 도착 시각이 스케줄 구성
@@ -124,9 +132,11 @@ Study & Truck roles & Partial unloading & Temporal constraints & Objective & Sol
 Van Belle et al. (2013) & Inbound/outbound & --- & Time windows & Travel time + tardiness & Tabu search\\
 Assadi and Bagheri (2016) & Inbound/outbound & --- & Ready times & Earliness + tardiness & MILP, DE, PBSA\\
 Bodnar et al. (2017) & Inbound/outbound; mixed-service doors & --- & Time windows & Cost including tardiness & ALNS\\
+Ozden and Saricicek (2019) & Inbound/outbound/compound; separate receiving and shipping doors & No (full unloading) & Arrival times, soft time windows & Earliness + tardiness & MIP, SA, TS\\
 Rijal et al. (2019) & Inbound/outbound; mixed-service doors & --- & Arrival and departure times & Tardiness + storage + travel cost & ALNS\\
 Shahmardan and Sajadieh (2020) & Compound + outbound; mixed-service doors & Yes & None (all at time 0) & Makespan & Heuristic, RL-based SA\\
 Theophilus et al. (2021) & Inbound/outbound & --- & Arrival times, scheduled departures & Total cost incl. delayed departure and decay & Evolutionary algorithm\\
+Abtahi (2025) & Inbound/outbound/compound; separate receiving and shipping doors & No (full unloading) & Arrival times & Loaded quantity in a working period & MIP, SA\\
 Nowak and Puladi (2025) & Compound; mixed-service doors, preemption & No (full unloading) & None (all start at time 0) & Makespan & GA, VNS\\
 Li et al. (2026) & Inbound/outbound; mixed-mode docks & --- & Time windows & Tardiness, makespan, AGV travel & Q-learning ALNS\\
 \midrule
@@ -361,7 +371,7 @@ Time-constraint level & $(\rho,\delta)$ & medium $(0.25,0.60)$; tight $(0.50,0.3
 
 \subsection{4.2 시간 제약 수준}
 시간 제약은 none, medium, tight 세 수준이다. none은 $r_q=0$, $\bar d_q=\infty$로 두어
-모든 트럭이 시각 0에 가용하고 납기가 없는 기존 모델과 같으며, 본 연구의 확장을 껐을 때의
+모든 트럭이 시각 0에 가용하고 납기가 없는 원 모델과 같으며, 본 연구의 확장을 껐을 때의
 대조군 역할을 한다. medium과 tight에서는 $r_q\sim U[0,\rho H]$, $\bar d_q=r_q+\delta H$,
 $(\rho,\delta)=(0.25,0.60),(0.50,0.35)$이다. 여기서 $H=2\sum_{i\in I}H_i/|M|$는 시간
 제약이 없을 때의 총 작업완료시간 추정치로, 화물 한 단위가 하역과 적재로 두 번 처리되므로
@@ -431,7 +441,7 @@ Extended SA-RL5)에 그대로 부여하고 시간이 다할 때까지 반복하�
 추가 계산량이 아니라 탐색 구조에서 비롯된다.
 
 \begin{table}[H]\centering
-\caption{Table 4. Test results over 20 instances per experimental condition (20 instances $\times$ 5 replications). $\Delta_{bo}$ is the mean gap to the best observed solution and time is the mean per run. The vs CP-SAT column is computed only on the subset for which CP-SAT returned a reference (20 instances per S condition, 2 for M-none); optimality was proven for all 20 S-none instances and one S-medium instance. On that subset the mean CP-SAT runtime is 179 s (S) and 606 s (M-none).}
+\caption{Table 4. Test results over 20 instances per experimental condition (20 instances $\times$ 5 replications). $\Delta_{bo}$ is the mean gap to the best observed solution and time is the mean per run. The vs CP-SAT column is computed only on the subset for which CP-SAT returned a reference (20 instances per S condition, 2 for M-none); optimality was proven for all 20 S-none instances and one S-medium instance. On that subset the mean CP-SAT runtime is 178 s (S) and 606 s (M-none).}
 \label{tab:main}\small
 \begin{tabular}{@{}llrrrr@{}}
 \toprule
@@ -584,7 +594,8 @@ $\sum_q T_q$는 여러 트럭의 합이므로 계수가 같다고 두 성분이 
 않아 연산자를 잘 고르는 것보다 많이 시도하는 편이 유리하고, 모든 신규 최선해 뒤에
 결정론적 하강 탐색이 따라붙어 어떤 연산자로 그 지점에 이르렀는지의 차이를 상당 부분
 흡수한다. 반복 횟수별 격차 곡선도 1{,}000회 이후의 추가 개선이 작음을 보인다(조건당 5개 인스턴스에서
-균등 선택의 격차는 1{,}000회 0.22\%, 3{,}000회 0.12\%이고, 45개 인스턴스 중 33개에서 개선 폭이 0.1\%p 미만이다).
+균등 선택의 격차는 1{,}000회 0.22\%, 3{,}000회 0.12\%이고, 45개 인스턴스 중 33개에서 개선 폭이 0.1\%p 미만이다.
+1{,}000회 값이 <Table~\ref{tab:main}>의 조건 평균 0.16\%보다 큰 것은 기준 인스턴스가 조건당 20개 중 5개로 달라서이다).
 정체 탈출은 섭동 재시작이 맡으므로 SA 수락 규칙과 reheating의 역할은
 이와 겹치며, 조정 집합 비교와 시험 집합 ablation에서 이 둘이 해 품질을 높이지 않아 최종
 VAA-GILS에서 제외하였다(4장, <Table~\ref{tab:b2}>). 즉 본 문제에서 성능의 본질은 학습된 선택 정책이나
@@ -618,6 +629,7 @@ ablation은 성능이 섭동 재시작, 유도 연산자, 하강 탐색이라는
 
 \section*{참고문헌}
 \begin{description}\small
+\item Abtahi, Z.(2025), Scheduling Compound Trucks with Various Arrival Times in a Multi-Door Cross-Docking System, \emph{Supply Chain and Operations Decision Making}, 2(1), 21-30.
 \item Assadi, M. T. and Bagheri, M.(2016), Differential Evolution and Population-Based Simulated Annealing for Truck Scheduling Problem in Multiple Door Cross-Docking Systems, \emph{Computers \& Industrial Engineering}, 96, 149-161.
 \item Bodnar, P., de Koster, R., and Azadeh, K.(2017), Scheduling Trucks in a Cross-Dock with Mixed Service Mode Dock Doors, \emph{Transportation Science}, 51(1), 112-131.
 \item Boysen, N. and Fliedner, M.(2010), Cross Dock Scheduling: Classification, Literature Review and Research Agenda, \emph{Omega}, 38(6), 413-422.
@@ -634,6 +646,7 @@ ablation은 성능이 섭동 재시작, 유도 연산자, 하강 탐색이라는
 \item Mnih, V., Kavukcuoglu, K., Silver, D., Rusu, A. A., Veness, J., Bellemare, M. G., Graves, A., Riedmiller, M., Fidjeland, A. K., Ostrovski, G., Petersen, S., Beattie, C., Sadik, A., Antonoglou, I., King, H., Kumaran, D., Wierstra, D., Legg, S., and Hassabis, D.(2015), Human-Level Control through Deep Reinforcement Learning, \emph{Nature}, 518, 529-533.
 \item Molavi, D., Shahmardan, A., and Sajadieh, M. S.(2018), Truck Scheduling in a Cross Docking Systems with Fixed Due Dates and Shipment Sorting, \emph{Computers \& Industrial Engineering}, 117, 29-40.
 \item Nowak, M. and Puladi, S.(2025), Value of Operational Flexibility in Cross-Docking, \emph{Computers \& Industrial Engineering}, 209, 111423.
+\item Ozden, G. and Saricicek, I.(2019), Scheduling Trucks in a Multi-Door Cross-Docking System with Time Windows, \emph{Bulletin of the Polish Academy of Sciences: Technical Sciences}, 67(2), 349-362.
 \item Pan, F., Fan, T., Qi, X., Chen, J., and Zhang, C.(2021), Truck Scheduling for Cross-Docking of Fresh Produce with Repeated Loading, \emph{Mathematical Problems in Engineering}, 2021, 5592122.
 \item Rijal, A., Bijvank, M., and de Koster, R.(2019), Integrated Scheduling and Assignment of Trucks at Unit-Load Cross-Dock Terminals with Mixed Service Mode Dock Doors, \emph{European Journal of Operational Research}, 278(3), 752-771.
 \item Ropke, S. and Pisinger, D.(2006), An Adaptive Large Neighborhood Search Heuristic for the Pickup and Delivery Problem with Time Windows, \emph{Transportation Science}, 40(4), 455-472.

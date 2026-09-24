@@ -2,38 +2,38 @@
  "curve": [
   {
    "lam": 0.0,
-   "makespan_norm": 0.19630008796055984,
-   "tardiness_norm": 0.9778579421498853
+   "makespan_norm": 0.19832947850913024,
+   "tardiness_norm": 0.9880036815049272
   },
   {
    "lam": 0.25,
-   "makespan_norm": 0.2984086202466822,
-   "tardiness_norm": 0.1920331465045134
+   "makespan_norm": 0.2896054385196069,
+   "tardiness_norm": 0.18612678877730818
   },
   {
    "lam": 0.5,
-   "makespan_norm": 0.2798943187123143,
-   "tardiness_norm": 0.1251612098168315
+   "makespan_norm": 0.2728186106326689,
+   "tardiness_norm": 0.1217378478830287
   },
   {
    "lam": 1.0,
-   "makespan_norm": 0.41325788585580026,
-   "tardiness_norm": 0.10821696224161688
+   "makespan_norm": 0.4256208307938483,
+   "tardiness_norm": 0.09896771633644333
   },
   {
    "lam": 2.0,
-   "makespan_norm": 0.5811456413132385,
-   "tardiness_norm": 0.06479660263516447
+   "makespan_norm": 0.5724562662376663,
+   "tardiness_norm": 0.06646685954152484
   },
   {
    "lam": 4.0,
-   "makespan_norm": 0.6679995245657827,
-   "tardiness_norm": 0.03464549449401397
+   "makespan_norm": 0.6820270697514468,
+   "tardiness_norm": 0.030199244895882844
   },
   {
    "lam": 8.0,
-   "makespan_norm": 0.7728733912775979,
-   "tardiness_norm": 0.025538835872961466
+   "makespan_norm": 0.7527196737889016,
+   "tardiness_norm": 0.02319386613800624
   }
  ],
  "lambdas": [

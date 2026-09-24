@@ -430,7 +430,8 @@ def _compound_destination_cost(
         for source in instance.compound_trucks
         if source != compound
     )
-    return unload_time + 0.5 * load_time
+    # Paper Eq. (23): partial unloading time + loading time of freight from other trucks.
+    return unload_time + load_time
 
 
 def _destination_load(instance: CrossDockInstance, destination: DestinationId) -> float:

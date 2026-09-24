@@ -57,6 +57,19 @@ def test_vaa_cost_uses_paper_eq_23() -> None:
     assert _compound_destination_cost(instance, "C1", "D1") == 10.0
 
 
+def test_k8_cost_matches_vaa_cost() -> None:
+    from crossdock_solver.baselines.paper_sa_rl import (
+        _compound_destination_cost as k8_cost,
+    )
+
+    instance = make_toy_instance()
+    for compound in instance.compound_trucks:
+        for destination in instance.destinations:
+            assert k8_cost(instance, compound, destination) == _compound_destination_cost(
+                instance, compound, destination
+            )
+
+
 def test_vva_alias_matches_vaa_solution() -> None:
     instance = make_toy_instance()
     assert vva_solution(instance) == vaa_solution(instance)

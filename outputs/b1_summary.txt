@@ -1,23 +1,23 @@
 === Mean gap%% to per-instance best-known, by cell and pool ===
 cell           generic  critical      full
-L-medium          0.16      0.10      0.07
+L-medium          0.17      0.11      0.09
 L-tight           0.04      0.02      0.03
-L-none            0.30      0.16      0.10
-M-medium          0.41      0.29      0.26
-M-tight           0.25      0.12      0.11
-M-none            0.42      0.24      0.21
-S-medium          0.29      0.10      0.12
-S-tight           0.30      0.23      0.24
-S-none            0.45      0.21      0.12
+L-none            0.28      0.13      0.09
+M-medium          0.47      0.32      0.26
+M-tight           0.28      0.14      0.12
+M-none            0.41      0.25      0.19
+S-medium          0.31      0.13      0.12
+S-tight           0.32      0.25      0.19
+S-none            0.65      0.24      0.20
 
 === Paired Wilcoxon on instance replication means (two-sided) ===
 (pool_b -> pool_a where pool_a is the richer pool; +mean%% = richer is better)
 contrast                          scope         n    mean%         p       verdict
-generic -> critical               all          45   +0.128    0.0000   significant
-critical -> full                  all          45   +0.025    0.0320   significant
-critical -> full                  TW-only      30   +0.006    0.1229 no difference
-critical -> full                  none-only    15   +0.062    0.0946 no difference
-generic -> full                   all          45   +0.153    0.0000   significant
+generic -> critical               all          45   +0.150    0.0000   significant
+critical -> full                  all          45   +0.034    0.0130   significant
+critical -> full                  TW-only      30   +0.029    0.0507 no difference
+critical -> full                  none-only    15   +0.044    0.1205 no difference
+generic -> full                   all          45   +0.184    0.0000   significant
 
 Reading: mean%% = 100*(objective_pool_b - objective_pool_a)/pool_a, so a
 positive value means the richer pool (pool_a: adds the guided operators)

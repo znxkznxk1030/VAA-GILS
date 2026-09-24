@@ -1,40 +1,43 @@
 === Scale-invariant makespan-tardiness trade-off (mean over all cells) ===
   lambda   makespan_norm  tardiness_norm
-     0.0           0.196           0.978
-    0.25           0.298           0.192
-     0.5           0.280           0.125
-     1.0           0.413           0.108
-     2.0           0.581           0.065
-     4.0           0.668           0.035
-     8.0           0.773           0.026
+     0.0           0.198           0.988
+    0.25           0.290           0.186
+     0.5           0.273           0.122
+     1.0           0.426           0.099
+     2.0           0.572           0.066
+     4.0           0.682           0.030
+     8.0           0.753           0.023
   (0 = best/min over the lambda grid per instance, 1 = worst/max)
 
 === S: raw mean makespan / total tardiness by lambda ===
   lambda      makespan     tardiness
-     0.0        2060.2        6495.0
-    0.25        2063.1        6320.2
-     0.5        2062.3        6308.1
-     1.0        2064.1        6304.4
-     2.0        2068.3        6300.0
-     4.0        2076.0        6296.7
-     8.0        2082.9        6295.2
+     0.0        2060.4        6488.5
+    0.25        2062.6        6325.6
+     0.5        2062.1        6308.4
+     1.0        2064.3        6304.9
+     2.0        2069.0        6301.9
+     4.0        2077.4        6296.3
+     8.0        2083.2        6294.7
 
 === M: raw mean makespan / total tardiness by lambda ===
   lambda      makespan     tardiness
-     0.0        4120.1       29707.3
-    0.25        4127.9       29396.7
-     0.5        4131.6       29369.8
-     1.0        4146.1       29336.4
-     2.0        4157.9       29318.3
-     4.0        4159.7       29316.4
-     8.0        4176.3       29310.2
+     0.0        4120.9       29736.6
+    0.25        4128.7       29402.8
+     0.5        4131.4       29371.9
+     1.0        4142.8       29335.0
+     2.0        4159.5       29322.6
+     4.0        4164.2       29317.5
+     8.0        4171.1       29313.9
 
 === L: raw mean makespan / total tardiness by lambda ===
   lambda      makespan     tardiness
      0.0        6987.1       87088.8
-    0.25        6994.5       86417.2
-     0.5        6996.0       86351.7
-     1.0        7004.0       86377.0
-     2.0        7010.4       86330.3
-     4.0        7019.3       86321.7
-     8.0        7028.2       86316.3
+    0.25        6992.6       86405.7
+     0.5        6996.2       86356.7
+     1.0        7004.4       86379.2
+     2.0        7009.4       86332.9
+     4.0        7021.6       86319.7
+     8.0        7028.2       86316.6
+
+wrote /Users/yskim/Documents/Codex/2026-06-30/files-mentioned-by-the-user-codex/outputs/lambda_curve.json
+wrote /Users/yskim/Documents/Codex/2026-06-30/files-mentioned-by-the-user-codex/outputs/lambda_summary.txt

@@ -60,9 +60,9 @@ def _line(x1, y1, x2, y2, stroke=AXIS, w=1.0, dash=None):
 def fig1():
     budgets = [50, 200, 1000, 3000]
     series = {  # mean gap% to per-instance best observed (outputs/k1_stats.txt)
-        "Uniform (proposed)": [0.53, 0.40, 0.15, 0.12],
-        "Tabular Q-learning": [0.57, 0.47, 0.19, 0.13],
-        "Transfer DQN":       [0.57, 0.48, 0.26, 0.24],
+        "Uniform (proposed)": [0.54, 0.41, 0.17, 0.12],
+        "Tabular Q-learning": [0.57, 0.48, 0.21, 0.13],
+        "Transfer DQN":       [0.58, 0.51, 0.26, 0.23],
     }
     W, H = 560, 380
     L, R, T, B = 70, 200, 30, 55
@@ -120,15 +120,15 @@ def fig2():
              "L-none", "L-med", "L-tight"]
     # outputs/b1_summary.txt gap% (generic, critical, full), final greedy engine
     data = {
-        "generic":  [0.45, 0.29, 0.30, 0.42, 0.41, 0.25, 0.30, 0.16, 0.04],
-        "critical": [0.21, 0.10, 0.23, 0.24, 0.29, 0.12, 0.16, 0.10, 0.02],
-        "full":     [0.12, 0.12, 0.24, 0.21, 0.26, 0.11, 0.10, 0.07, 0.03],
+        "generic":  [0.65, 0.31, 0.32, 0.41, 0.47, 0.28, 0.28, 0.17, 0.04],
+        "critical": [0.24, 0.13, 0.25, 0.25, 0.32, 0.14, 0.13, 0.11, 0.02],
+        "full":     [0.20, 0.12, 0.19, 0.19, 0.26, 0.12, 0.09, 0.09, 0.03],
     }
     labels = ["generic (7 ops)", "critical (+g1,g2)", "full (+g3,g4)"]
     W, H = 640, 380
     L, R, T, B = 60, 20, 40, 70
     pw, ph = W - L - R, H - T - B
-    ymax = 0.5
+    ymax = 0.7
     n = len(cells)
     group_w = pw / n
     bar_w = group_w * 0.24
@@ -137,7 +137,7 @@ def fig2():
         return T + (1 - v / ymax) * ph
 
     body = ""
-    for gy in [0.0, 0.1, 0.2, 0.3, 0.4, 0.5]:
+    for gy in [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7]:
         y = Y(gy)
         body += _line(L, y, L + pw, y, GRID, 1)
         body += _txt(L - 10, y + 4, f"{gy:.1f}", 11, "end", AXIS)
@@ -171,10 +171,10 @@ def fig3():
     # outputs/b2_summary.txt aggregate degradation% after one change to the
     # final greedy engine (n=45 instances each)
     comps = [
-        ("Remove kick restart",           0.365, "p<0.0001"),
-        ("Random start instead of VAA",   0.043, "p=0.048"),
-        ("Remove descent",                0.041, "p=0.003"),
-        ("Add SA acceptance + reheating", 0.027, "p=0.001"),
+        ("Remove kick restart",           0.375, "p<0.0001"),
+        ("Random start instead of VAA",   0.057, "p=0.049"),
+        ("Remove descent",                0.064, "p=0.002"),
+        ("Add SA acceptance + reheating", 0.036, "p=0.004"),
     ]
     W, H = 680, 300
     L, R, T, B = 220, 150, 40, 45

@@ -1,55 +1,55 @@
 cell        method                  mean obj     std  gap_lb% vs CP-SAT%   n
 L-medium   VAA                      55611.1 17629.3   264.1         -  20
-L-medium   Extended-SA-RL5-1000     55539.7 17585.3   263.6         - 100
-L-medium   v2-GILS-uniform-1000     54826.5 17440.5   258.9         - 100
-L-medium   v2-GILS-1000             54830.9 17435.2   258.9         - 100
-L-medium   v2-GILS-dqn-1000         54839.1 17435.6   259.0         - 100
+L-medium   Extended-SA-RL5-1000     55544.0 17596.2   263.6         - 100
+L-medium   v2-GILS-uniform-1000     54825.9 17444.0   258.8         - 100
+L-medium   v2-GILS-1000             54830.7 17436.2   258.9         - 100
+L-medium   v2-GILS-dqn-1000         54836.4 17439.3   258.9         - 100
 
 L-tight    VAA                     119671.9 31653.0   173.5         -  20
-L-tight    Extended-SA-RL5-1000    119637.8 31674.1   173.4         - 100
-L-tight    v2-GILS-uniform-1000    118865.0 31627.1   171.5         - 100
-L-tight    v2-GILS-1000            118866.6 31621.1   171.5         - 100
-L-tight    v2-GILS-dqn-1000        118897.8 31620.0   171.6         - 100
+L-tight    Extended-SA-RL5-1000    119634.3 31682.8   173.4         - 100
+L-tight    v2-GILS-uniform-1000    118863.6 31625.9   171.5         - 100
+L-tight    v2-GILS-1000            118867.2 31622.9   171.5         - 100
+L-tight    v2-GILS-dqn-1000        118867.8 31627.3   171.5         - 100
 
 L-none     VAA                       5492.3  1444.7    36.0         -  20
-L-none     Paper-SA-RL5-1000         5479.7  1442.2    35.7         - 100
-L-none     v2-GILS-uniform-1000      5384.0  1416.7    33.4         - 100
-L-none     v2-GILS-1000              5386.4  1417.0    33.4         - 100
-L-none     v2-GILS-dqn-1000          5384.9  1417.4    33.4         - 100
+L-none     Paper-SA-RL5-1000         5480.3  1443.2    35.7         - 100
+L-none     v2-GILS-uniform-1000      5383.9  1416.6    33.3         - 100
+L-none     v2-GILS-1000              5386.8  1417.3    33.4         - 100
+L-none     v2-GILS-dqn-1000          5386.4  1417.8    33.4         - 100
 
 M-medium   VAA                      23025.5  3972.2   248.4         -  20
-M-medium   Extended-SA-RL5-1000     22843.1  3991.9   245.4         - 100
-M-medium   v2-GILS-uniform-1000     22514.6  3940.2   240.5         - 100
-M-medium   v2-GILS-1000             22517.8  3947.5   240.6         - 100
-M-medium   v2-GILS-dqn-1000         22542.4  3938.8   241.0         - 100
+M-medium   Extended-SA-RL5-1000     22821.9  3965.3   245.2         - 100
+M-medium   v2-GILS-uniform-1000     22513.0  3940.8   240.5         - 100
+M-medium   v2-GILS-1000             22520.8  3947.2   240.6         - 100
+M-medium   v2-GILS-dqn-1000         22529.6  3945.7   240.7         - 100
 
 M-tight    VAA                      38903.7 10997.8   171.6         -  20
-M-tight    Extended-SA-RL5-1000     38786.7 11032.1   170.6         - 100
-M-tight    v2-GILS-uniform-1000     38496.5 11005.9   168.5         - 100
-M-tight    v2-GILS-1000             38512.9 11007.2   168.6         - 100
-M-tight    v2-GILS-dqn-1000         38542.6 11016.9   168.8         - 100
+M-tight    Extended-SA-RL5-1000     38811.1 11019.6   170.8         - 100
+M-tight    v2-GILS-uniform-1000     38501.1 11011.8   168.5         - 100
+M-tight    v2-GILS-1000             38507.9 10994.9   168.6         - 100
+M-tight    v2-GILS-dqn-1000         38518.6 11003.4   168.7         - 100
 
 M-none     VAA                       3030.9   880.7    38.0     +4.80  20
-M-none     Paper-SA-RL5-1000         2976.4   860.0    35.5     +0.99 100
-M-none     v2-GILS-uniform-1000      2928.8   839.8    33.4     +0.06 100
-M-none     v2-GILS-1000              2929.8   840.2    33.5     +0.10 100
-M-none     v2-GILS-dqn-1000          2930.2   839.7    33.5     +0.14 100
+M-none     Paper-SA-RL5-1000         2979.2   856.6    35.7     +1.55 100
+M-none     v2-GILS-uniform-1000      2929.5   839.9    33.5     +0.10 100
+M-none     v2-GILS-1000              2929.4   839.8    33.5     +0.08 100
+M-none     v2-GILS-dqn-1000          2931.8   840.7    33.6     +0.12 100
 
 S-medium   VAA                       5447.5  1431.7    51.2     +3.90  20
-S-medium   Extended-SA-RL5-1000      5289.1  1421.7    46.9     +0.71 100
-S-medium   v2-GILS-uniform-1000      5258.8  1405.6    46.1     +0.15 100
-S-medium   v2-GILS-1000              5262.0  1402.6    46.3     +0.24 100
-S-medium   v2-GILS-dqn-1000          5275.2  1405.4    46.7     +0.50 100
+S-medium   Extended-SA-RL5-1000      5302.0  1424.6    47.3     +0.97 100
+S-medium   v2-GILS-uniform-1000      5259.4  1405.0    46.2     +0.17 100
+S-medium   v2-GILS-1000              5264.0  1403.0    46.3     +0.27 100
+S-medium   v2-GILS-dqn-1000          5270.1  1409.1    46.5     +0.38 100
 
 S-tight    VAA                       9276.8  2327.2    22.2     +2.91  20
-S-tight    Extended-SA-RL5-1000      9057.4  2213.1    19.5     +0.60 100
-S-tight    v2-GILS-uniform-1000      9012.8  2194.4    19.0     +0.13 100
-S-tight    v2-GILS-1000              9016.9  2195.3    19.0     +0.17 100
-S-tight    v2-GILS-dqn-1000          9024.3  2197.9    19.1     +0.26 100
+S-tight    Extended-SA-RL5-1000      9056.3  2203.8    19.6     +0.61 100
+S-tight    v2-GILS-uniform-1000      9011.9  2195.4    19.0     +0.11 100
+S-tight    v2-GILS-1000              9016.8  2195.6    19.0     +0.17 100
+S-tight    v2-GILS-dqn-1000          9019.6  2193.9    19.1     +0.21 100
 
 S-none     VAA                       1497.5   390.1     6.6     +6.61  20
-S-none     Paper-SA-RL5-1000         1423.3   381.7     1.0     +1.04 100
-S-none     v2-GILS-uniform-1000      1412.5   379.9     0.2     +0.25 100
-S-none     v2-GILS-1000              1413.7   380.6     0.3     +0.32 100
-S-none     v2-GILS-dqn-1000          1413.4   380.1     0.3     +0.30 100
+S-none     Paper-SA-RL5-1000         1423.8   381.8     1.1     +1.07 100
+S-none     v2-GILS-uniform-1000      1412.4   380.1     0.2     +0.23 100
+S-none     v2-GILS-1000              1413.4   380.5     0.3     +0.30 100
+S-none     v2-GILS-dqn-1000          1415.5   380.0     0.5     +0.48 100
 

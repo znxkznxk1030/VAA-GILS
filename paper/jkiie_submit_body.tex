@@ -37,7 +37,7 @@
 
 
 \begin{abstract}
-\noindent We study truck scheduling in a multi-door cross-dock where a compound truck is partially unloaded, then departs as the carrier for its retained destination. Prior studies imposed temporal constraints on trucks with fixed roles or on fully unloading compound trucks, whereas partial-unloading models minimize makespan with all trucks available at time zero. We develop MIP and CP-SAT formulations that minimize makespan and total tardiness under release times, soft due dates, carrier conversion, and freight-transfer precedence, so that late arrivals propagate tardiness through carriers waiting for freight. To our knowledge, no previous model combines these temporal constraints with retained-destination partial unloading and carrier conversion. VAA-GILS combines Vogel-style construction with bottleneck-guided local improvement. On the 62 instances with CP-SAT references, its gap is 0.06--0.25\% in under 0.5 s, and it averages 0.25\% above the 20 proven optima. Where CP-SAT finds no feasible schedule within 600 s, it outperforms all compared methods.
+\noindent We study truck scheduling in a multi-door cross-dock where a compound truck is partially unloaded, then departs as the carrier for its retained destination. Prior studies imposed temporal constraints on trucks with fixed roles or on fully unloading compound trucks, whereas partial-unloading models minimize makespan with all trucks available at time zero. We develop MIP and CP-SAT formulations that minimize makespan and total tardiness under release times, soft due dates, carrier conversion, and freight-transfer precedence, so that late arrivals propagate tardiness through carriers waiting for freight. To our knowledge, no previous model combines these temporal constraints with retained-destination partial unloading and carrier conversion. VAA-GILS combines Vogel-style construction with bottleneck-guided local improvement. On the 62 instances with CP-SAT references, its gap is 0.10--0.23\% in under 0.5 s, and it averages 0.23\% above the 20 proven optima. Where CP-SAT finds no feasible schedule within 600 s, it outperforms all compared methods.
 
 \smallskip
 \noindent\textbf{Keywords:} Cross-Docking, Compound Truck, Release Time, Soft Due Date, Iterated Local Search, Constraint Programming
@@ -94,11 +94,11 @@ big-$M$ MILP 및 reified CP-SAT로 정식화한다. 이 결합에서는 한 트�
 섭동 재시작(kick restart)을 결합한 VAA-GILS를 제안하며, 이 해법은 같은 반복 횟수뿐 아니라 같은 실행 시간에서도 원 모델
 계열의 해법보다 좋은 해를 찾는다. 셋째, 검증 방식의 차별성이다. 소형 무제약 조건의 20개 인스턴스 전부에서 CP-SAT로
 최적성을 증명하여 휴리스틱의 최적해 대비 격차를 제시하고, 최적해와 기준해, 관측 최선해를 구분하여 보고한다. 또한 학습 기반
-연산자 선택을 동일한 엔진과 동일한 반복 횟수의 균등 선택과 비교하는 통제된 ablation으로, 학습형 선택이 해를 개선한다는
-보고와 달리 강한 지역탐색을 갖춘 본 해법에서는 그 이득이 나타나지 않음을 보조적으로 확인한다.
+연산자 선택을 같은 엔진, 같은 반복 횟수의 균등 선택과 비교하는 통제된 ablation으로, 강한 지역탐색이 적용된 본 해법에서는 학습 기반 선택 정책의
+추가적인 이득이 제한적임을 보조적으로 확인한다.
 
 \textbf{관련 연구.} 크로스도킹 도크 스케줄링은 Boysen과 Fliedner(2010)의 분류와 Van Belle 등(2012)의
-조망에 정리되어 있다. 기존 입고트럭과 출고트럭을 다루는 결정론적 모형들은 time window와 납기지연(Van Belle 등, 2013),
+연구 동향 정리에 요약되어 있다. 기존 입고트럭과 출고트럭을 다루는 결정론적 모형들은 time window와 납기지연(Van Belle 등, 2013),
 ready time과 조기완료 및 납기지연(Assadi and Bagheri, 2016), mixed-service door(Bodnar 등, 2017),
 경성 납기(hard due date)(Molavi 등, 2018), 트럭 스케줄링과 도어 배정의 통합(Rijal 등, 2019),
 트럭 도착 시각과 지연 출발 비용(Theophilus 등, 2021)처럼 시간 제약을 이미 반영한다. 다만 이들은 모두
@@ -115,12 +115,11 @@ ready time과 조기완료 및 납기지연(Assadi and Bagheri, 2016), mixed-ser
 
 가장 가까운 연구는 Li 등(2026)으로, 무인 배송센터(distribution center)의 mixed service mode dock에서
 통합 트럭 배정과 스케줄링을 Q-learning 기반 ALNS(adaptive large neighborhood search; Ropke and
-Pisinger, 2006)로 풀고 시간창 $(r_i,d_i)$와 납기지연과 총 작업완료시간을 함께 다룬다. 그러나 그 유연성은
+Pisinger, 2006)로 풀고 시간창과 납기지연, 총 작업완료시간을 함께 다룬다. 그러나 그 유연성은
 도어 수준에 있어 도어가 적재 전용, 하역 전용, 혼합 모드 중 하나를 고르고 트럭은 순수 입고트럭이나 출고트럭으로
 고정되며 화물은 저장 구역을 경유해 운반되는 반면, 본 문제의 유연성은 트럭 수준에 있어 부분 하역된 병행
 트럭이 특정 목적지의 운송 트럭으로 전환되고 화물은 도어 간에 직접 이송된다. 한편 학습 기반 탐색 제어가
-메타휴리스틱을 개선한다는 보고가 많으나(Karimi-Mamaghan 등, 2023; Li 등, 2024), 본 연구는 강한
-지역탐색을 갖춘 뒤에는 학습 기반 선택 정책의 이득이 작다는 통제된 반례를 더한다. 대표 연구와 본 연구의 문제와 해법 차이는 <Table~\ref{tab:pos}>에 요약하였다.
+메타휴리스틱을 개선한다는 보고가 많으나(Karimi-Mamaghan 등, 2023; Li 등, 2024), 본 연구는 강한 지역탐색이 적용된 조건에서는 학습 기반 선택 정책의 추가적인 이득이 제한적임을 통제된 비교를 통해 확인한다. 대표 연구와 본 연구의 문제 및 해법 차이는 <Table~\ref{tab:pos}>에 요약하였다.
 
 \begin{table}[tbp]\centering
 \caption{Table 1. Positioning of this study against representative cross-docking truck scheduling studies. Temporal constraints are truck arrival, release, due-date, or departure-time restrictions; ``---'' in the partial-unloading column denotes models without compound trucks.}
@@ -210,7 +209,7 @@ $T_q$ & 트럭 $q$의 납기지연(tardiness), $T_q\ge\max\{0,\,C_q-\bar d_q\}$ 
 출고트럭 $f$의 도착 시각 $r_f$는 적재를 위한 도어 작업을 시작할 수 있는 가장 이른 시각이다.
 연성 납기 $\bar d_q$와 납기지연 $T_q$는 2.4절의 목적식에서 사용한다.
 
-시간 계산은 스케줄 평가기 규칙을 따른다. 병행 트럭 $i$(목적지 $d$ 유지)의 하역은
+각 트럭의 작업 시각은 다음과 같이 계산한다(<Figure~\ref{fig:timeline}>). 병행 트럭 $i$(목적지 $d$ 유지)의 하역은
 $r_i+DE_i+\sum_{d'\ne d}h_{id'}$에 끝난다. 운송 트럭은 화물을 보내는 모든 트럭의 하역과
 도어 간 이송이 끝나야 적재할 수 있다. 출고 운송 트럭 $f$는 추가로 자신의 도착 시각과 도어의 선행 점유가 끝나는 시점에 도어 작업을 시작하여
 $S_f=\max(\text{door available},\ \text{destination ready},\ r_f)$이며, 이후
@@ -228,17 +227,17 @@ $S_f+DE_f+L_d+DL_f$이다. 즉 $S_f$는 적재 시작이 아니라 도어 작업
 \[\textstyle\sum_{d,m}x_{idm}=1\ \ \forall i \quad (1),\qquad \sum_{d,m}z_{fdm}=1\ \ \forall f \quad (2)\]
 \[\textstyle\sum_{i,m}x_{idm}+\sum_{f,m}z_{fdm}=1\ \ \forall d \quad (3),\qquad \sum_{i,d}x_{idm}\le1\ \ \forall m \quad (4)\]
 
-병행 트럭의 시간 관계와 유입 이송 선행 제약은 다음과 같다.
+병행 트럭의 작업 시각 관계와 화물 이송에 따른 선행 제약은 다음과 같다.
 \[U_i=r_i+DE_i+H_i-\textstyle\sum_{d,m}h_{id}x_{idm}\quad\forall i \qquad (5)\]
 \[C_i\ge U_i+L_{id}+DL_i-B(1-x_{idm})\quad\forall i,d,m \qquad (6)\]
 \[C_i\ge U_j+t_{nm}+L_{id}+DL_i-B(2-x_{idm}-X_{jn}) \qquad (7)\]
-식~(7)은 모든 $i,d,m,n$과 $\sum_k f_{jdk}>0$인 기여 트럭 $j\ne i$에 대해 성립한다.
+식~(7)은 모든 $i,d,m,n$과, 해당 목적지 화물을 싣고 온($\sum_k f_{jdk}>0$) 다른 병행 트럭 $j\ne i$에 대해 성립한다.
 
 출고 운송 트럭에 대해서는 다음이 성립한다.
 \[S_f\ge r_f\quad\forall f \qquad (8)\]
 \[C_f\ge S_f+DE_f+L_d+DL_f-B(1-Z_{fd})\quad\forall f,d \qquad (9)\]
 \[S_f\ge U_i+t_{nm}-B(2-z_{fdm}-X_{in}) \qquad (10)\]
-식~(10)은 모든 $f,d,m,n$과 $\sum_k f_{idk}>0$인 기여 병행 트럭 $i$에 대해 성립한다.
+식~(10)은 모든 $f,d,m,n$과, 해당 목적지 화물을 싣고 온($\sum_k f_{idk}>0$) 병행 트럭 $i$에 대해 성립한다.
 \[S_f\ge C_i-B(2-Z_{fm}-X_{im})\quad\forall f,i,m \qquad (11)\]
 
 같은 도어 $m$을 쓰는 출고트럭 쌍 $f<g$에 대한 순서 결정과 non-overlap 제약은
@@ -248,17 +247,16 @@ $S_f+DE_f+L_d+DL_f$이다. 즉 $S_f$는 적재 시작이 아니라 도어 작업
 끝으로 총 작업완료시간은 다음으로 정의된다.
 \[C_{\max}\ge C_i\quad\forall i,\qquad C_{\max}\ge C_f\quad\forall f \qquad (15)\]
 
-CP-SAT 모형은
-big-$M$ disjunction을 enforcement literal로 대체하고 모든 시간값을 가장 가까운
-0.01 단위로 반올림한 뒤 100배하여 정수로 변환하며, 모든 배정을 고정하면 독립
-평가기의 완료 시각이 재현되어 model fidelity가 확인된다.
+CP-SAT 모형에서는 big-$M$ 제약 대신 enforcement literal을 사용하고, CP-SAT가 정수만 다루므로
+모든 시간값을 0.01 단위로 반올림한 뒤 100배하여 정수로 바꾼다. 또한 두 모형에서 모든 배정을 고정하면
+각 트럭의 완료 시각이 2.2절의 계산 규칙을 독립적으로 구현한 스케줄 평가기의 결과와 일치하여,
+모형이 문제 정의를 정확히 반영함을 확인하였다.
 
 \subsection{2.4 시간 제약 확장과 목적식}
 각 트럭 $q\in I\cup F$의 납기지연은 $T_q\ge\max\{0,C_q-\bar d_q\}$이다. 목적식은
 \[\min\ J=C_{\max}+\lambda\sum_{q\in I\cup F}T_q,\qquad \lambda=1 \qquad (16)\]
 $\lambda$는 납기지연 한 단위 시간에 부과하는 벌점 계수(penalty coefficient)로, 총 작업완료시간과 납기 준수 사이의
-관리적 선호를 반영하는 파라미터이다(5.4절). $r_q=0$, $\bar d_q=\infty$이면 기존 총 작업완료시간 모델로 환원된다. CP-SAT는 현재 최선해(incumbent)와
-증명된 하한을 함께 반환하며, 하한과 일치가 증명될 때에만 최적으로 부른다.
+관리적 선호를 반영하는 파라미터이다(5.4절). $r_q=0$, $\bar d_q=\infty$이면 기존 총 작업완료시간 모델로 환원된다. CP-SAT는 제한시간 안에 찾은 현재 최선해(incumbent)의 목적값과 증명된 하한을 함께 반환하며, 본 논문에서는 두 값이 일치하여 최적성이 증명된 경우에만 최적해라고 부른다.
 
 \section{3. 휴리스틱 알고리즘}
 
@@ -277,11 +275,10 @@ Sajadieh(2020)가 제안한 SA-RL5를 가리키며, VAA 구성 휴리스틱과
 
 \textbf{반복 탐색(iterated search).} 1{,}000회 반복한다. 선택 정책이 연산자 하나를 뽑아
 현재 해에서 후보를 생성하고, 후보가 전역 최선해를 개선하면 하강 탐색을 적용해
-현재 최선해를 갱신한다. 수락 규칙(acceptance rule)은 후보가 현재 해를 엄격히 개선할 때만 받아들이는 탐욕적(greedy) 규칙이다. 이 규칙은 조정 집합에서 모의 담금질(simulated annealing; Kirkpatrick 등, 1983) 수락 규칙, 즉 초기 온도
-$T_0=\max\{1,0.05\,J(s_0)\}$, 기하 냉각(geometric cooling) $T\leftarrow0.995\,T$, 재시작 시 재가열(reheating)을 쓰는 규칙과 비교해
-정하였다. 조정 집합 45개 인스턴스 중 33개에서 SA 수락 규칙의 목적값이 탐욕적 규칙보다 높아, 인스턴스별 순위 기준으로는 탐욕적 규칙이 유의하게 좋았다(차이의 중앙값 $+0.017$\%p, 양측 Wilcoxon $p=0.023$). 평균 차이($-0.011$\%p)가 음수인
-것은 한 인스턴스의 큰 차이 때문이며 SA의 우위를 뜻하지 않는다. 시간 제약이 없는 조건($+0.084$\%p, $p=0.083$)과
-있는 조건($-0.058$\%p, $p>0.05$)으로 나누면 어느 쪽에서도 두 규칙의 차이는 유의하지 않았다.
+현재 최선해를 갱신한다. 수락 규칙(acceptance rule)은 후보가 현재 해를 엄격히 개선할 때만 받아들이는 탐욕적(greedy) 규칙이다. 조정 집합에서 이 규칙을 모의 담금질(simulated annealing; Kirkpatrick 등, 1983) 수락 규칙과 비교하였다.
+SA 규칙은 초기 온도 $T_0=\max\{1,0.05\,J(s_0)\}$, 기하 냉각 $T\leftarrow0.995\,T$, 재시작 시 재가열(reheating)을 사용한다.
+45개 인스턴스 중 36개에서 탐욕적 규칙이 더 좋은 해를 찾아(양측 Wilcoxon $p=0.0007$) 이를 채택하였고, 시험 집합에서도
+SA 수락 규칙을 추가하면 해가 유의하게 나빠졌다(<Table~\ref{tab:b2}>).
 
 \textbf{섭동 재시작(kick restart).} 30회 연속 개선이 없으면 \textbf{섭동 재시작}을
 수행한다. 현재 최선해 $s^*$의 복사본에서 다시 시작하되, 아래 기본 이웃 7종에서
@@ -333,7 +330,7 @@ Objective & Makespan & Makespan + $\lambda\times$ total tardiness \\
 
 \subsection{4.1 인스턴스 생성}
 병행 트럭 $|I|$, 출고트럭 $|F|$, 목적지 $|D|=|I|+|F|$, 도어 $|M|=|I|$로 두고 세 규모를
-사용한다: S $(|I|,|F|)=(6,3)$, M $(12,6)$, L $(20,10)$. 따라서 $(|I|,|D|,|M|)$는 각각
+사용한다: S $(|I|,|F|)=(6,3)$, M $(12,6)$, L $(20,10)$. 따라서 $(|I|,|D|,|M|)$은 각각
 $(6,9,6)$, $(12,18,12)$, $(20,30,20)$이고 병행 트럭 비율 $|I|/|D|$는 모두 $2/3$이다. S는
 CP-SAT가 일부 조건에서 제한시간 안에 최적성을 증명할 수 있는 소규모 문제이며, L은 제한시간 안에
 실행 가능해 확보도 어려운 대규모 문제여서 두 극단을 함께 본다. 병행 트럭 비율을 높게 잡은 것은, 이 비율이 낮으면 문제가
@@ -373,7 +370,7 @@ Time-constraint level & $(\rho,\delta)$ & medium $(0.25,0.60)$; tight $(0.50,0.3
 시간 제약은 none, medium, tight 세 수준이다. none은 $r_q=0$, $\bar d_q=\infty$로 두어
 모든 트럭이 시각 0에 가용하고 납기가 없는 원 모델과 같으며, 본 연구의 확장을 껐을 때의
 대조군 역할을 한다. medium과 tight에서는 $r_q\sim U[0,\rho H]$, $\bar d_q=r_q+\delta H$,
-$(\rho,\delta)=(0.25,0.60),(0.50,0.35)$이다. 여기서 $H=2\sum_{i\in I}H_i/|M|$는 시간
+$(\rho,\delta)=(0.25,0.60),(0.50,0.35)$이다. 여기서 $H=2\sum_{i\in I}H_i/|M|$은 시간
 제약이 없을 때의 총 작업완료시간 추정치로, 화물 한 단위가 하역과 적재로 두 번 처리되므로
 계수 2를 둔다. 시간 제약을 $H$의 비율로 주면 규모가 달라져도 압박 수준이 유지된다.
 $\rho$는 도착이 퍼지는 폭, $\delta$는 도착 후 납기까지의 여유를 뜻하므로, tight는 두
@@ -426,18 +423,18 @@ thread로 S에 300초(조건당 20개), M과 L에 600초(조건당 2개)를 부�
 \subsection{5.1 해 품질}
 <Table~\ref{tab:main}>에 20개 인스턴스에 대한 시험 결과를 요약한다. CP-SAT가 기준해를 제공한
 실험 조건에서 GILS는 이에 근접하며, 기본 선택 정책인 균등 선택 기준으로 그 격차는
-평균 0.06--0.25\%이다(학습 선택 정책을 포함한 전체 변형은 0.06--0.50\%, 5.3절). 최적성이 증명된 S-none 20개 인스턴스에서 균등 선택 GILS는 최적해보다 평균 0.25\% 높다. 같은 선택 정책 기준으로 VAA 대비
-격차는 평균 2.66\%($n=180$, $p<0.0001$), SA-RL5 대비 격차는 1.38\%($n=60$, $p<0.0001$)이다.
-medium과 tight 조건에서 Extended SA-RL5 대비 격차는 평균 0.89\%($n=120$, $p<0.0001$)이다. 실행 시간은 S/M/L에서 각각 0.09, 0.55, 3.17초이다.
-CP-SAT가 기준해를 반환한 조건에서 CP-SAT의 평균 계산 시간은 S-none 40초, S-medium 245초, S-tight 250초, M-none 606초로 같은 조건의 GILS(각각 0.09, 0.09, 0.09, 0.48초)보다
+평균 0.10--0.23\%이다(학습 선택 정책을 포함한 전체 변형은 0.08--0.48\%, 5.3절). 최적성이 증명된 S-none 20개 인스턴스에서 균등 선택 GILS는 최적해보다 평균 0.23\% 높다. 같은 선택 정책 기준으로 VAA 대비
+격차는 평균 2.66\%($n=180$, $p<0.0001$), SA-RL5 대비 격차는 1.44\%($n=60$, $p<0.0001$)이다.
+medium과 tight 조건에서 Extended SA-RL5 대비 격차는 평균 0.93\%($n=120$, $p<0.0001$)이다. 실행 시간은 S/M/L에서 각각 0.09, 0.49, 2.43초이다.
+CP-SAT가 기준해를 반환한 조건에서 CP-SAT의 평균 계산 시간은 S-none 40초, S-medium 245초, S-tight 250초, M-none 606초로 같은 조건의 GILS(각각 0.09, 0.09, 0.09, 0.47초)보다
 100배 이상 길며, M의 시간 제약 조건과 L의 모든 조건에서는 CP-SAT가 제한시간 안에 실행 가능해를 반환하지 못했다.
 
 GILS는 개선 이동 뒤 하강 탐색을 추가로 수행하므로 같은 반복 횟수가 같은 계산량을 뜻하지는 않는다. 이를 통제하기
 위해, 각 시험 실행(조건, 인스턴스, 반복)에서 GILS가 실제로 사용한 실행 시간을 같은 실행의 SA-RL5(시간 제약 조건은
 Extended SA-RL5)에 그대로 부여하고 시간이 다할 때까지 반복하게 한 동일 wall-clock 비교를 추가로
-수행하였다(<Table~\ref{tab:fair}>). L에서는 SA-RL5가 평균 2{,}020회로 반복 1{,}000회 비교보다 약 2배의 탐색을
-수행하지만(S에서는 GILS가 더 빨라 586회), GILS는 모든 규모에서 동일 시간의 SA-RL5보다 좋은 해를 찾았고
-(전체 평균 1.08\%, $p<0.0001$) SA-RL5가 앞선 인스턴스는 180개 중 하나도 없었다. 따라서 GILS의 성능 향상은
+수행하였다(<Table~\ref{tab:fair}>). L에서는 SA-RL5가 평균 1{,}491회로 반복 1{,}000회 비교보다 약 1.5배의 탐색을
+수행하지만(S에서는 GILS가 더 빨라 558회), GILS는 모든 규모에서 동일 시간의 SA-RL5보다 좋은 해를 찾았고
+(전체 평균 1.30\%, $p<0.0001$) SA-RL5가 앞선 인스턴스는 180개 중 하나도 없었다. 따라서 GILS의 성능 향상은
 추가 계산량이 아니라 탐색 구조에서 비롯된다.
 
 \begin{table}[H]\centering
@@ -448,35 +445,36 @@ Extended SA-RL5)에 그대로 부여하고 시간이 다할 때까지 반복하�
 Condition & Method & Mean obj. ± s.d. & Δbo(\%) & vs CP-SAT(\%) & Time(s)\\
 \midrule
 S-none & VAA & 1497.5 ± 400.3 & 6.61 & +6.61 & 0.00\\
- & Paper-SA-RL5 & 1423.3 ± 383.6 & 1.04 & +1.04 & 0.15\\
- & GILS-uniform & 1412.5 ± 381.8 & 0.25 & +0.25 & 0.09\\
+ & Paper-SA-RL5 & 1423.8 ± 383.8 & 1.07 & +1.07 & 0.16\\
+ & GILS-uniform & 1412.4 ± 382.0 & 0.23 & +0.23 & 0.09\\
 S-medium & VAA & 5447.5 ± 1468.9 & 3.90 & +3.90 & 0.00\\
- & Extended-SA-RL5 & 5289.1 ± 1428.9 & 0.71 & +0.71 & 0.17\\
- & GILS-uniform & 5258.8 ± 1412.7 & 0.15 & +0.15 & 0.09\\
+ & Extended-SA-RL5 & 5302.0 ± 1431.8 & 0.97 & +0.97 & 0.17\\
+ & GILS-uniform & 5259.4 ± 1412.1 & 0.17 & +0.17 & 0.09\\
 S-tight & VAA & 9276.8 ± 2387.6 & 2.91 & +2.91 & 0.00\\
- & Extended-SA-RL5 & 9057.4 ± 2224.3 & 0.60 & +0.60 & 0.17\\
- & GILS-uniform & 9012.8 ± 2205.5 & 0.13 & +0.13 & 0.09\\
-M-none & VAA & 3030.9 ± 903.6 & 3.73 & +4.80 & 0.00\\
- & Paper-SA-RL5 & 2976.4 ± 864.4 & 1.86 & +0.99 & 0.55\\
- & GILS-uniform & 2928.8 ± 844.0 & 0.27 & +0.06 & 0.48\\
-M-medium & VAA & 23025.5 ± 4075.4 & 2.57 & --- & 0.00\\
- & Extended-SA-RL5 & 22843.1 ± 4012.0 & 1.72 & --- & 0.57\\
- & GILS-uniform & 22514.6 ± 3960.1 & 0.25 & --- & 0.52\\
-M-tight & VAA & 38903.7 ± 11283.5 & 1.24 & --- & 0.01\\
- & Extended-SA-RL5 & 38786.7 ± 11087.7 & 0.90 & --- & 0.66\\
- & GILS-uniform & 38496.5 ± 11061.4 & 0.11 & --- & 0.65\\
-L-none & VAA & 5492.3 ± 1482.2 & 2.18 & --- & 0.02\\
- & Paper-SA-RL5 & 5479.7 ± 1449.5 & 1.95 & --- & 1.92\\
- & GILS-uniform & 5384.0 ± 1423.9 & 0.17 & --- & 3.38\\
-L-medium & VAA & 55611.1 ± 18087.3 & 1.55 & --- & 0.02\\
- & Extended-SA-RL5 & 55539.7 ± 17673.9 & 1.44 & --- & 1.95\\
- & GILS-uniform & 54826.5 ± 17528.3 & 0.09 & --- & 3.21\\
+ & Extended-SA-RL5 & 9056.3 ± 2214.9 & 0.61 & +0.61 & 0.16\\
+ & GILS-uniform & 9011.9 ± 2206.5 & 0.11 & +0.11 & 0.09\\
+M-none & VAA & 3030.9 ± 903.6 & 3.72 & +4.80 & 0.00\\
+ & Paper-SA-RL5 & 2979.2 ± 860.9 & 1.98 & +1.55 & 0.60\\
+ & GILS-uniform & 2929.5 ± 844.2 & 0.28 & +0.10 & 0.47\\
+M-medium & VAA & 23025.5 ± 4075.4 & 2.58 & --- & 0.00\\
+ & Extended-SA-RL5 & 22821.9 ± 3985.3 & 1.65 & --- & 0.54\\
+ & GILS-uniform & 22513.0 ± 3960.7 & 0.25 & --- & 0.50\\
+M-tight & VAA & 38903.7 ± 11283.5 & 1.26 & --- & 0.01\\
+ & Extended-SA-RL5 & 38811.1 ± 11075.1 & 0.99 & --- & 0.52\\
+ & GILS-uniform & 38501.1 ± 11067.3 & 0.13 & --- & 0.52\\
+L-none & VAA & 5492.3 ± 1482.2 & 2.17 & --- & 0.02\\
+ & Paper-SA-RL5 & 5480.3 ± 1450.5 & 1.94 & --- & 1.95\\
+ & GILS-uniform & 5383.9 ± 1423.8 & 0.15 & --- & 2.37\\
+L-medium & VAA & 55611.1 ± 18087.3 & 1.57 & --- & 0.02\\
+ & Extended-SA-RL5 & 55544.0 ± 17684.8 & 1.46 & --- & 1.49\\
+ & GILS-uniform & 54825.9 ± 17531.9 & 0.11 & --- & 2.47\\
 L-tight & VAA & 119671.9 ± 32475.3 & 0.78 & --- & 0.02\\
- & Extended-SA-RL5 & 119637.8 ± 31833.7 & 0.74 & --- & 1.88\\
- & GILS-uniform & 118865.0 ± 31786.4 & 0.05 & --- & 2.91\\
+ & Extended-SA-RL5 & 119634.3 ± 31842.5 & 0.74 & --- & 1.57\\
+ & GILS-uniform & 118863.6 ± 31785.2 & 0.06 & --- & 2.45\\
 \bottomrule
 \end{tabular}
 \end{table}
+\vspace{\baselineskip}
 
 \begin{table}[H]\centering
 \caption{Table 5. Budget-fairness check (20 instances $\times$ 5 replications per condition). SA-RL5 denotes Paper-SA-RL5 on none and Extended SA-RL5 on medium/tight. Gain is the mean relative objective difference in favor of GILS-uniform; SA-RL5 wins counts instances where the time-matched SA-RL5 has the better replication mean. Two-sided Wilcoxon on per-instance replication means, $p<0.0001$ in every row.}
@@ -485,11 +483,11 @@ L-tight & VAA & 119671.9 ± 32475.3 & 0.78 & --- & 0.02\\
 \toprule
 Size & n & \shortstack{GILS\\time (s)} & \shortstack{SA-RL5 iterations\\(same time)} & \shortstack{Gain vs\\1,000 it. (\%)} & \shortstack{Gain vs\\same time (\%)} & \shortstack{SA-RL5\\wins}\\
 \midrule
-S & 60 & 0.09 & 586 & +0.61 & +1.23 & 0\\
-M & 60 & 0.55 & 1,102 & +1.28 & +1.24 & 0\\
-L & 60 & 3.17 & 2,020 & +1.27 & +0.76 & 0\\
+S & 60 & 0.09 & 558 & +0.71 & +1.45 & 0\\
+M & 60 & 0.49 & 935 & +1.32 & +1.45 & 0\\
+L & 60 & 2.43 & 1,491 & +1.27 & +1.01 & 0\\
 \midrule
-All & 180 & 1.27 & 1,236 & +1.05 & +1.08 & 0\\
+All & 180 & 1.01 & 994 & +1.10 & +1.30 & 0\\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -500,9 +498,8 @@ All & 180 & 1.27 & 1,236 & +1.05 & +1.08 & 0\\
 \textbf{연산자 집합.} 선택 정책을 균등 선택으로 고정하고 연산자 집합만 기본(7종)/
 핵심(+g1,g2)/전체(+g3,g4)로 바꾸면, 기본에서 핵심으로 갈 때 $\Delta_{bo}$가 9개 실험 조건
 전부에서 낮아지고(<Figure~\ref{fig:op}>) 짝지은 Wilcoxon(<Table~\ref{tab:b1}>)에서도 g1, g2 추가의
-효과가 뚜렷하다($p<0.0001$). 반면 g3, g4를 더한 효과는 $+0.025$\%p로 작고 전체 45쌍에서의 유의성도
-경계 수준이며($p=0.032$), 시간 제약 유무로 나누면 유의하지 않아($p=0.09$, $0.12$) 보조적인 효과로 본다. S-medium, S-tight, L-tight에서는 오히려 전체 집합의
-$\Delta_{bo}$가 0.02\%p 이내에서 근소하게 높다. 따라서 유도 연산자의 이득은 대부분 g1, g2에서 나온다.
+효과가 뚜렷하다($p<0.0001$). 반면 g3, g4를 더한 효과는 $+0.034$\%p로 작고($p=0.013$), 시간 제약 유무로 나누면
+유의하지 않아($p=0.051$, $0.12$) 보조적인 효과로 본다. L-tight에서는 오히려 전체 집합의 $\Delta_{bo}$가 0.01\%p 높다. 따라서 유도 연산자의 이득은 대부분 g1, g2에서 나온다.
 
 \begin{table}[H]\centering
 \caption{Table 6. Operator-pool ablation (5 instances $\times$ 5 replications per condition over 9 conditions, the number of iterations fixed at 1,000; two-sided Wilcoxon on per-instance replication means, hence at most 45 pairs, with zero differences excluded from $n$; positive mean favors the richer operator set).}
@@ -511,9 +508,9 @@ $\Delta_{bo}$가 0.02\%p 이내에서 근소하게 높다. 따라서 유도 연�
 \toprule
 Contrast & n & Gain(\%p) & p\\
 \midrule
-generic → critical (add g1, g2) & 45 & +0.128 & $<$0.0001\\
-critical → full (add g3, g4) & 45 & +0.025 & 0.0320\\
-generic → full (all guided) & 45 & +0.153 & $<$0.0001\\
+generic → critical (add g1, g2) & 45 & +0.150 & $<$0.0001\\
+critical → full (add g3, g4) & 45 & +0.034 & 0.0130\\
+generic → full (all guided) & 45 & +0.184 & $<$0.0001\\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -524,10 +521,9 @@ generic → full (all guided) & 45 & +0.153 & $<$0.0001\\
 \end{figure}
 
 
-\textbf{엔진 구성요소.} 연산자 집합을 전체로, 선택 정책을 균등 선택으로 고정한 최종 엔진에서
-구성요소를 하나씩 제거하거나 SA 수락 규칙과 reheating을 추가하면(<Table~\ref{tab:b2}>) 섭동 재시작 제거에 따른 악화가 가장 크고 시간 제약 유무와 관계없이 유의하다.
-하강 탐색 제거의 악화($+0.041$\%p, $p=0.003$)는 유의하지만 재시작 제거의 약 1/9 수준이다. 무작위 초기해의
-악화($+0.043$\%p, $p=0.048$)는 경계 수준이고 시간 제약 유무로 나누면 유의하지 않으므로, VAA 초기해의 기여는
+\textbf{엔진 구성요소.} <Table~\ref{tab:b2}>은 연산자 집합을 전체로, 선택 정책을 균등 선택으로 고정한 최종 엔진에서 구성요소를 하나씩 제거하거나 SA 수락 규칙과 reheating을 추가했을 때의 결과이다. 섭동 재시작을 제거했을 때 해가 가장 크게 나빠졌으며, 이 악화는 시간 제약 유무와 관계없이 유의하다.
+하강 탐색 제거의 악화($+0.064$\%p, $p=0.002$)는 유의하지만 재시작 제거의 약 1/6 수준이다. 무작위 초기해의
+악화($+0.057$\%p, $p=0.049$)는 경계 수준이고 시간 제약 유무로 나누면 유의하지 않으므로, VAA 초기해의 기여는
 작고 보조적이다. SA 수락 규칙과 reheating을 추가하면 목적값이 오히려
 나빠져, 조정 집합에서 정한 greedy 수락 규칙을 시험 집합에서도 뒷받침한다.
 
@@ -538,10 +534,10 @@ generic → full (all guided) & 45 & +0.153 & $<$0.0001\\
 \toprule
 Change to the final engine & n & Degradation(\%p) & p\\
 \midrule
-remove best-improvement descent & 45 & +0.041 & 0.0032\\
-remove kick restart & 45 & +0.365 & $<$0.0001\\
-random start instead of VAA & 45 & +0.043 & 0.0482\\
-add SA acceptance + reheating & 45 & +0.027 & 0.0014\\
+remove best-improvement descent & 45 & +0.064 & 0.0016\\
+remove kick restart & 45 & +0.375 & $<$0.0001\\
+random start instead of VAA & 45 & +0.057 & 0.0495\\
+add SA acceptance + reheating & 45 & +0.036 & 0.0043\\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -549,11 +545,10 @@ add SA acceptance + reheating & 45 & +0.027 & 0.0014\\
 
 \subsection{5.3 보조 분석: 학습 기반 연산자 선택}
 연산자 집합과 구성요소를 전체로 고정하고 선택 정책만 바꾸면(<Table~\ref{tab:sel}>), 어떤
-학습 정책도 균등 선택보다 좋지 않다. tabular Q-learning은 균등 선택보다 평균 0.038\%p, transfer DQN은
-0.101\%p 나쁘며 둘 다 유의하다. 반복 횟수를 50--3{,}000회로 바꾸어도 모든 반복 횟수에서 균등 선택의 격차가
+학습 정책도 균등 선택보다 좋지 않다. tabular Q-learning은 균등 선택보다 평균 0.040\%p, transfer DQN은
+0.093\%p 나쁘며 둘 다 유의하다. 반복 횟수를 50--3{,}000회로 바꾸어도 모든 반복 횟수에서 균등 선택의 격차가
 가장 작고, 3{,}000회에서만 tabular가 균등 선택에 근접한다(0.13\% 대 0.12\%).
-이러한 결과는 무제약 조건만으로도 성립하므로(균등 선택 대비 tabular $-0.049$\%p, $p=0.0002$; DQN
-$-0.041$\%p, $p=0.002$) 시간 제약 확장 때문에 나타난 결과가 아니다.
+이러한 결과는 무제약 조건만으로도 성립하므로(균등 선택 대비 tabular $-0.040$\%p, DQN $-0.124$\%p, 모두 $p<0.0001$) 시간 제약 확장 때문에 나타난 결과가 아니다.
 
 \begin{table}[H]\centering
 \caption{Table 8. Effect of the selection policy (20 instances $\times$ 5 replications per condition over 9 conditions, 1,000 iterations; two-sided Wilcoxon on per-instance replication means, hence at most 180 pairs, with zero differences excluded from $n$; positive mean favors the first method).}
@@ -562,9 +557,9 @@ $-0.041$\%p, $p=0.002$) 시간 제약 확장 때문에 나타난 결과가 아�
 \toprule
 Comparison & n & Mean diff.(\%p) & p & Verdict\\
 \midrule
-tabular vs uniform & 180 & $-$0.038 & $<$0.0001 & Tabular worse\\
-tabular vs DQN & 180 & +0.063 & $<$0.0001 & DQN worse\\
-uniform vs DQN & 179 & +0.101 & $<$0.0001 & DQN worse\\
+tabular vs uniform & 179 & $-$0.040 & $<$0.0001 & Tabular worse\\
+tabular vs DQN & 179 & +0.053 & $<$0.0001 & DQN worse\\
+uniform vs DQN & 179 & +0.093 & $<$0.0001 & DQN worse\\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -575,13 +570,13 @@ uniform vs DQN & 179 & +0.101 & $<$0.0001 & DQN worse\\
 물리적 총 작업완료시간과 총 납기지연을
 인스턴스별로 min--max 정규화해 평균한다(<Figure~\ref{fig:lam}>). 납기지연 감소의
 대부분은 $\lambda=0$에서 $1$ 사이에서 일어나고 이후에는 그 폭이 줄어든다. 전체 탐색 구간에서 규모별 평균
-총 작업완료시간은 0.6--1.4\% 상승하고 평균 납기지연은 0.9--3.1\% 하락한다. $\lambda=1$을 채택한다:
+총 작업완료시간은 0.6--1.2\% 상승하고 평균 납기지연은 0.9--3.0\% 하락한다. $\lambda=1$을 채택한다:
 완만한 총 작업완료시간 비용으로 납기지연이 거의 최소에 이르며, 총 작업완료시간과 납기지연에
 단위 시간당 동일한 벌점 계수를 부여한다. 다만 $C_{\max}$는 단일 최댓값이고
 $\sum_q T_q$는 여러 트럭의 합이므로 계수가 같다고 두 성분이 목적식에 미치는 실질적 영향까지
 같은 것은 아니다. $\lambda$는 운영자가 총 작업완료시간 대비 납기 준수를 얼마나 중시하는지를 나타내는
 관리적 선호(managerial preference) 파라미터이며, 실제 적용에서는 운영 여건에 맞게 조정할 수 있다.
-이 탐색은 시험이 아닌 조정 인스턴스를 사용한 설계 정당화이다.
+이 분석은 시험 성능 평가가 아니라, 조정 인스턴스를 이용해 해당 설계 선택의 타당성을 검증하기 위한 것이다.
 
 \begin{figure}[H]\centering
 \includegraphics[width=0.72\textwidth]{fig4_lambda_tradeoff.pdf}
@@ -594,25 +589,25 @@ $\sum_q T_q$는 여러 트럭의 합이므로 계수가 같다고 두 성분이 
 않아 연산자를 잘 고르는 것보다 많이 시도하는 편이 유리하고, 모든 신규 최선해 뒤에
 결정론적 하강 탐색이 따라붙어 어떤 연산자로 그 지점에 이르렀는지의 차이를 상당 부분
 흡수한다. 반복 횟수별 격차 곡선도 1{,}000회 이후의 추가 개선이 작음을 보인다(조건당 5개 인스턴스에서
-균등 선택의 격차는 1{,}000회 0.22\%, 3{,}000회 0.12\%이고, 45개 인스턴스 중 33개에서 개선 폭이 0.1\%p 미만이다.
-1{,}000회 값이 <Table~\ref{tab:main}>의 조건 평균 0.16\%보다 큰 것은 기준 인스턴스가 조건당 20개 중 5개로 달라서이다).
+균등 선택의 격차는 1{,}000회 0.21\%, 3{,}000회 0.12\%이고, 45개 인스턴스 중 31개에서 개선 폭이 0.1\%p 미만이다.
+1{,}000회 값이 <Table~\ref{tab:main}>의 조건 평균 0.17\%보다 큰 것은 기준 인스턴스가 조건당 20개 중 5개로 달라서이다).
 정체 탈출은 섭동 재시작이 맡으므로 SA 수락 규칙과 reheating의 역할은
 이와 겹치며, 조정 집합 비교와 시험 집합 ablation에서 이 둘이 해 품질을 높이지 않아 최종
-VAA-GILS에서 제외하였다(4장, <Table~\ref{tab:b2}>). 즉 본 문제에서 성능의 본질은 학습된 선택 정책이나
-확률적 수락 규칙이 아니라 섭동 재시작, 유도 연산자, 결정론적 하강 탐색에 있다.
+VAA-GILS에서 제외하였다(3장, <Table~\ref{tab:b2}>). 즉 본 문제에서 성능 향상은 주로 섭동 재시작, 유도 연산자, 결정론적 하강 탐색에서
+비롯되며, 학습된 선택 정책과 확률적 수락 규칙의 추가적인 기여는 제한적이다.
 
 선택 정책이 예측할 대상이 마땅치 않다는 점도 작용한다. 본 문제의 인스턴스는 정적이고
 모든 도착 시각이 최적화 이전에 알려져 있어, 실행 도중 새로 드러나 정책이 활용할
 정보가 없다. 도착 정보가 시간에 따라 공개되는 동적 도크 운영이나 이동 하나의 평가가
 비싼 시뮬레이션 기반 모형에서는 판단이 달라질 수 있다. 따라서 본 결과의 함의는 학습이
-무용하다는 것이 아니라 비교 조건에 있다. 학습 기반 선택 정책은 동일한 엔진과 동일한
-반복 횟수 아래 균등 선택과 견주어야 하며, 그 통제가 없으면 하강 탐색과 재시작, 강한 연산자 집합의 이득이 정책의 성과로 잘못 귀속될 수 있다.
+무용하다는 것이 아니라 비교 조건에 있다. 학습 기반 선택 정책은 같은 엔진, 같은
+반복 횟수 아래에서 균등 선택과 견주어야 하며, 그 통제가 없으면 하강 탐색과 재시작, 강한 연산자 집합의 이득이 정책의 성과로 잘못 귀속될 수 있다.
 
 \section{7. 결 론}
 본 연구는 부분 하역된 병행 트럭이 출고 운송 트럭으로 전환되고 다른 트럭의 이송 화물을 기다리는 선행 관계가
 트럭별 도착 시각 및 연성 납기와 결합하면서 지연이 공유 목적지를 따라 전파되는 구조를, 저자가 아는 한 처음으로 MILP와 CP-SAT 모형으로 정식화하였다. CP-SAT
-기준해가 있는 실험 조건에서 VAA-GILS의 목적값은 해당 기준해 대비 평균 0.06--0.25\%였고(소형 무제약 조건의 20개 인스턴스는 CP-SAT가 모두 최적성을 증명하였으며 최적해 대비 평균 격차는 0.25\%였다), CP-SAT가 600초 안에 실행 가능해를 찾지 못한 대형 시간 제약
-조건에서도 약 3초 안에 VAA와 Extended SA-RL5보다 좋은 해를 제공하였다.
+기준해가 있는 실험 조건에서 VAA-GILS의 목적값은 해당 기준해 대비 평균 0.10--0.23\%였고(소형 무제약 조건의 20개 인스턴스는 CP-SAT가 모두 최적성을 증명하였으며 최적해 대비 평균 격차는 0.23\%였다), CP-SAT가 600초 안에 실행 가능해를 찾지 못한 대형 시간 제약
+조건에서도 약 2.5초 안에 VAA와 Extended SA-RL5보다 좋은 해를 제공하였다.
 동일 wall-clock 예산에서도 VAA-GILS는 SA-RL5보다 일관되게 우수하여, 성능 향상이 추가 계산량이 아니라
 탐색 구조에서 비롯됨을 확인하였다.
 ablation은 성능이 섭동 재시작, 유도 연산자, 하강 탐색이라는 결정론적

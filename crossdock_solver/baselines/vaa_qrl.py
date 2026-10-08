@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 import random
 import time
-from typing import Iterator
+from typing import Callable, Iterator
 
 from crossdock_solver.alns.acceptance import accept_by_sa
 from crossdock_solver.baselines.paper_sa_rl import (
@@ -79,6 +79,7 @@ def run_vaa_qrl(
     *,
     initial_solution: Solution | None = None,
     selector=None,
+    project: Callable[[Solution], Solution] | None = None,
 ) -> BaselineRun:
     """Run the VAA + Q-learning guided iterated local search model.
 
@@ -90,6 +91,11 @@ def run_vaa_qrl(
        (uniform random, pretrained DQN) plug in via `selector`.
     3. SA acceptance with restart-from-best and reheating on stagnation.
     4. Every new best solution is polished by the same descent.
+
+    `project`, when given, maps every generated solution (initial, operator
+    candidates, kicks, descent moves) onto the feasible set of a constrained
+    variant before it is evaluated. The dynamic re-planner uses it to keep
+    already-committed truck decisions fixed. `None` leaves the engine unchanged.
     """
 
     config = config or VaaQRLConfig()
@@ -101,9 +107,13 @@ def run_vaa_qrl(
     fast = FastEvaluator(instance, tardiness_weight=config.tardiness_weight)
 
     current = initial_solution.copy() if initial_solution is not None else vaa_solution(instance)
+    if project is not None:
+        current = project(current)
     current_result = fast.evaluate(current)
     if config.use_descent:
-        current, current_result = _descent(instance, current, current_result, fast, deadline)
+        current, current_result = _descent(
+            instance, current, current_result, fast, deadline, project
+        )
     best = current.copy()
     best_result = current_result
     temperature = (
@@ -183,12 +193,14 @@ def run_vaa_qrl(
 
         operator = NEIGHBORHOODS.get(action) or guided[action]
         candidate = operator(instance, current, rng)
+        if project is not None:
+            candidate = project(candidate)
         candidate_result = fast.evaluate(candidate)
 
         if candidate_result.objective < best_result.objective - EPSILON:
             if config.use_descent:
                 candidate, candidate_result = _descent(
-                    instance, candidate, candidate_result, fast, deadline
+                    instance, candidate, candidate_result, fast, deadline, project
                 )
             best = candidate.copy()
             best_result = candidate_result
@@ -221,6 +233,8 @@ def run_vaa_qrl(
             for _ in range(config.restart_kick):
                 kick = NEIGHBORHOODS[rng.choice(tuple(NEIGHBORHOODS))]
                 current = kick(instance, current, rng)
+            if project is not None:
+                current = project(current)
             current_result = fast.evaluate(current)
             temperature = max(temperature, config.reheat_ratio * best_result.objective)
             since_best = 0
@@ -231,7 +245,7 @@ def run_vaa_qrl(
         selector.observe(context, action, reward, _context(iteration + 1, next_state))
 
     if config.use_descent:
-        best, _ = _descent(instance, best, best_result, fast, deadline)
+        best, _ = _descent(instance, best, best_result, fast, deadline, project)
 
     return BaselineRun(
         name=f"{config.name}-{config.max_iterations}",
@@ -260,6 +274,7 @@ def _descent(
     result: FastResult,
     fast: FastEvaluator,
     deadline: float | None = None,
+    project: Callable[[Solution], Solution] | None = None,
 ) -> tuple[Solution, FastResult]:
     """Best-improvement descent over relocation and swap moves."""
 
@@ -274,6 +289,8 @@ def _descent(
                 if best_move is not None and best_move_result.objective < current_result.objective:
                     return best_move, best_move_result
                 return current, current_result
+            if project is not None:
+                move = project(move)
             move_result = fast.evaluate(move)
             if move_result.objective < best_move_result.objective - EPSILON:
                 best_move = move

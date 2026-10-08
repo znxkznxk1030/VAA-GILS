@@ -139,11 +139,11 @@ class CrossDockInstance:
             raise ValueError(f"release_time missing trucks: {sorted(missing_release)}")
         if missing_due:
             raise ValueError(f"due_time missing trucks: {sorted(missing_due)}")
+        # due_time < release_time is allowed: in the dynamic variant a truck can
+        # arrive after its contractual due date and is then necessarily tardy.
         for truck in self.all_trucks:
             if self.release_time[truck] < 0:
                 raise ValueError(f"release_time must be non-negative for {truck}")
-            if self.due_time[truck] < self.release_time[truck]:
-                raise ValueError(f"due_time must be at least release_time for {truck}")
 
         if len(self.compound_trucks) + len(self.outbound_trucks) != len(self.destinations):
             raise ValueError(

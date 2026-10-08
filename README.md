@@ -1,319 +1,213 @@
-# VAA-GILS for Compound-Truck Cross-Docking with Time Windows
+# VAA-GILS: 도착 시각과 연성 납기를 고려한 병행 트럭 크로스도킹 스케줄링
 
-> **Note:** 구 저장소명은 `CPG-RL-ALNS`입니다. 연구 방향이 재정립되면서
-> 주 방법은 **VAA-GILS**(결정론적 병목 유도 반복 지역탐색)로 확정되었고,
-> 강화학습(RL) 요소는 성능 기여가 없는 것으로 확인되어 ablation/negative
-> finding으로만 다룹니다. 따라서 저장소명의 `RL-ALNS`는 현재 내용과 맞지
-> 않으며, 코드·문서 기준의 주 방법명은 VAA-GILS입니다.
+> **Compound-Truck Cross-Docking Scheduling with Release Times and Soft Due Dates:
+> A Bottleneck-Guided Iterated Local Search**
+>
+> 대한산업공학회지(JKIIE) 투고 원고: [paper/jkiie_submit_body.tex](paper/jkiie_submit_body.tex)
+> (PDF: [paper/jkiie_submit_body.pdf](paper/jkiie_submit_body.pdf))
 
-컴파운드 트럭과 부분 하역을 갖는 multi-door cross-docking truck scheduling
-문제를 다루는 연구 코드입니다. 기존 모델의 "모든 트럭이 시간 0에 도착"한다는
-가정과 순수 makespan 목적을 완화하고, 트럭별 도착 시각과 소프트 마감을 포함한
-Time Window 확장 문제를 구현합니다.
+> 구 저장소명 `CPG-RL-ALNS`는 초기 연구 방향의 이름입니다. 최종 제안 방법은
+> 결정론적 구조의 **VAA-GILS**이며, 강화학습 기반 연산자 선택은 ablation으로만 다룹니다.
 
-이 저장소의 중심 기여는 **VAA-GILS**입니다. VAA 구성 휴리스틱으로 좋은 초기해를
-만든 뒤, 현재 스케줄의 병목을 직접 찾아 움직이는 guided iterated local search
-엔진입니다. 학습 정책을 핵심으로 두지 않고, 문제 구조와 빠른 평가자, 강한
-지역탐색으로 CP-SAT 기준해에 근접하는 것이 목표입니다.
+부분 하역(partial unloading) 병행 트럭(compound truck)이 있는 multi-door 크로스도킹
+스케줄링 문제에 **트럭별 도착 시각(release time)** 과 **연성 납기(soft due date)** 를
+결합한 모형, 이를 위한 MILP/CP-SAT 정식화, 그리고 제안 휴리스틱 VAA-GILS의 구현과
+실험 코드입니다.
 
-## 핵심 기여
+## 연구 요약
 
-1. **Time Window 문제 확장**
-   - 트럭별 도착 시각을 두어, 해당 시각 이전에는 작업을 시작할 수 없게 합니다.
-   - 트럭별 소프트 마감을 두어, 완료 시각이 늦으면 그만큼 지연 비용을 계산합니다.
-   - 목적은 전체 완료시간과 총 지연의 가중합을 최소화하는 것입니다.
-   - MILP, CP-SAT, 조합적 하한, train/tuning/test seed 분리 벤치마크를 함께 제공합니다.
+병행 트럭은 여러 목적지 화물을 싣고 도착해 한 목적지 화물만 남기고 부분 하역한 뒤,
+그 목적지로 오는 이송 화물을 모두 받고 나서 출고 운송 트럭으로 출발합니다. 이 구조에서
+한 트럭의 늦은 도착은 공유 목적지를 따라 다른 운송 트럭의 납기지연으로 전파됩니다.
+기존 연구는 (i) 역할이 고정된 입고/출고 트럭에 시간 제약을 두거나, (ii) 부분 하역 병행
+트럭을 다루되 모든 트럭이 시각 0에 가용하고 makespan만 최소화했습니다
+(Shahmardan and Sajadieh, 2020). 본 연구는 두 계열을 결합합니다.
 
-2. **VAA-GILS**
-   - VAA 초기해를 출발점으로 사용합니다.
-   - best-improvement descent로 초기해, 새 최고해, 최종해를 폴리시합니다.
-   - critical door, critical truck, most-tardy truck을 찾아 병목 위치만 집중적으로 움직입니다.
-   - simulated annealing 수락과 kick restart로 지역 최적점 탈출을 처리합니다.
-   - FastEvaluator가 makespan과 총 지연을 동일하게 재현하면서 탐색 평가를 빠르게 만듭니다.
+**기여**
 
-3. **학습 기반 연산자 선택의 한계 분석**
-   - 같은 GILS 엔진 위에서 uniform, tabular Q-learning, transfer DQN 선택기를 비교합니다.
-   - 실험에서는 learned selector가 uniform 선택을 안정적으로 이기지 못했습니다.
-   - 결론은 "강한 deterministic local search 엔진에서는 학습 선택기의 기여가 작거나 사라질 수 있다"는 것입니다.
+1. **문제 정식화** — 부분 하역 병행 트럭 + 트럭별 도착 시각 + 연성 납기. 목적식은
+   `J = C_max + λ · Σ T_q` (λ = 1). 독립 스케줄 평가기와 일치하는 big-M MILP와 CP-SAT 모형을 제시합니다.
+2. **해법** — 원 모델(SA-RL5)의 VAA 구성 휴리스틱과 기본 이웃 7종 위에 병목 유도 연산자 4종,
+   최선개선 하강 탐색, 섭동 재시작, greedy 수락을 결합한 **VAA-GILS**. 같은 반복 횟수뿐 아니라
+   같은 실행 시간에서도 SA-RL5 계열보다 좋은 해를 찾습니다.
+3. **검증** — S-none 20개 인스턴스 전부에서 CP-SAT로 최적성을 증명해 최적해 대비 격차를 제시하고,
+   최적해 / 기준해(CP-SAT incumbent) / 관측 최선해를 구분해 보고합니다. 학습 기반 연산자 선택은
+   같은 엔진·같은 반복 횟수의 균등 선택과 통제 비교합니다.
 
-## 결과 요약
+## 주요 결과
 
-정확해 기준이 있는 셀에서만 near-optimal을 주장합니다. S 규모는 CP-SAT 300초,
-M/L 일부는 CP-SAT 600초로 비교했고, CP-SAT가 가능해를 찾지 못한 큰 Time Window
-셀에서는 best-known 기준으로 보고합니다.
+시험 집합, 조건당 20개 인스턴스 × 5회 반복, 반복 1,000회 기준입니다.
 
-| 관찰 | 결과 |
+| 항목 | 결과 |
 |---|---|
-| CP-SAT 기준 셀 | GILS가 CP-SAT incumbent 대비 약 0.1~0.6% 이내 |
-| S-none 셀 | CP-SAT가 모든 인스턴스 최적 증명, GILS는 증명된 최적해에 근접 |
-| M-none 셀 | 최고 GILS 실행이 일부 CP-SAT incumbent를 개선 |
-| 베이스라인 대비 | GILS-tabular가 VAA 대비 평균 2.39%, Paper-SA-RL5 대비 평균 1.16% 우수 |
-| 실행 시간 | GILS 1,000 iteration 평균 S 0.11초, M 0.52초, L 2.3초 |
-| CP-SAT 실행 시간 | 평균 S 76초, M 237초, L 376초 |
-| 선택기 분석 | tabular Q와 uniform은 실질 차이가 작고, transfer DQN은 큰 예산에서 유의하게 나쁨 |
+| CP-SAT 기준해 대비 | GILS-uniform 평균 격차 0.10–0.23% (S 전 조건, M-none) |
+| 증명된 최적해 대비 (S-none, 20개) | 평균 0.23% |
+| VAA 대비 | 평균 2.66% 우수 (n=180, p<0.0001) |
+| Paper-SA-RL5 대비 (none) | 평균 1.44% 우수 (n=60, p<0.0001) |
+| Extended SA-RL5 대비 (medium/tight) | 평균 0.93% 우수 (n=120, p<0.0001) |
+| 동일 실행 시간 비교 | SA-RL5 대비 평균 1.30% 우수, 180개 인스턴스 중 SA-RL5 승리 0 |
+| GILS 실행 시간 | S 0.09초, M 0.49초, L 2.43초 |
+| CP-SAT 실행 시간 | S-none 40초, S-medium 245초, S-tight 250초, M-none 606초. M 시간 제약 조건과 L 전체는 600초 안에 실행 가능해 없음 |
 
-아래는 [paper/apiems2026_draft.md](paper/apiems2026_draft.md)의 Table 1 전체입니다.
-test pool 기준이며, 셀당 5개 인스턴스와 5회 반복으로 계산했습니다. `Δbk`는
-인스턴스별 best-known 해 대비 평균 gap입니다.
+**Table 4. 해 품질** (`Δbo`: 관측 최선해 대비 평균 격차)
 
-| Cell | Method | Mean obj ± std | Δbk (%) | vs CP-SAT (%) |
-|---|---|---|---:|---:|
-| S-none | VAA | 1443.3 ± 165.6 | 6.49 | +6.49 |
-| | Paper-SA-RL5 | 1375.9 ± 185.3 | 1.21 | +1.21 |
-| | GILS-uniform | 1362.5 ± 184.3 | 0.21 | +0.21 |
-| | GILS-tabular | 1364.1 ± 184.7 | 0.33 | +0.33 |
-| | GILS-DQN | 1370.0 ± 186.5 | 0.75 | +0.75 |
-| S-medium | VAA | 6426.2 ± 1869.2 | 3.33 | +3.33 |
-| | GILS-uniform | 6227.0 ± 1802.3 | 0.11 | +0.11 |
-| | GILS-tabular | 6229.5 ± 1798.2 | 0.18 | +0.18 |
-| | GILS-DQN | 6249.7 ± 1796.4 | 0.55 | +0.55 |
-| S-tight | VAA | 9278.4 ± 1189.2 | 2.17 | +2.17 |
-| | GILS-uniform | 9091.9 ± 1084.6 | 0.21 | +0.21 |
-| | GILS-tabular | 9088.9 ± 1086.6 | 0.17 | +0.17 |
-| | GILS-DQN | 9103.1 ± 1079.5 | 0.34 | +0.34 |
-| M-none | VAA | 2567.5 ± 354.4 | 3.97 | +4.80 |
-| | Paper-SA-RL5 | 2509.5 ± 344.4 | 1.64 | +0.99 |
-| | GILS-uniform | 2479.0 ± 340.0 | 0.40 | +0.13 |
-| | GILS-tabular | 2478.5 ± 340.7 | 0.38 | +0.11 |
-| | GILS-DQN | 2478.8 ± 339.5 | 0.40 | +0.19 |
-| M-medium | VAA | 21737.8 ± 3260.9 | 3.29 | — |
-| | GILS-uniform | 21153.7 ± 3296.8 | 0.43 | — |
-| | GILS-tabular | 21156.2 ± 3298.5 | 0.44 | — |
-| | GILS-DQN | 21182.4 ± 3301.2 | 0.56 | — |
-| M-tight | VAA | 26982.5 ± 3985.5 | 1.26 | — |
-| | GILS-uniform | 26701.6 ± 3952.3 | 0.21 | — |
-| | GILS-tabular | 26697.7 ± 3951.5 | 0.19 | — |
-| | GILS-DQN | 26721.0 ± 3956.5 | 0.28 | — |
-| L-none | VAA | 6050.8 ± 1701.2 | 1.67 | — |
-| | Paper-SA-RL5 | 6046.3 ± 1705.0 | 1.57 | — |
-| | GILS-uniform | 5972.2 ± 1687.8 | 0.28 | — |
-| | GILS-tabular | 5967.8 ± 1682.6 | 0.22 | — |
-| | GILS-DQN | 5968.6 ± 1681.0 | 0.24 | — |
-| L-medium | VAA | 54288.8 ± 19106.9 | 0.88 | — |
-| | GILS-uniform | 53955.7 ± 19029.2 | 0.19 | — |
-| | GILS-tabular | 53935.2 ± 19034.1 | 0.14 | — |
-| | GILS-DQN | 53962.1 ± 19028.8 | 0.20 | — |
-| L-tight | VAA | 124638.8 ± 34762.6 | 0.59 | — |
-| | GILS-uniform | 123961.1 ± 34581.4 | 0.05 | — |
-| | GILS-tabular | 123949.1 ± 34589.2 | 0.04 | — |
-| | GILS-DQN | 123963.1 ± 34580.9 | 0.06 | — |
+| 조건 | 방법 | 평균 목적값 ± s.d. | Δbo (%) | vs CP-SAT (%) | 시간 (s) |
+|---|---|---|---:|---:|---:|
+| S-none | VAA | 1497.5 ± 400.3 | 6.61 | +6.61 | 0.00 |
+| | Paper-SA-RL5 | 1423.8 ± 383.8 | 1.07 | +1.07 | 0.16 |
+| | GILS-uniform | 1412.4 ± 382.0 | 0.23 | +0.23 | 0.09 |
+| S-medium | VAA | 5447.5 ± 1468.9 | 3.90 | +3.90 | 0.00 |
+| | Extended-SA-RL5 | 5302.0 ± 1431.8 | 0.97 | +0.97 | 0.17 |
+| | GILS-uniform | 5259.4 ± 1412.1 | 0.17 | +0.17 | 0.09 |
+| S-tight | VAA | 9276.8 ± 2387.6 | 2.91 | +2.91 | 0.00 |
+| | Extended-SA-RL5 | 9056.3 ± 2214.9 | 0.61 | +0.61 | 0.16 |
+| | GILS-uniform | 9011.9 ± 2206.5 | 0.11 | +0.11 | 0.09 |
+| M-none | VAA | 3030.9 ± 903.6 | 3.72 | +4.80 | 0.00 |
+| | Paper-SA-RL5 | 2979.2 ± 860.9 | 1.98 | +1.55 | 0.60 |
+| | GILS-uniform | 2929.5 ± 844.2 | 0.28 | +0.10 | 0.47 |
+| M-medium | VAA | 23025.5 ± 4075.4 | 2.58 | — | 0.00 |
+| | Extended-SA-RL5 | 22821.9 ± 3985.3 | 1.65 | — | 0.54 |
+| | GILS-uniform | 22513.0 ± 3960.7 | 0.25 | — | 0.50 |
+| M-tight | VAA | 38903.7 ± 11283.5 | 1.26 | — | 0.01 |
+| | Extended-SA-RL5 | 38811.1 ± 11075.1 | 0.99 | — | 0.52 |
+| | GILS-uniform | 38501.1 ± 11067.3 | 0.13 | — | 0.52 |
+| L-none | VAA | 5492.3 ± 1482.2 | 2.17 | — | 0.02 |
+| | Paper-SA-RL5 | 5480.3 ± 1450.5 | 1.94 | — | 1.95 |
+| | GILS-uniform | 5383.9 ± 1423.8 | 0.15 | — | 2.37 |
+| L-medium | VAA | 55611.1 ± 18087.3 | 1.57 | — | 0.02 |
+| | Extended-SA-RL5 | 55544.0 ± 17684.8 | 1.46 | — | 1.49 |
+| | GILS-uniform | 54825.9 ± 17531.9 | 0.11 | — | 2.47 |
+| L-tight | VAA | 119671.9 ± 32475.3 | 0.78 | — | 0.02 |
+| | Extended-SA-RL5 | 119634.3 ± 31842.5 | 0.74 | — | 1.57 |
+| | GILS-uniform | 118863.6 ± 31785.2 | 0.06 | — | 2.45 |
 
-자세한 실험 해석은 [paper/apiems2026_summary_ko.md](paper/apiems2026_summary_ko.md)를
-참조하세요.
+`vs CP-SAT`는 CP-SAT가 기준해를 반환한 부분집합(S 조건당 20개, M-none 2개)에서만 계산합니다.
 
-## 문제 설정
+**Ablation** (조건당 5개 인스턴스 × 5회, 9개 조건, 양측 Wilcoxon)
 
-컴파운드 트럭은 입고와 출고 역할을 동시에 수행합니다. 한 컴파운드 트럭은 여러
-목적지의 화물을 싣고 들어오며, 자신이 담당할 목적지의 화물만 남기고 나머지는
-하역합니다. 다른 트럭에서 내려진 같은 목적지의 화물은 해당 carrier 트럭으로
-이송되어 다시 적재됩니다.
+| 변경 | 효과 (%p) | p |
+|---|---:|---|
+| 연산자: 기본 7종 → +g1, g2 | +0.150 개선 | <0.0001 |
+| 연산자: +g1, g2 → +g3, g4 | +0.034 개선 | 0.013 |
+| 섭동 재시작 제거 | +0.375 악화 | <0.0001 |
+| 하강 탐색 제거 | +0.064 악화 | 0.0016 |
+| VAA 대신 무작위 초기해 | +0.057 악화 | 0.0495 |
+| SA 수락 + reheating 추가 | +0.036 악화 | 0.0043 |
 
-해가 결정해야 하는 것은 세 가지입니다.
+**선택 정책** (조건당 20개, 1,000회): tabular Q-learning은 균등 선택보다 0.040%p,
+transfer DQN은 0.093%p 나쁘며 둘 다 유의합니다(p<0.0001). 성능은 섭동 재시작, 유도 연산자,
+하강 탐색이라는 결정론적 구조에서 나오고, 학습 기반 선택과 확률적 수락은 이득이 없습니다.
 
-- 각 컴파운드 트럭이 담당할 목적지와 사용할 도어
-- 각 outbound 트럭이 담당할 목적지와 사용할 도어
-- 같은 도어를 공유하는 outbound 트럭들의 처리 순서
+## 문제 정의
 
-Time Window 확장은 다음처럼 문장 기준으로 구현되어 있습니다.
-
-- **도착 시각.** 트럭마다 도착 시각이 있고, 그 전에는 작업을 시작할 수 없습니다.
-- **소프트 마감.** 트럭마다 마감이 있고, 완료가 늦으면 늦은 만큼 지연으로 누적합니다.
-- **목적.** 전체 완료시간과 총 지연의 가중합을 최소화합니다. 마감이 없으면 기존 makespan 최소화 문제로 돌아갑니다.
-
-## VAA-GILS 동작 방식
-
-코드상 엔진은 [crossdock_solver/baselines/vaa_qrl.py](crossdock_solver/baselines/vaa_qrl.py)에
-있습니다. 초기 이름은 `VAA-QRL`이었지만, 논문과 README에서는 실제 기여에 맞춰
-**VAA-GILS**로 부릅니다. Q-learning은 기본 선택기 중 하나일 뿐이고, 엔진의
-성능을 만드는 핵심은 guided operators, descent, restart입니다.
-
-### 1. Construction
-
-VAA 휴리스틱으로 초기해를 만듭니다.
-
-- 컴파운드 트럭의 유지 목적지를 regret 기준으로 배정합니다.
-- 남은 목적지는 outbound 트럭에 배정합니다.
-- 도어 완료 시각과 도착 시각을 고려해 트럭을 삽입합니다.
-
-### 2. Descent
-
-다음 이동들을 전수 평가하면서 best-improvement 방식으로 내려갑니다.
-
-- outbound 트럭을 다른 도어와 위치로 재배치
-- 컴파운드 트럭의 도어 swap 또는 빈 도어 이동
-- 두 트럭의 담당 목적지 swap
-
-초기해, 새 최고해, 최종해에 descent를 적용하므로, 좋은 후보가 나오면 같은
-이웃 구조 안에서 가능한 바닥까지 바로 내려갑니다.
-
-### 3. Guided Operators
-
-일반 무작위 이웃만 쓰지 않고, 현재 평가 결과에서 병목을 찾아 직접 타격합니다.
-
-| 연산자 | 역할 |
+| 기호 | 의미 |
 |---|---|
-| `g1_critical_outbound_relocate` | critical door의 마지막 outbound를 최적 도어/위치로 재배치 |
-| `g2_critical_destination_swap` | critical truck의 목적지를 다른 트럭과 swap |
-| `g3_tardy_truck_relocate` | 가장 크게 지각한 트럭을 기준으로 재배치 |
-| `g4_tardy_destination_swap` | 가장 크게 지각한 트럭을 기준으로 목적지 swap |
+| `I`, `F`, `D`, `M` | 병행 트럭, 출고트럭, 목적지(`|D|=|I|+|F|`), 도어 |
+| `r_q` | 트럭 `q`의 도착 시각 — 이전에는 도어 작업 불가 |
+| `d̄_q` | 트럭 `q`의 연성 납기 — 위반 시 `T_q = max(0, C_q − d̄_q)` |
+| `λ` | 납기지연 벌점 계수 (기본 1, 조정 집합에서 민감도 분석) |
 
-지각 트럭이 없으면 tardy 연산자는 critical 연산자로 fallback합니다.
+결정 사항은 (1) 병행 트럭이 유지할 목적지와 도어(도어당 최대 1대), (2) 출고트럭의 목적지와
+도어, (3) 같은 도어 출고트럭의 작업 순서입니다. `r_q = 0`, `d̄_q = ∞`이면 원 모델(makespan
+최소화)로 환원됩니다. 정식화와 코드 대응은 [docs/problem_definition.md](docs/problem_definition.md)에 있습니다.
 
-### 4. Acceptance and Restart
+## VAA-GILS
 
-후보가 현재해보다 좋으면 수락하고, 나쁘면 simulated annealing 확률로 일부
-수락합니다. 일정 iteration 동안 최고해가 갱신되지 않으면 최고해 근처에서
-무작위 kick을 적용하고 온도를 다시 올립니다. 이 restart가 없으면 같은 지역으로
-반복 수렴하는 문제가 생깁니다.
+엔진은 [crossdock_solver/baselines/vaa_qrl.py](crossdock_solver/baselines/vaa_qrl.py)에
+있습니다(초기 이름 `VAA-QRL`이 파일명에 남아 있음).
 
-### 5. Fast Evaluation
-
-[crossdock_solver/core/fast_evaluator.py](crossdock_solver/core/fast_evaluator.py)는
-기준 평가자와 같은 makespan 및 총 지연을 반환하면서 탐색용 부가 정보를 함께
-냅니다.
-
-- critical door
-- critical truck
-- 가장 크게 지각한 truck
-- 목적함수 값
-
-이 평가자가 guided operator와 descent를 싸게 만들어 GILS가 짧은 시간 안에
-많은 후보를 비교할 수 있습니다.
-
-## 선택기 실험
-
-GILS의 operator selector는 plug-in입니다.
-
-| 방법명 | 의미 |
+| 구성요소 | 내용 |
 |---|---|
-| `GILS-uniform-1000` | 연산자를 균등 무작위 선택 |
-| `GILS-1000` | tabular Q-learning 선택기 |
-| `GILS-dqn-1000` | train pool에서 학습한 DQN을 test pool에 zero-shot 적용 |
+| 초기해 | 원 모델의 VAA: Vogel식 regret으로 유지 목적지 배정, 도착 시각 반영 도어 삽입 |
+| 하강 탐색 | 출고트럭 재배치, 병행 트럭 도어 교환/빈 도어 이동, 목적지 교환의 best-improvement. 초기해·새 최선해·최종해에 적용 |
+| 반복 탐색 | 1,000회. 선택 정책(기본: 균등 무작위)이 연산자 하나를 골라 후보 생성, greedy 수락 |
+| 섭동 재시작 | 30회 무개선 시 최선해 복사본에 기본 이웃 kick 3회 |
+| 기본 이웃 7종 | k1 목적지 교환, k2/k3 도어 교환, k4 출고트럭 삽입, k6/k7 룰렛 삽입, k8 룰렛 목적지 배정 |
+| 유도 연산자 4종 | g1 병목 도어의 마지막 출고트럭 재배치, g2 병목 트럭 목적지 교환, g3/g4 최대 납기지연 트럭 기준 동일 이동 |
+| 고속 평가기 | [crossdock_solver/core/fast_evaluator.py](crossdock_solver/core/fast_evaluator.py) — 해 하나당 S 약 25–28μs, L 약 95–148μs |
 
-이 비교는 "학습을 붙이면 좋아지는가"를 보기 위한 실험 장치입니다. 현재 결과는
-GILS 엔진 자체가 충분히 강해서, 연산자 선택 학습의 추가 이득이 매우 작다는 쪽을
-지지합니다.
+SA-RL5(원 모델)와의 차이: 순수 SA → 반복 지역탐색, 연산자 7 → 11종, Q-learning 선택 → 균등 선택,
+하강 탐색·섭동 재시작 추가, Metropolis 수락 → greedy 수락, makespan → makespan + λ·tardiness.
+
+## 실험 설계
+
+| 항목 | 설정 |
+|---|---|
+| 규모 `(|I|,|F|,|D|,|M|)` | S (6,3,9,6), M (12,6,18,12), L (20,10,30,20) |
+| 시간 제약 `(ρ, δ)` | none; medium (0.25, 0.60); tight (0.50, 0.35). `r_q ~ U[0, ρH]`, `d̄_q = r_q + δH` |
+| 기타 생성 | `|K|=3`, `f_idk ~ U[0,20]`, `t_k ~ U[1,4]`, `DE/DL ~ U[1,5]`, 도어 좌표 `[0,100]²`, 이송시간 = 거리/10 |
+| 시드 | 학습 / 조정 / 시험 집합 서로소. λ와 수락 규칙은 조정 집합에서만 결정 |
+| 주 비교 | 조건당 시험 인스턴스 20개 × 5회 |
+| CP-SAT | 8 스레드, S 300초(20개), M/L 600초(2개) |
+| 통계 | 인스턴스별 반복 평균에 양측 Wilcoxon signed-rank |
+| 환경 | Apple M2 (8코어), 16GB, Python 3.12, OR-Tools 9.15 |
+
+## 방법 이름 (코드 ↔ 논문)
+
+| 코드 (`experiments/methods.py`) | 논문 |
+|---|---|
+| `VAA` | VAA |
+| `Paper-SA-RL5-1000` | Paper-SA-RL5 (none 조건) |
+| `Extended-SA-RL5-1000` | Extended SA-RL5 (medium/tight 조건) |
+| `*-SA-RL5-timematch` | 동일 실행 시간 비교 (Table 5) |
+| `v2-GILS-uniform-1000` | **GILS-uniform (제안 방법 기본값)** |
+| `v2-GILS-1000`, `v2-GILS-dqn-1000` | GILS-tabular, GILS-DQN (ablation) |
+| `v2-GILS-{generic,critical,full}-1000` | 연산자 집합 ablation (Table 6) |
+| `v2-GILS-ablate-{none,init,descent,restart,addsa}-1000` | 엔진 구성요소 ablation (Table 7) |
+| `CPSAT-300`, `CPSAT-600` | CP-SAT |
+
+`v2-` 접두사는 최종 greedy 수락 엔진을 뜻합니다. 접두사가 없는 `GILS-*` 기록은 이전 SA 엔진 결과이며 요약에서 제외됩니다.
+
+## 실행
+
+```bash
+python -m pytest -q                 # 테스트
+python examples/run_mvp.py          # 최소 예제
+```
+
+논문 표/그림 재현:
+
+| 논문 | 실행 | 요약 |
+|---|---|---|
+| Table 4, 8 (해 품질, 선택 정책) | `python experiments/k1_run.py search` / `budget` / `cpsat` / `cpsat_s20` | `python experiments/k1_summary.py`, `python experiments/k1_stats.py` |
+| Table 5 (동일 실행 시간) | `python experiments/budget_fairness.py` | `python experiments/budget_fairness.py summary` |
+| Table 6, Figure 2 (연산자 집합) | `python experiments/b1_run.py` | `python experiments/b1_summary.py` |
+| Table 7 (엔진 구성요소) | `python experiments/b2_run.py` | `python experiments/b2_summary.py` |
+| 수락 규칙 조정 (3장) | `python experiments/acceptance_tuning.py` | — |
+| Figure 3 (λ 민감도) | `python experiments/lambda_sensitivity.py` | `python experiments/lambda_summary.py` |
+| 그림 생성 | `python experiments/make_figures.py` | `paper/figures/` |
+
+결과는 `outputs/*.jsonl`에 append되며, runner는 이미 기록된 job을 건너뜁니다. `cpsat` 배치는 수 시간이 걸리고,
+`budget_fairness.py`는 벽시계 시간을 예산으로 쓰므로 다른 실험과 병행하지 마세요.
 
 ## 코드 구조
 
 | 경로 | 내용 |
 |---|---|
-| `crossdock_solver/data/` | 인스턴스 dataclass, benchmark generator, 인스턴스 특성값 |
+| `crossdock_solver/data/` | 인스턴스 dataclass, 벤치마크 생성기 |
 | `crossdock_solver/core/` | feasibility, 기준 evaluator, FastEvaluator |
 | `crossdock_solver/baselines/vaa.py` | VAA 구성 휴리스틱 |
-| `crossdock_solver/baselines/vaa_qrl.py` | VAA-GILS 엔진과 guided operators |
-| `crossdock_solver/baselines/paper_sa_rl.py` | 논문 스타일 SA-RL baseline |
-| `crossdock_solver/rl/` | tabular selector, DQN selector, feature vector |
-| `crossdock_solver/exact/` | MILP, CP-SAT, 조합적 lower bounds |
-| `experiments/protocol.py` | train/tuning/test seed protocol |
-| `experiments/methods.py` | 실험 method registry |
-| `experiments/k1_run.py` | 메인 실험 batch 구성 |
-| `experiments/k1_summary.py` | K1 결과 요약 |
-| `experiments/k1_stats.py` | Wilcoxon 검정과 budget 분석 |
-| `paper/` | 논문 초안과 한국어 요약 |
-| `docs/` | 문제 정의, 벤치마크 설계, 연구 플랜 |
-
-## 빠른 실행
-
-테스트:
-
-```bash
-python -m pytest -q
-```
-
-MVP 예제:
-
-```bash
-python examples/run_mvp.py
-```
-
-예상 출력 형태:
-
-```text
-initial makespan: 2204.27
-best makespan:    1456.27
-critical door:    1
-critical truck:   O2
-iterations:       100
-```
-
-이미 생성된 K1 결과 요약:
-
-```bash
-python experiments/k1_summary.py
-python experiments/k1_stats.py
-```
-
-K1 실험 재실행:
-
-```bash
-python experiments/k1_run.py search
-python experiments/k1_run.py budget
-python experiments/k1_run.py cpsat
-```
-
-`search`는 GILS/VAA/SA-RL 중심의 빠른 batch이고, `cpsat`은 오래 걸리는 정확해
-batch입니다.
-
-## 벤치마크 프로토콜
-
-주요 K1 실험은 다음 격자를 사용합니다.
-
-| 항목 | 설정 |
-|---|---|
-| 규모 | S, M, L |
-| 흐름 패턴 | uniform |
-| Time Window | none, medium, tight |
-| 인스턴스 | 셀당 test 인스턴스 5개 |
-| 반복 | stochastic method는 인스턴스당 5회 |
-| 정확해 | S는 CP-SAT 300초, M/L 일부는 CP-SAT 600초 |
-| seed | train, tuning, test pool 완전 분리 |
-
-더 큰 설계 격자와 생성 규칙은 [docs/benchmark_design.md](docs/benchmark_design.md)와
-[experiments/protocol.py](experiments/protocol.py)에 있습니다.
-
-## 주요 method 이름
-
-| method | 설명 |
-|---|---|
-| `VAA` | 구성 휴리스틱 baseline |
-| `Paper-SA-RL5-1000` | 원 논문 스타일 Q-learning SA baseline |
-| `GILS-uniform-1000` | uniform selector를 붙인 VAA-GILS |
-| `GILS-1000` | tabular Q selector를 붙인 VAA-GILS |
-| `GILS-dqn-1000` | DQN selector를 붙인 VAA-GILS |
-| `CPSAT-300`, `CPSAT-600` | OR-Tools CP-SAT 정확해/하한 계산 |
-
-전체 registry는 [experiments/methods.py](experiments/methods.py)에 있습니다.
-
-## 정확해와 하한
-
-- [crossdock_solver/exact/milp.py](crossdock_solver/exact/milp.py): PuLP/CBC 기반 MILP
-- [crossdock_solver/exact/cpsat.py](crossdock_solver/exact/cpsat.py): OR-Tools CP-SAT 모델
-- [crossdock_solver/exact/lower_bounds.py](crossdock_solver/exact/lower_bounds.py): critical-chain, door-area, structural tardiness lower bound
-
-CP-SAT는 인컴번트와 증명된 하한을 함께 반환합니다. 다만 큰 Time Window 셀에서는
-600초 안에 가능해를 못 내는 경우가 있어, GILS 결과는 best-known 관점에서도
-함께 보고합니다.
+| `crossdock_solver/baselines/vaa_qrl.py` | VAA-GILS 엔진, 유도 연산자 |
+| `crossdock_solver/baselines/paper_sa_rl.py` | Paper/Extended SA-RL5 |
+| `crossdock_solver/rl/` | tabular / DQN 선택 정책, 규모 불변 특징 |
+| `crossdock_solver/exact/` | MILP(PuLP/CBC), CP-SAT, 조합적 하한 |
+| `experiments/` | seed 프로토콜, method registry, 실험·요약 스크립트 |
+| `paper/` | JKIIE 투고 원고(`jkiie_submit_*`), 그림, 이전 APIEMS/CAIE 원고 |
+| `docs/` | 문제 정의, 벤치마크 설계, 문헌 조사, 투고 체크리스트 |
 
 ## 문서
 
-- [paper/apiems2026_summary_ko.md](paper/apiems2026_summary_ko.md): 한국어 실험 요약
-- [paper/apiems2026_draft.md](paper/apiems2026_draft.md): APIEMS 2026 draft
-- [paper/apiems2026_draft_ko.md](paper/apiems2026_draft_ko.md): 한국어 draft
+- [paper/jkiie_submit_body.tex](paper/jkiie_submit_body.tex): 최종 투고 원고 (본문)
 - [docs/problem_definition.md](docs/problem_definition.md): 문제 정식화와 코드 대응
+- [docs/model_and_solution_guide.md](docs/model_and_solution_guide.md): 모형과 해법 해설
 - [docs/benchmark_design.md](docs/benchmark_design.md): 벤치마크 설계 근거
-- [docs/literature_scan_tw.md](docs/literature_scan_tw.md): Time Window 변형 문헌 스캔
-- [docs/scie_research_plan.md](docs/scie_research_plan.md): 연구 단계와 gate 기록
+- [docs/literature_scan_tw.md](docs/literature_scan_tw.md): 시간 제약 변형 문헌 조사
+- [docs/jkiie_submission_checklist.md](docs/jkiie_submission_checklist.md): 투고 체크리스트
+- [docs/archive/](docs/archive/): 이전 연구 계획과 APIEMS 초안
 
 ## 환경 메모
 
-이 저장소에는 고정된 requirements 파일이 없습니다. 현재 코드 경로는 NumPy, pytest,
-PuLP, OR-Tools, PyTorch를 사용합니다. CP-SAT import 과정에서 pandas/pyarrow와
-NumPy ABI가 충돌하는 환경을 위해 [crossdock_solver/exact/cpsat.py](crossdock_solver/exact/cpsat.py)에
-최소 stub 우회가 들어 있습니다. pandas 기능 자체는 사용하지 않습니다.
-
-## 한 줄 요약
-
-이 저장소는 컴파운드 트럭 부분 하역 크로스도킹에 Time Window를 넣은 문제를
-정식화하고, 정확해와 하한으로 검증 가능한 벤치마크 위에서 **학습보다 문제 구조를
-직접 쓰는 VAA-GILS가 더 안정적인 주력 방법**임을 보이는 코드입니다.
+고정된 requirements 파일은 없습니다. NumPy, pytest, PuLP, OR-Tools, PyTorch를 사용합니다.
+CP-SAT import 시 pandas/pyarrow와 NumPy ABI가 충돌하는 환경을 위해
+[crossdock_solver/exact/cpsat.py](crossdock_solver/exact/cpsat.py)에 최소 stub 우회가 들어 있습니다.
+같은 이유로 그림은 matplotlib 없이 SVG를 직접 생성합니다.

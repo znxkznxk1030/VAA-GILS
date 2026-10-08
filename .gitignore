@@ -5,3 +5,4 @@ tmp/
 .claude/worktrees/
 .DS_Store
 outputs/archive/
+~$*

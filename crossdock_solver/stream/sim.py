@@ -24,6 +24,7 @@ receive it as a dense reward between decisions.
 
 from __future__ import annotations
 
+import copy
 from dataclasses import dataclass, field
 import heapq
 import itertools
@@ -51,6 +52,7 @@ class Truck:
     destination: int = -1
     dock_time: float = math.nan
     claim_time: float = math.nan
+    expected_departure: float = math.nan
     departure: float = math.nan
     lots: list["Lot"] = field(default_factory=list)
 
@@ -187,6 +189,40 @@ class CrossDockStream:
         self._held = True
         self._advance()
 
+    def fork(self, seed: int, until: float) -> "CrossDockStream":
+        """Copy of the live state for look-ahead simulation up to time `until`.
+
+        Future arrivals are resampled from a fresh generator (the pending
+        arrival time is dropped and redrawn, which is exact for a Poisson
+        stream), so a fork carries no information about the real future.
+        """
+
+        clone = object.__new__(CrossDockStream)
+        clone.__dict__.update(self.__dict__)
+        memo: dict[int, object] = {}
+        clone.yard, clone.doors, clone.open_lots, clone.in_system, events = copy.deepcopy(
+            (self.yard, self.doors, self.open_lots, self.in_system, self._events), memo
+        )
+        clone._events = [e for e in events if e[2] != ARRIVE]
+        heapq.heapify(clone._events)
+        clone._seq = itertools.count(next(copy.copy(self._seq)))
+        clone._uid = itertools.count(next(copy.copy(self._uid)))
+        clone.last_departure = self.last_departure.copy()
+        clone._rng = np.random.default_rng(seed)
+        clone.departed = []
+        clone._measured = []
+        clone.measure_from = clone.measure_to = 1 << 60
+        clone._time_cap = until
+        clone.done = False
+        clone._schedule(clone.now + clone._interarrival(), ARRIVE, None)
+        return clone
+
+    def truck_by_uid(self, uid: int) -> Truck:
+        for truck in self.yard:
+            if truck.uid == uid:
+                return truck
+        raise KeyError(uid)
+
     # ----------------------------------------------------------------- reward
     def cost_snapshot(self) -> float:
         """Accrued cost so far in J units x trucks: unit-time / mean units
@@ -280,7 +316,8 @@ class CrossDockStream:
         for lot in lots:
             start = max(start, lot.ready + travel[lot.door, truck.door])
             load += lot.handling
-        self._schedule(start + load + truck.leave, DEPART, truck)
+        truck.expected_departure = start + load + truck.leave
+        self._schedule(truck.expected_departure, DEPART, truck)
 
     def _on_depart(self, truck: Truck) -> None:
         truck.departure = self.now

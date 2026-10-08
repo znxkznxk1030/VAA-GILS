@@ -1,0 +1,8 @@
+demand=uniform
+  FCFS-VAA    J/work=2.074  blocked%=26.536  hold%=0.000  skip_head%=0.000  other_dest%=0.000  freq_gap=0.060  empty_out%=6.311  yard_wait/work=0.264
+  Cyclic-VAA  J/work=2.553  blocked%=29.332  hold%=41.536  skip_head%=31.761  other_dest%=10.960  freq_gap=0.015  empty_out%=8.782  yard_wait/work=0.911
+  RL-API      J/work=1.918  blocked%=27.364  hold%=10.613  skip_head%=12.705  other_dest%=19.268  freq_gap=0.033  empty_out%=3.014  yard_wait/work=0.271
+demand=skewed
+  FCFS-VAA    J/work=1.759  blocked%=15.739  hold%=0.000  skip_head%=0.000  other_dest%=0.000  freq_gap=0.279  empty_out%=3.640  yard_wait/work=0.017
+  Cyclic-VAA  J/work=3.002  blocked%=29.763  hold%=41.641  skip_head%=30.753  other_dest%=17.199  freq_gap=0.516  empty_out%=12.812  yard_wait/work=1.024
+  RL-API      J/work=1.442  blocked%=22.783  hold%=12.018  skip_head%=5.822  other_dest%=21.494  freq_gap=0.048  empty_out%=1.507  yard_wait/work=0.054

@@ -1,0 +1,8 @@
+round -1 (BC) tuning J/work=1.9164
+round 0 states=4663 loss=1.382 tuning J/work=1.8457 (best 1.8457 @ 0)
+round 1 states=9221 loss=0.958 tuning J/work=1.6864 (best 1.6864 @ 1)
+round 2 states=13998 loss=1.237 tuning J/work=1.6799 (best 1.6799 @ 2)
+round 3 states=18598 loss=1.212 tuning J/work=1.7116 (best 1.6799 @ 2)
+round 4 states=23202 loss=1.159 tuning J/work=1.7058 (best 1.6799 @ 2)
+round 5 states=27791 loss=1.130 tuning J/work=1.8380 (best 1.6799 @ 2)
+{"name": "api", "best_round": 2, "best_tuning": 1.6799281156010537}

@@ -29,11 +29,52 @@ from crossdock_solver.stream.sim import CrossDockStream
 
 
 NUM_FEATURES = 24
-GLOBAL_FEATURES = 4
+GLOBAL_FEATURES = 14
+
+
+def global_features(env: CrossDockStream) -> np.ndarray:
+    """System-level state for the critic (and the first four for every candidate)."""
+
+    fac = env.facility
+    cfg = env.config
+    work = fac.mean_work
+    unit = max(fac.mean_units, 1.0)
+    doors = cfg.num_doors
+    now = env.now
+    docked = [t for t in env.doors if t is not None]
+    pre_claim = sum(math.isnan(t.claim_time) for t in docked)
+    remaining = [
+        max(0.0, t.expected_departure - now) for t in docked if not math.isnan(t.expected_departure)
+    ]
+    lots = [lot for group in env.open_lots for lot in group]
+    backlog = sum(lot.handling for lot in lots)
+    unready = sum(lot.handling for lot in lots if lot.ready > now)
+    oldest = max((now - lot.source.arrival for lot in lots), default=0.0)
+    waits = [now - t.arrival for t in env.yard]
+    compounds = sum(t.compound for t in env.yard)
+    return np.array(
+        [
+            len(env.yard) / doors,
+            len(env.free_doors()) / doors,
+            env.units_in_system / (unit * doors),
+            1.0 / cfg.num_destinations,
+            compounds / doors,
+            (len(env.yard) - compounds) / doors,
+            sum(float(t.units.sum()) for t in env.yard) / (unit * doors),
+            backlog / (work * doors),
+            unready / (work * doors),
+            pre_claim / doors,
+            (float(np.mean(remaining)) / work) if remaining else 0.0,
+            oldest / work,
+            (float(np.mean(waits)) / work) if waits else 0.0,
+            (max(waits) / work) if waits else 0.0,
+        ]
+    )
 
 
 def candidate_features(env: CrossDockStream):
-    """Feature matrix (N + 1, NUM_FEATURES) in `env.candidates()` order, HOLD last."""
+    """Feature matrix (N + 1, NUM_FEATURES) in `env.candidates()` order, HOLD last,
+    and the global state vector."""
 
     fac = env.facility
     cfg = env.config
@@ -85,14 +126,8 @@ def candidate_features(env: CrossDockStream):
     incoming /= unit
     centrality = travel[:, doors].mean(axis=0) / mean_travel if F else np.zeros(0)
 
-    glob = np.array(
-        [
-            len(env.yard) / cfg.num_doors,
-            F / cfg.num_doors,
-            env.units_in_system / (unit * cfg.num_doors),
-            1.0 / D,
-        ]
-    )
+    full_glob = global_features(env)
+    glob = full_glob[:4]
 
     rule = FCFSRulePolicy().act(env) if T and F else None
     feats = np.zeros((T, F, D, NUM_FEATURES))
@@ -131,7 +166,7 @@ def candidate_features(env: CrossDockStream):
     hold = np.zeros((1, NUM_FEATURES))
     hold[0, 18:22] = glob
     hold[0, 0] = -1.0  # hold marker
-    return np.concatenate([flat, hold]).astype(np.float32), glob.astype(np.float32)
+    return np.concatenate([flat, hold]).astype(np.float32), full_glob.astype(np.float32)
 
 
 def rule_index(env: CrossDockStream) -> int:
@@ -224,19 +259,20 @@ class TrainConfig:
     seed_base: int = 100_000  # train pool
     measure_from: int = 30
     measure_to: int = 230
-    episodes_per_iter: int = 8
+    episodes_per_iter: int = 12
     iterations: int = 120
     bc_episodes: int = 16
     bc_epochs: int = 40
     bc_lr: float = 1e-3
     ppo_epochs: int = 4
     minibatch: int = 256
-    lr: float = 3e-4
-    clip: float = 0.2
-    entropy: float = 0.01
+    lr: float = 1e-4
+    clip: float = 0.1
+    entropy: float = 0.0
+    critic_warmup: int = 10
     value_coef: float = 0.5
     gae_lambda: float = 0.95
-    tau_sla: float = 2.0
+    tau_sla: float = 1.0
     reward_scale: float = 1.0
     seed: int = 0
     log: list[dict] = field(default_factory=list)
@@ -394,7 +430,10 @@ def train(cfg: TrainConfig, *, progress=print, callback=None) -> DispatchNet:
                 entropy = -(probs * logp_all.masked_fill(~mask, 0.0)).sum(-1).mean()
                 value = net.values(feats, mask, glob)
                 value_loss = ((value - ret_t[idx]) ** 2).mean()
-                loss = policy_loss + cfg.value_coef * value_loss - cfg.entropy * entropy
+                if iteration < cfg.critic_warmup:
+                    loss = cfg.value_coef * value_loss  # critic warm-up: policy frozen
+                else:
+                    loss = policy_loss + cfg.value_coef * value_loss - cfg.entropy * entropy
                 opt.zero_grad()
                 loss.backward()
                 nn.utils.clip_grad_norm_(net.parameters(), 1.0)
@@ -414,3 +453,64 @@ def train(cfg: TrainConfig, *, progress=print, callback=None) -> DispatchNet:
         if callback is not None:
             callback(iteration, net)
     return net
+
+
+# ------------------------------------------------------- policy distillation
+def candidate_index(env: CrossDockStream, action) -> int:
+    """Index of `action` (None = HOLD) in the candidate list of `env`."""
+
+    candidates = env.candidates()
+    if action is None:
+        return len(candidates)
+    truck, door, destination = action
+    trucks = env.yard[: env.max_candidates]
+    doors = env.free_doors()
+    D = env.config.num_destinations
+    return (trucks.index(truck) * len(doors) + doors.index(door)) * D + destination
+
+
+def collect_labels(
+    net: DispatchNet | None,
+    teacher,
+    env: CrossDockStream,
+    *,
+    beta: float,
+    rng: random.Random,
+) -> list[tuple[np.ndarray, int]]:
+    """DAgger: the teacher labels every visited state; the executed action is the
+    teacher's with probability `beta`, otherwise the current network's."""
+
+    data: list[tuple[np.ndarray, int]] = []
+    learner = RLPolicy(net) if net is not None else None
+    if hasattr(teacher, "reset"):
+        teacher.reset(env)
+    while not env.done:
+        feats, _ = candidate_features(env)
+        target = teacher.act(env)
+        data.append((feats, candidate_index(env, target)))
+        action = target if learner is None or rng.random() < beta else learner.act(env)
+        if action is None:
+            env.hold()
+        else:
+            env.dispatch(*action)
+    return data
+
+
+def fit_classifier(net: DispatchNet, data: list[tuple[np.ndarray, int]], *, epochs: int, lr: float, seed: int) -> float:
+    opt = torch.optim.Adam(net.score.parameters(), lr=lr)
+    order = list(range(len(data)))
+    shuffle = random.Random(seed)
+    loss_value = float("nan")
+    for _ in range(epochs):
+        shuffle.shuffle(order)
+        for start in range(0, len(order), 256):
+            chunk = [data[i] for i in order[start : start + 256]]
+            steps = [Step(f, np.zeros(GLOBAL_FEATURES, np.float32), a, 0.0, 0.0) for f, a in chunk]
+            feats, mask, _ = _batch(steps)
+            actions = torch.tensor([a for _, a in chunk])
+            loss = nn.functional.cross_entropy(net.logits(feats, mask), actions)
+            opt.zero_grad()
+            loss.backward()
+            opt.step()
+            loss_value = float(loss)
+    return loss_value

@@ -8,10 +8,12 @@ training (generalization). Methods:
     Cyclic-VAA, Cyclic-GILS               the static method in cycles of |D| trucks
     Cyclic-GILS-strict                    same plan, executed on the planned doors
     RL-BC                                 the network after imitation only
-    RL-PPO                                the selected PPO checkpoint
+    RL-PPO                                the PPO checkpoint selected on tuning
+    Rollout                               simulation-based policy improvement over FCFS-VAA
+    RL-API                                the network distilled from Rollout (DAgger)
 
 Usage:
-    python experiments/stream_eval.py --policy outputs/stream_rl/ppo_bc.pt   # run + summarize
+    python experiments/stream_eval.py              # run missing jobs + summarize
     python experiments/stream_eval.py summary
 """
 
@@ -31,10 +33,10 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 import numpy as np
-from scipy.stats import wilcoxon
 
 from crossdock_solver.stream.config import stream_config
 from crossdock_solver.stream.sim import CrossDockStream, run_stream
+from experiments.k1_stats import wilcoxon_signed_rank  # scipy is broken in this env (NumPy ABI)
 
 
 OUTPUT = ROOT / "outputs" / "stream_eval.jsonl"
@@ -43,7 +45,21 @@ SIZES = ("S", "M", "L")
 LOADS = (0.5, 0.6, 0.7)
 DEMANDS = ("uniform", "skewed")
 SEEDS = range(5)
-METHODS = ("FCFS-VAA", "FCFS-Backlog", "Cyclic-VAA", "Cyclic-GILS", "Cyclic-GILS-strict", "RL-BC", "RL-PPO")
+METHODS = (
+    "FCFS-VAA",
+    "FCFS-Backlog",
+    "Cyclic-VAA",
+    "Cyclic-GILS",
+    "Cyclic-GILS-strict",
+    "RL-BC",
+    "RL-PPO",
+    "Rollout",
+    "RL-API",
+)
+CHECKPOINTS = {
+    "RL-PPO": ROOT / "outputs" / "stream_rl" / "ppo2_tau1.pt",
+    "RL-API": ROOT / "outputs" / "stream_rl" / "api.pt",
+}
 CELLS = [(s, l, d) for s in SIZES for l in LOADS for d in DEMANDS]
 
 
@@ -54,7 +70,7 @@ def _seed(cell: tuple, rep: int) -> int:
 _NETS: dict[str, object] = {}
 
 
-def _net(kind: str, policy_path: str):
+def _net(kind: str):
     import torch
 
     from crossdock_solver.stream.rl import DispatchNet, TrainConfig, behaviour_clone
@@ -66,13 +82,13 @@ def _net(kind: str, policy_path: str):
         if kind == "RL-BC":
             behaviour_clone(net, TrainConfig(bc_episodes=16))
         else:
-            net.load_state_dict(torch.load(policy_path))
+            net.load_state_dict(torch.load(CHECKPOINTS[kind]))
         net.eval()
         _NETS[kind] = net
     return _NETS[kind]
 
 
-def _policy(method: str, policy_path: str):
+def _policy(method: str):
     from crossdock_solver.stream.policies import CyclicPlanPolicy, FCFSRulePolicy
     from crossdock_solver.stream.rl import RLPolicy
 
@@ -86,8 +102,12 @@ def _policy(method: str, policy_path: str):
         return CyclicPlanPolicy(iterations=1000)
     if method == "Cyclic-GILS-strict":
         return CyclicPlanPolicy(iterations=1000, execution="strict")
-    if method in ("RL-BC", "RL-PPO"):
-        return RLPolicy(_net(method, policy_path), name=method)
+    if method in ("RL-BC", "RL-PPO", "RL-API"):
+        return RLPolicy(_net(method), name=method)
+    if method == "Rollout":
+        from crossdock_solver.stream.rollout import RolloutPolicy
+
+        return RolloutPolicy(samples=8, horizon_sla=1.0)
     raise ValueError(method)
 
 
@@ -117,7 +137,7 @@ class _Counting:
 
 
 def _execute(job: tuple) -> dict:
-    method, size, load, demand, rep, policy_path = job
+    method, size, load, demand, rep = job
     cell = (size, load, demand)
     env = CrossDockStream(
         stream_config(size, load=load, demand=demand),
@@ -125,7 +145,7 @@ def _execute(job: tuple) -> dict:
         measure_from=200,
         measure_to=1200,
     )
-    policy = _Counting(_policy(method, policy_path))
+    policy = _Counting(_policy(method))
     metrics = run_stream(env, policy)
     record = {
         "key": f"{method}|{size}|{load}|{demand}|{rep}",
@@ -149,12 +169,12 @@ def _execute(job: tuple) -> dict:
     return record
 
 
-def run(policy_path: str, workers: int = 6, methods: tuple[str, ...] = METHODS) -> int:
+def run(workers: int = 6, methods: tuple[str, ...] = METHODS) -> int:
     done = set()
     if OUTPUT.exists():
         done = {json.loads(line)["key"] for line in OUTPUT.read_text().splitlines() if line}
     jobs = [
-        (m, s, l, d, r, policy_path)
+        (m, s, l, d, r)
         for (s, l, d) in CELLS
         for r in SEEDS
         for m in methods
@@ -162,8 +182,9 @@ def run(policy_path: str, workers: int = 6, methods: tuple[str, ...] = METHODS) 
     ]
     if not jobs:
         return 0
-    # slow strict-execution jobs first for better load balance
-    jobs.sort(key=lambda j: (j[0] != "Cyclic-GILS-strict", j[0] != "Cyclic-GILS"))
+    # slow jobs first for better load balance
+    slow = {"Rollout": 0, "Cyclic-GILS-strict": 1, "Cyclic-GILS": 2}
+    jobs.sort(key=lambda j: (slow.get(j[0], 9), j[1] != "L"))
     with OUTPUT.open("a", encoding="utf-8") as sink, multiprocessing.Pool(workers) as pool:
         for record in pool.imap_unordered(_execute, jobs):
             sink.write(json.dumps(record) + "\n")
@@ -203,24 +224,26 @@ def summarize() -> str:
         out.append(f"  {scope:3}: " + "  ".join(parts))
 
     out.append("")
-    out.append("Paired Wilcoxon (two-sided) of RL-PPO vs each method, per-stream J")
-    for m in METHODS:
-        if m == "RL-PPO":
-            continue
-        for scope in (*SIZES, "all"):
-            pairs = [
-                (norm(by[("RL-PPO", *c, r)]), norm(by[(m, *c, r)]))
-                for c in CELLS
-                if scope in ("all", c[0])
-                for r in SEEDS
-                if ("RL-PPO", *c, r) in by and (m, *c, r) in by
-            ]
-            if len(pairs) < 6:
+    for primary in ("RL-API", "Rollout"):
+        out.append(f"Paired Wilcoxon (two-sided) of {primary} vs each method, per-stream J")
+        for m in METHODS:
+            if m == primary:
                 continue
-            diffs = [a - b for a, b in pairs]
-            wins = sum(d < 0 for d in diffs)
-            p = wilcoxon(diffs).pvalue if any(diffs) else 1.0
-            out.append(f"  vs {m:19} {scope:3} n={len(pairs):3} RL better in {wins:3}  p={p:.2g}")
+            for scope in (*SIZES, "all"):
+                pairs = [
+                    (norm(by[(primary, *c, r)]), norm(by[(m, *c, r)]))
+                    for c in CELLS
+                    if scope in ("all", c[0])
+                    for r in SEEDS
+                    if (primary, *c, r) in by and (m, *c, r) in by
+                ]
+                if len(pairs) < 6:
+                    continue
+                diffs = [a - b for a, b in pairs]
+                wins = sum(d < 0 for d in diffs)
+                p, _ = wilcoxon_signed_rank(diffs)
+                out.append(f"  vs {m:19} {scope:3} n={len(pairs):3} {primary} better in {wins:3}  p={p:.2g}")
+        out.append("")
 
     out.append("")
     out.append("Diagnostics (mean over all streams of a size)")
@@ -244,12 +267,11 @@ def summarize() -> str:
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("mode", nargs="?", default="run")
-    parser.add_argument("--policy", default=str(ROOT / "outputs" / "stream_rl" / "ppo_bc.pt"))
     parser.add_argument("--workers", type=int, default=6)
     parser.add_argument("--methods", default=",".join(METHODS))
     args = parser.parse_args()
     if args.mode != "summary":
-        executed = run(args.policy, args.workers, tuple(args.methods.split(",")))
+        executed = run(args.workers, tuple(args.methods.split(",")))
         print(f"executed {executed} new jobs -> {OUTPUT}")
     print(summarize())
 

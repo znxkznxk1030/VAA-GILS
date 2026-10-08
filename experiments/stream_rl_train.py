@@ -57,11 +57,14 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--name", required=True)
     parser.add_argument("--iterations", type=int, default=300)
-    parser.add_argument("--episodes", type=int, default=8)
+    parser.add_argument("--episodes", type=int, default=12)
     parser.add_argument("--eval-every", type=int, default=20)
     parser.add_argument("--no-bc", action="store_true")
-    parser.add_argument("--entropy", type=float, default=0.01)
-    parser.add_argument("--lr", type=float, default=3e-4)
+    parser.add_argument("--entropy", type=float, default=0.0)
+    parser.add_argument("--lr", type=float, default=1e-4)
+    parser.add_argument("--clip", type=float, default=0.1)
+    parser.add_argument("--critic-warmup", type=int, default=10)
+    parser.add_argument("--tau-sla", type=float, default=1.0)
     parser.add_argument("--seed", type=int, default=0)
     args = parser.parse_args()
 
@@ -74,6 +77,9 @@ def main() -> None:
         bc_episodes=0 if args.no_bc else 16,
         entropy=args.entropy,
         lr=args.lr,
+        clip=args.clip,
+        critic_warmup=args.critic_warmup,
+        tau_sla=args.tau_sla,
         seed=args.seed,
         measure_from=100,
         measure_to=400,

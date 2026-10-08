@@ -87,7 +87,8 @@ def test_candidate_features_align_with_candidates() -> None:
         feats, glob = candidate_features(env)
         candidates = env.candidates()
         assert feats.shape == (len(candidates) + 1, 24)
-        assert glob.shape == (4,)
+        assert glob.shape == (14,)
+        assert np.isfinite(glob).all()
         assert np.isfinite(feats).all()
         index = rule_index(env)
         assert feats[index, 23] == 1.0 and feats[:, 23].sum() == 1.0
@@ -101,3 +102,58 @@ def test_rl_policy_runs_on_unseen_size() -> None:
     env = CrossDockStream(stream_config("L", load=0.5), seed=4, measure_from=10, measure_to=60)
     metrics = run_stream(env, RLPolicy(DispatchNet(), sample=True))
     assert metrics.trucks == 50
+
+
+def _advance(env, steps: int) -> None:
+    policy = FCFSRulePolicy()
+    for _ in range(steps):
+        if env.done:
+            break
+        env.dispatch(*policy.act(env))
+
+
+def test_fork_leaves_the_original_untouched_and_hides_the_future() -> None:
+    env = _env(load=0.7)
+    _advance(env, 60)
+    snapshot = (env.now, env.units_in_system, env.cost_snapshot(), [t.uid for t in env.yard])
+    pending_arrival = next(e[0] for e in env._events if e[2] == 0)
+
+    sim = env.fork(seed=1, until=env.now + env.facility.sla)
+    sim_arrival = next(e[0] for e in sim._events if e[2] == 0)
+    policy = FCFSRulePolicy()
+    while not sim.done:
+        sim.dispatch(*policy.act(sim))
+
+    assert (env.now, env.units_in_system, env.cost_snapshot(), [t.uid for t in env.yard]) == snapshot
+    assert sim_arrival != pending_arrival  # the real next arrival is not reused
+    other = env.fork(seed=1, until=env.now + env.facility.sla)
+    while not other.done:
+        other.dispatch(*policy.act(other))
+    assert other.cost_snapshot() == sim.cost_snapshot()
+
+
+def test_rollout_shortlist_contains_rule_action_and_hold() -> None:
+    from crossdock_solver.stream.rollout import RolloutPolicy, shortlist
+
+    env = _env()
+    _advance(env, 30)
+    actions = shortlist(env)
+    assert FCFSRulePolicy().act(env) in actions and actions[-1] is None
+    choice = RolloutPolicy(samples=2, horizon_sla=0.3).act(env)
+    assert choice in actions
+
+
+def test_candidate_index_round_trips() -> None:
+    from crossdock_solver.stream.rl import candidate_index
+
+    env = _env()
+    rng = random.Random(0)
+    while not env.done:
+        candidates = env.candidates()
+        action = rng.choice([*candidates, None])
+        index = candidate_index(env, action)
+        assert decode(env, index) == action
+        if action is None:
+            env.hold()
+        else:
+            env.dispatch(*action)

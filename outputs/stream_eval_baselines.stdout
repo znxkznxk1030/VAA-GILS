@@ -1,0 +1,52 @@
+executed 450 new jobs -> /Users/yskim/Documents/Codex/2026-06-30/files-mentioned-by-the-user-codex/outputs/stream_eval.jsonl
+Normalized objective J / mean truck work (mean over 5 test streams)
+size load demand             FCFS-VAA       FCFS-Backlog         Cyclic-VAA        Cyclic-GILS Cyclic-GILS-strict              RL-BC             RL-PPO
+S    0.5  uniform               1.895              1.914              2.125              2.086              3.913              1.895                  -
+S    0.5  skewed                1.806              1.641              2.333              2.129              4.812              1.806                  -
+S    0.6  uniform               2.003              2.137              2.393              2.369             18.623              2.003                  -
+S    0.6  skewed                1.663              1.627              2.485              2.168             23.083              1.663                  -
+S    0.7  uniform               2.178              2.634              2.879              2.898             51.186              2.178                  -
+S    0.7  skewed                1.588              1.725              2.978              2.369             22.536              1.588                  -
+M    0.5  uniform               1.962              2.082              2.092              2.078             11.511              1.962                  -
+M    0.5  skewed                1.932              1.747              2.461              2.185             20.206              1.932                  -
+M    0.6  uniform               2.019              2.243              2.324              2.272             43.376              2.019                  -
+M    0.6  skewed                1.720              1.742              2.882              2.317             41.133              1.720                  -
+M    0.7  uniform               2.953              4.650              4.734              4.682             66.687              2.953                  -
+M    0.7  skewed                1.700              1.950              6.262              2.863             59.400              1.700                  -
+L    0.5  uniform               1.948              2.157              2.012              2.004             33.811              1.948                  -
+L    0.5  skewed                1.903              1.792              2.461              2.253             42.172              1.903                  -
+L    0.6  uniform               2.142              2.494              2.464              2.425             60.137              2.142                  -
+L    0.6  skewed                1.743              1.790              2.716              2.344             66.406              1.743                  -
+L    0.7  uniform               5.911              8.449              7.674              7.313             68.478              5.911                  -
+L    0.7  skewed                1.739              2.030              8.200              3.666             74.624              1.739                  -
+
+Relative to FCFS-VAA (%; mean of per-stream ratios, negative = better)
+  S  : FCFS-VAA=+0.0  FCFS-Backlog=+4.5  Cyclic-VAA=+38.5  Cyclic-GILS=+26.7  Cyclic-GILS-strict=+985.6  RL-BC=+0.0  RL-PPO=-
+  M  : FCFS-VAA=+0.0  FCFS-Backlog=+13.5  Cyclic-VAA=+74.5  Cyclic-GILS=+32.4  Cyclic-GILS-strict=+1895.6  RL-BC=+0.0  RL-PPO=-
+  L  : FCFS-VAA=+0.0  FCFS-Backlog=+14.1  Cyclic-VAA=+84.3  Cyclic-GILS=+34.2  Cyclic-GILS-strict=+2583.1  RL-BC=+0.0  RL-PPO=-
+  all: FCFS-VAA=+0.0  FCFS-Backlog=+10.7  Cyclic-VAA=+65.8  Cyclic-GILS=+31.1  Cyclic-GILS-strict=+1821.4  RL-BC=+0.0  RL-PPO=-
+
+Paired Wilcoxon (two-sided) of RL-PPO vs each method, per-stream J
+
+Diagnostics (mean over all streams of a size)
+  size S
+    FCFS-VAA            mean_lead=553 mean_tardiness=2.45 mean_yard_wait=34.5 utilization=0.566 empty_outbound_rate=0.0688 undelivered_units=0 hold_rate=0 decide_ms_mean=0.0104 decide_ms_max=0.41
+    FCFS-Backlog        mean_lead=571 mean_tardiness=9.18 mean_yard_wait=76.2 utilization=0.663 empty_outbound_rate=0.073 undelivered_units=0 hold_rate=0 decide_ms_mean=0.00966 decide_ms_max=0.164
+    Cyclic-VAA          mean_lead=724 mean_tardiness=36.9 mean_yard_wait=258 utilization=0.736 empty_outbound_rate=0.117 undelivered_units=0 hold_rate=0.431 decide_ms_mean=0.0291 decide_ms_max=4.39 cycle_wait=128 plan_ms_mean=0.188 plan_ms_max=4.38
+    Cyclic-GILS         mean_lead=677 mean_tardiness=24.5 mean_yard_wait=234 utilization=0.705 empty_outbound_rate=0.112 undelivered_units=0 hold_rate=0.452 decide_ms_mean=5.74 decide_ms_max=86.6 cycle_wait=128 plan_ms_mean=42.3 plan_ms_max=72.9
+    Cyclic-GILS-strict  mean_lead=3.69e+03 mean_tardiness=2.42e+03 mean_yard_wait=2.82e+03 utilization=0.619 empty_outbound_rate=0.257 undelivered_units=36.1 hold_rate=0.663 decide_ms_mean=4.15 decide_ms_max=118 cycle_wait=128 plan_ms_mean=47 plan_ms_max=117
+    RL-BC               mean_lead=553 mean_tardiness=2.45 mean_yard_wait=34.5 utilization=0.566 empty_outbound_rate=0.0688 undelivered_units=0 hold_rate=0 decide_ms_mean=0.194 decide_ms_max=4.13
+  size M
+    FCFS-VAA            mean_lead=1.11e+03 mean_tardiness=20.7 mean_yard_wait=112 utilization=0.637 empty_outbound_rate=0.024 undelivered_units=0 hold_rate=0 decide_ms_mean=0.0141 decide_ms_max=0.391
+    FCFS-Backlog        mean_lead=1.25e+03 mean_tardiness=79.2 mean_yard_wait=253 utilization=0.748 empty_outbound_rate=0.0249 undelivered_units=0 hold_rate=0 decide_ms_mean=0.0129 decide_ms_max=0.405
+    Cyclic-VAA          mean_lead=1.61e+03 mean_tardiness=232 mean_yard_wait=696 utilization=0.808 empty_outbound_rate=0.086 undelivered_units=0 hold_rate=0.389 decide_ms_mean=0.0457 decide_ms_max=4.03 cycle_wait=236 plan_ms_mean=0.393 plan_ms_max=3.98
+    Cyclic-GILS         mean_lead=1.39e+03 mean_tardiness=122 mean_yard_wait=533 utilization=0.762 empty_outbound_rate=0.0747 undelivered_units=0 hold_rate=0.445 decide_ms_mean=7.63 decide_ms_max=131 cycle_wait=236 plan_ms_mean=83.4 plan_ms_max=123
+    Cyclic-GILS-strict  mean_lead=1.27e+04 mean_tardiness=9.87e+03 mean_yard_wait=1.07e+04 utilization=0.63 empty_outbound_rate=0.202 undelivered_units=294 hold_rate=0.681 decide_ms_mean=5.37 decide_ms_max=144 cycle_wait=236 plan_ms_mean=87.4 plan_ms_max=144
+    RL-BC               mean_lead=1.11e+03 mean_tardiness=20.7 mean_yard_wait=112 utilization=0.637 empty_outbound_rate=0.024 undelivered_units=0 hold_rate=0 decide_ms_mean=0.284 decide_ms_max=5.27
+  size L
+    FCFS-VAA            mean_lead=1.7e+03 mean_tardiness=193 mean_yard_wait=386 utilization=0.685 empty_outbound_rate=0.0167 undelivered_units=0 hold_rate=0 decide_ms_mean=0.0192 decide_ms_max=0.154
+    FCFS-Backlog        mean_lead=1.98e+03 mean_tardiness=351 mean_yard_wait=615 utilization=0.801 empty_outbound_rate=0.0148 undelivered_units=0 hold_rate=0 decide_ms_mean=0.0241 decide_ms_max=1.33
+    Cyclic-VAA          mean_lead=2.53e+03 mean_tardiness=662 mean_yard_wait=1.27e+03 utilization=0.845 empty_outbound_rate=0.0768 undelivered_units=0 hold_rate=0.372 decide_ms_mean=0.0813 decide_ms_max=12.3 cycle_wait=266 plan_ms_mean=0.942 plan_ms_max=7.34
+    Cyclic-GILS         mean_lead=2.12e+03 mean_tardiness=362 mean_yard_wait=895 utilization=0.805 empty_outbound_rate=0.0674 undelivered_units=0 hold_rate=0.428 decide_ms_mean=10.7 decide_ms_max=256 cycle_wait=266 plan_ms_mean=153 plan_ms_max=242
+    Cyclic-GILS-strict  mean_lead=2.26e+04 mean_tardiness=1.91e+04 mean_yard_wait=2.03e+04 utilization=0.572 empty_outbound_rate=0.166 undelivered_units=1.02e+03 hold_rate=0.7 decide_ms_mean=8.57 decide_ms_max=304 cycle_wait=266 plan_ms_mean=170 plan_ms_max=304
+    RL-BC               mean_lead=1.7e+03 mean_tardiness=193 mean_yard_wait=386 utilization=0.685 empty_outbound_rate=0.0167 undelivered_units=0 hold_rate=0 decide_ms_mean=0.479 decide_ms_max=11.8

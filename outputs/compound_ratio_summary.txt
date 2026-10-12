@@ -1,0 +1,36 @@
+executed 3960 new jobs -> /Users/yskim/Documents/Codex/2026-06-30/files-mentioned-by-the-user-codex/.claude/worktrees/novelty-toy-example/outputs/compound_ratio.jsonl
+Compound-truck ratio sensitivity (M total 18 trucks, 20 instances per cell, 5 reps for SA-RL5/GILS)
+gap = mean % above the best objective observed on the instance over all runs (lower is better);
+impr = per-instance % improvement of VAA-GILS over the method (positive = GILS better), Wilcoxon on instance means
+
+grid     |I|/|F|  ratio      TW   n      VAA gap   SA-RL5 gap VAA-GILS gap  impr vs VAA        p  impr vs SA        p  GILS<SA  GILS s
+doors15     6/12   0.33    none  20         2.40         1.58         0.30        +2.02  1.9e-06       +1.25  1.9e-06    20/20    0.60
+doors15     6/12   0.33  medium  20         2.32         1.09         0.11        +2.14  1.9e-06       +0.97  1.9e-06    20/20    0.78
+doors15     6/12   0.33   tight  20         2.04         0.87         0.05        +1.93  1.9e-06       +0.82  1.9e-06    20/20    0.83
+doors15     6/12   0.33     all  60         2.25         1.18         0.15        +2.03  1.7e-11       +1.01  1.7e-11    60/60    0.74
+
+doors15     12/6   0.67    none  20         3.54         1.58         0.18        +3.23  1.9e-06       +1.37  1.9e-06    20/20    0.87
+doors15     12/6   0.67  medium  20         1.92         1.41         0.09        +1.78  1.9e-06       +1.29  1.9e-06    20/20    0.97
+doors15     12/6   0.67   tight  20         1.33         0.89         0.04        +1.26  1.9e-06       +0.84  1.9e-06    20/20    0.92
+doors15     12/6   0.67     all  60         2.26         1.29         0.11        +2.09  1.7e-11       +1.17  1.7e-11    60/60    0.92
+
+doors15     15/3   0.83    none  20         5.91         1.82         0.12        +5.43  1.9e-06       +1.67  1.9e-06    20/20    0.95
+doors15     15/3   0.83  medium  20         2.41         1.80         0.12        +2.21  1.9e-06       +1.65  1.9e-06    20/20    0.97
+doors15     15/3   0.83   tight  20         1.26         1.05         0.07        +1.17  1.9e-06       +0.97  1.9e-06    20/20    0.98
+doors15     15/3   0.83     all  60         3.19         1.56         0.10        +2.94  1.7e-11       +1.43  1.7e-11    60/60    0.96
+
+doors12     6/12   0.33    none  20         2.73         1.61         0.22        +2.41  1.9e-06       +1.36  1.9e-06    20/20    0.61
+doors12     6/12   0.33  medium  20         2.25         1.09         0.07        +2.12  1.9e-06       +1.01  1.9e-06    20/20    0.77
+doors12     6/12   0.33   tight  20         1.56         0.68         0.07        +1.46  1.9e-06       +0.61  1.9e-06    20/20    0.72
+doors12     6/12   0.33     all  60         2.18         1.13         0.12        +2.00  1.7e-11       +0.99  1.7e-11    60/60    0.70
+
+doors12      9/9   0.50    none  20         1.64         1.26         0.29        +1.32  1.9e-06       +0.95  1.9e-06    20/20    0.68
+doors12      9/9   0.50  medium  20         2.16         1.23         0.12        +1.98  1.9e-06       +1.09  1.9e-06    20/20    0.78
+doors12      9/9   0.50   tight  20         1.15         0.86         0.08        +1.05  1.9e-06       +0.77  1.9e-06    20/20    1.12
+doors12      9/9   0.50     all  60         1.65         1.12         0.16        +1.45  1.7e-11       +0.94  1.7e-11    60/60    0.86
+
+doors12     12/6   0.67    none  20         3.63         2.03         0.14        +3.35  1.9e-06       +1.85  1.9e-06    20/20    1.19
+doors12     12/6   0.67  medium  20         2.37         1.45         0.15        +2.12  1.9e-06       +1.28  1.9e-06    20/20    1.19
+doors12     12/6   0.67   tight  20         1.44         0.93         0.11        +1.30  1.9e-06       +0.81  1.9e-06    20/20    1.24
+doors12     12/6   0.67     all  60         2.48         1.47         0.13        +2.26  1.7e-11       +1.31  1.7e-11    60/60    1.20
+

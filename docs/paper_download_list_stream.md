@@ -20,6 +20,10 @@
 | S09 | Cross-dock trailer scheduling with workforce constraints: A dynamic discretization discovery approach. *Transportation Science*, 59(1), 165–186 (2025). 저자 (확인 필요) | LTL 실제 데이터 사용 여부, 트레일러 도착·처리 파라미터 |
 | S10 | Torbali, B., & Alpan, G. (2023). A multi-agent-based real-time truck scheduling model for cross-docking problems with single inbound and outbound doors. *Supply Chain Analytics*, 3, 100028. 및 Torbali 박사논문 "Real-time Truck Scheduling in Cross-Docking: A Hybrid Multi-Agent Simulation Framework" (연도·기관 확인 필요) | 시간당 팔레트 수 등 파라미터의 근거(산업 출처인지), 다중 도어(2–20) 실험 설계, 비교 규칙 |
 
+| S21 | Ertek, G. (2012). Crossdocking insights from a third party logistics firm in Turkey. (Shahmardan & Sajadieh 2020이 3PL 실무 근거로 인용, 출처 형식 확인 필요) | 실제 3PL 크로스도크 운영 수치, 같은 트럭의 하역·재적재 사례 여부 |
+| S22 | Morais, V. W. C., Mateus, G. R., & Noronha, T. F. (2014). Iterated local search heuristics for the vehicle routing problem with cross-docking. *Expert Systems with Applications* (권호 확인 필요) | 수거·배송 겸용 차량 가정의 실무 근거(병행 트럭 정당화) |
+| S23 | Tarantilis, C. D. (2013). Adaptive multi-restart tabu search algorithm for the vehicle routing problem with cross-docking. *Optimization Letters* (확인 필요) | 같은 목적 |
+
 ## B. 가장 가까운 경쟁·비교 연구 (원문 대조)
 
 | 번호 | 서지 | 확인할 내용 |

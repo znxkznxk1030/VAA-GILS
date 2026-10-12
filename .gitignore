@@ -6,3 +6,6 @@ tmp/
 .DS_Store
 outputs/archive/
 ~$*
+
+# copyrighted reference PDFs (stream research)
+refs/

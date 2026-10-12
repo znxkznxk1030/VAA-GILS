@@ -101,6 +101,31 @@ def retained(sol: Solution) -> str:
     return ", ".join(f"{t}->{sol.compound_assignment[t][0]}" for t in TRUCKS)
 
 
+def waits_for(sol: Solution) -> str:
+    """For every carrier, the other trucks whose unloaded freight it must wait for."""
+
+    parts = []
+    for t in TRUCKS:
+        d = DESTS.index(sol.compound_assignment[t][0])
+        src = [u for i, u in enumerate(TRUCKS) if u != t and UNITS[i, d] > 0]
+        parts.append(f"{t}<-{'+'.join(src) if src else 'none'}")
+    return ", ".join(parts)
+
+
+def late_dependents(sol: Solution, late: str = "I3") -> str:
+    """Carriers that wait for the late truck's freight, and how many units."""
+
+    i = TRUCKS.index(late)
+    out = []
+    for t in TRUCKS:
+        if t == late:
+            continue
+        d = DESTS.index(sol.compound_assignment[t][0])
+        if UNITS[i, d] > 0:
+            out.append(f"{t}({UNITS[i, d]:g})")
+    return ", ".join(out) if out else "none"
+
+
 def finishes(res) -> str:
     return ", ".join(f"{t} {res.truck_finish[t]:g}" for t in TRUCKS)
 
@@ -127,6 +152,8 @@ def main() -> None:
         ("arrival (r_I1, r_I2, r_I3)", "0, 0, 0", f"0, 0, {R3:g}", f"0, 0, {R3:g}"),
         ("soft due (I1, I2, I3)", "none", ", ".join(f"{DUE[t]:g}" for t in TRUCKS), ", ".join(f"{DUE[t]:g}" for t in TRUCKS)),
         ("retained destination", retained(b_sol), retained(b_sol), retained(e_sol)),
+        ("carrier waits for freight of", waits_for(b_sol), waits_for(b_sol), waits_for(e_sol)),
+        ("carriers waiting on I3 (units)", late_dependents(b_sol), late_dependents(b_sol), late_dependents(e_sol)),
         ("finish (I1, I2, I3)", finishes(b_res), finishes(x_res), finishes(e_res)),
         ("makespan", f"{b_res.makespan:g}", f"{x_res.makespan:g}", f"{e_res.makespan:g}"),
         ("total tardiness", "n/a", f"{x_res.total_tardiness:g}", f"{e_res.total_tardiness:g}"),

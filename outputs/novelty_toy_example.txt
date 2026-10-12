@@ -4,14 +4,16 @@ CP-SAT check extended: status=OPTIMAL objective=35 enumeration=35
 instance: units (D1,D2,D3) I1=[4.0, 8.0, 3.0] I2=[8.0, 4.0, 0.0] I3=[3.0, 8.0, 0.0], enter=leave=1, travel=|door difference|, lambda=1
 extended: release I1=0 I2=0 I3=15; due {'I1': 20.0, 'I2': 25.0, 'I3': 45.0}
 
-                                 base optimum            base plan, extended data  extended optimum      
-arrival (r_I1, r_I2, r_I3)       0, 0, 0                 0, 0, 15                  0, 0, 15              
-soft due (I1, I2, I3)            none                    20, 25, 45                20, 25, 45            
-retained destination             I1->D2, I2->D1, I3->D3  I1->D2, I2->D1, I3->D3    I1->D3, I2->D1, I3->D2
-finish (I1, I2, I3)              I1 26, I2 21, I3 16     I1 41, I2 36, I3 31       I1 14, I2 28, I3 32   
-makespan                         26                      41                        32                    
-total tardiness                  n/a                     32                        3                     
-J = makespan + lambda*tardiness  26                      73                        35                    
+                                 base optimum                  base plan, extended data      extended optimum              
+arrival (r_I1, r_I2, r_I3)       0, 0, 0                       0, 0, 15                      0, 0, 15                      
+soft due (I1, I2, I3)            none                          20, 25, 45                    20, 25, 45                    
+retained destination             I1->D2, I2->D1, I3->D3        I1->D2, I2->D1, I3->D3        I1->D3, I2->D1, I3->D2        
+carrier waits for freight of     I1<-I2+I3, I2<-I1+I3, I3<-I1  I1<-I2+I3, I2<-I1+I3, I3<-I1  I1<-none, I2<-I1+I3, I3<-I1+I2
+carriers waiting on I3 (units)   I1(8), I2(3)                  I1(8), I2(3)                  I2(3)                         
+finish (I1, I2, I3)              I1 26, I2 21, I3 16           I1 41, I2 36, I3 31           I1 14, I2 28, I3 32           
+makespan                         26                            41                            32                            
+total tardiness                  n/a                           32                            3                             
+J = makespan + lambda*tardiness  26                            73                            35                            
 
 distinct retained-destination patterns among optima: base I1->D2, I2->D1, I3->D3 | extended I1->D3, I2->D1, I3->D2
 cost of planning with the base model: J 73 vs 35 (+108.6%)

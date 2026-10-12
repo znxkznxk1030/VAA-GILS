@@ -184,6 +184,9 @@ p = 6.6e-10). 결과 `outputs/stream_cycle_quality.{jsonl,txt}`.
 
 ## 6. 다음 단계
 
+2026-10-12 기준 후속 제안(다음 RL 방법, MARL, 기준해 설계, 산업 데이터 조사)은
+[stream_rl_roadmap_2026-10-12.md](stream_rl_roadmap_2026-10-12.md), 문헌은 [literature_scan_stream_rl.md](literature_scan_stream_rl.md)에 있다.
+
 **연구 자체의 보강**
 
 1. 증류 개선: 교사 점수를 소프트 레이블로 쓰기, 망 확대, 데이터 증가, 학습 규모에 L 포함 여부 비교,

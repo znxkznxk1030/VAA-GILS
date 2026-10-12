@@ -95,6 +95,10 @@
 | FCFS-Backlog | 병행 트럭이 자기 화물 + 대기 화물 기준으로 목적지 선택 | `FCFSRulePolicy(backlog=True)` |
 | Cyclic-VAA | 원 방법을 그대로 쓰기 위해 도착순 \|D\|대를 한 사이클(\|I_c\| + \|F_c\| = \|D\|)로 묶어 정적 인스턴스로 만들고 VAA로 계획. 계획 도어가 바쁘면 가장 가까운 빈 도어를 쓰고, 출고트럭은 같은 사이클에서 해당 목적지 화물을 실은 병행 트럭이 모두 도킹한 뒤 보낸다(유연 실행) | `CyclicPlanPolicy(iterations=0)` |
 | Cyclic-GILS | 위와 같되 사이클마다 VAA-GILS 1,000회(논문 최종 엔진: 균등 선택, greedy 수락) | `CyclicPlanPolicy(iterations=1000)` |
+| Cyclic-SA-RL5 | 같은 틀에서 사이클마다 원 논문의 SA-RL5(Extended-SA-RL5, 1,000회) | `CyclicPlanPolicy(solver="sa-rl5")` |
+| Cyclic-CPSAT | 같은 틀에서 사이클마다 CP-SAT(10초, 1 worker, 해가 없으면 GILS) | `CyclicPlanPolicy(solver="cpsat")` |
+| SPT-VAA | 앞 6대 중 처리시간(진입·출차 + 자기 화물 또는 가져갈 대기 화물)이 가장 짧은 트럭 먼저, 목적지·도어는 FCFS-VAA | `SPTRulePolicy()` |
+| Random | 앞 6대 트럭·빈 도어·목적지 무작위, 보류 없음 | `RandomPolicy()` |
 | Cyclic-GILS-strict | 같은 계획을 계획한 도어가 빌 때까지 기다리며 그대로 실행 | `execution="strict"` |
 | RL-BC | FCFS-VAA를 모방한 정책망(행동이 FCFS-VAA와 같음) | `stream/rl.py` |
 | RL-PPO | BC로 시작한 PPO v2, 조정 집합 기준 최선 체크포인트 | `outputs/stream_rl/ppo2_tau1.pt` |
@@ -146,7 +150,9 @@ python experiments/stream_rl_train.py --name ppo2_tau1 --tau-sla 1.0       # PPO
 python experiments/stream_rollout_probe.py --samples 8 --horizon 1.0       # Rollout의 조정 집합 점수
 python experiments/stream_api_train.py --name api --rounds 6 --episodes 16 # Rollout 증류(DAgger)
 python experiments/stream_eval.py --workers 4                              # 시험 집합 평가(빠진 작업만 실행) + 요약
+python experiments/stream_eval.py --sizes S,M --methods SPT-VAA,Random,Cyclic-SA-RL5,Cyclic-CPSAT  # 추가 기준(5.4절)
 python experiments/stream_eval.py summary                                  # 요약만
+python experiments/stream_cycle_quality.py                                 # 사이클 단위 품질(tuning 풀)
 python experiments/stream_behavior.py                                      # 정책 행동 진단(조정 집합)
 ```
 

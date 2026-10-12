@@ -1,29 +1,58 @@
 Normalized objective J / mean truck work (mean over 5 test streams)
-size load demand             FCFS-VAA       FCFS-Backlog         Cyclic-VAA        Cyclic-GILS Cyclic-GILS-strict              RL-BC             RL-PPO            Rollout             RL-API
-S    0.5  uniform               1.895              1.914              2.125              2.086              3.913              1.895              1.895              1.737              1.771
-S    0.5  skewed                1.806              1.641              2.333              2.129              4.812              1.806              1.806              1.456              1.470
-S    0.6  uniform               2.003              2.137              2.393              2.369             18.623              2.003              2.003              1.834              1.878
-S    0.6  skewed                1.663              1.627              2.485              2.168             23.083              1.663              1.662              1.385              1.409
-S    0.7  uniform               2.178              2.634              2.879              2.898             51.186              2.178              2.178              1.879              1.963
-S    0.7  skewed                1.588              1.725              2.978              2.369             22.536              1.588              1.588              1.363              1.363
-M    0.5  uniform               1.962              2.082              2.092              2.078             11.511              1.962              1.962              1.806              1.865
-M    0.5  skewed                1.932              1.747              2.461              2.185             20.206              1.932              1.932              1.502              1.517
-M    0.6  uniform               2.019              2.243              2.324              2.272             43.376              2.019              2.019              1.849              1.931
-M    0.6  skewed                1.720              1.742              2.882              2.317             41.133              1.720              1.720              1.422              1.452
-M    0.7  uniform               2.953              4.650              4.734              4.682             66.687              2.953              2.953              2.073              2.682
-M    0.7  skewed                1.700              1.950              6.262              2.863             59.400              1.700              1.700              1.439              1.469
-L    0.5  uniform               1.948              2.157              2.012              2.004             33.811              1.948              1.948              1.796              2.056
-L    0.5  skewed                1.903              1.792              2.461              2.253             42.172              1.903              1.903              1.489              1.560
-L    0.6  uniform               2.142              2.494              2.464              2.425             60.137              2.142              2.142              1.935              2.196
-L    0.6  skewed                1.743              1.790              2.716              2.344             66.406              1.743              1.743              1.441              1.479
-L    0.7  uniform               5.911              8.449              7.674              7.313             68.478              5.911              5.911              2.835              5.113
-L    0.7  skewed                1.739              2.030              8.200              3.666             74.624              1.739              1.739              1.455              1.492
+size load demand             FCFS-VAA       FCFS-Backlog            SPT-VAA             Random         Cyclic-VAA      Cyclic-SA-RL5        Cyclic-GILS       Cyclic-CPSAT Cyclic-GILS-strict              RL-BC             RL-PPO            Rollout             RL-API
+S    0.5  uniform               1.895              1.914              1.907              2.846              2.125              2.087              2.086              2.095              3.913              1.895              1.895              1.737              1.771
+S    0.5  skewed                1.806              1.641              1.806              3.184              2.333              2.131              2.129              2.126              4.812              1.806              1.806              1.456              1.470
+S    0.6  uniform               2.003              2.137              2.024              3.117              2.393              2.367              2.369              2.375             18.623              2.003              2.003              1.834              1.878
+S    0.6  skewed                1.663              1.627              1.666              3.301              2.485              2.182              2.168              2.174             23.083              1.663              1.662              1.385              1.409
+S    0.7  uniform               2.178              2.634              2.181              4.155              2.879              2.882              2.898              2.863             51.186              2.178              2.178              1.879              1.963
+S    0.7  skewed                1.588              1.725              1.600              4.806              2.978              2.463              2.369              2.473             22.536              1.588              1.588              1.363              1.363
+M    0.5  uniform               1.962              2.082              1.977              2.872              2.092              2.091              2.078              2.097             11.511              1.962              1.962              1.806              1.865
+M    0.5  skewed                1.932              1.747              1.933              3.387              2.461              2.190              2.185              2.189             20.206              1.932              1.932              1.502              1.517
+M    0.6  uniform               2.019              2.243              2.044              2.992              2.324              2.311              2.272              2.309             43.376              2.019              2.019              1.849              1.931
+M    0.6  skewed                1.720              1.742              1.729              3.625              2.882              2.392              2.317              2.325             41.133              1.720              1.720              1.422              1.452
+M    0.7  uniform               2.953              4.650              2.608              8.970              4.734              4.489              4.682              4.358             66.687              2.953              2.953              2.073              2.682
+M    0.7  skewed                1.700              1.950              1.709              7.951              6.262              2.960              2.863              2.926             59.400              1.700              1.700              1.439              1.469
+L    0.5  uniform               1.948              2.157                  -                  -              2.012                  -              2.004                  -             33.811              1.948              1.948              1.796              2.056
+L    0.5  skewed                1.903              1.792                  -                  -              2.461                  -              2.253                  -             42.172              1.903              1.903              1.489              1.560
+L    0.6  uniform               2.142              2.494                  -                  -              2.464                  -              2.425                  -             60.137              2.142              2.142              1.935              2.196
+L    0.6  skewed                1.743              1.790                  -                  -              2.716                  -              2.344                  -             66.406              1.743              1.743              1.441              1.479
+L    0.7  uniform               5.911              8.449                  -                  -              7.674                  -              7.313                  -             68.478              5.911              5.911              2.835              5.113
+L    0.7  skewed                1.739              2.030                  -                  -              8.200                  -              3.666                  -             74.624              1.739              1.739              1.455              1.492
 
 Relative to FCFS-VAA (%; mean of per-stream ratios, negative = better)
-  S  : FCFS-VAA=+0.0  FCFS-Backlog=+4.5  Cyclic-VAA=+38.5  Cyclic-GILS=+26.7  Cyclic-GILS-strict=+985.6  RL-BC=+0.0  RL-PPO=-0.0  Rollout=-13.4  RL-API=-11.7
-  M  : FCFS-VAA=+0.0  FCFS-Backlog=+13.5  Cyclic-VAA=+74.5  Cyclic-GILS=+32.4  Cyclic-GILS-strict=+1895.6  RL-BC=+0.0  RL-PPO=+0.0  Rollout=-16.5  RL-API=-11.3
-  L  : FCFS-VAA=+0.0  FCFS-Backlog=+14.1  Cyclic-VAA=+84.3  Cyclic-GILS=+34.2  Cyclic-GILS-strict=+2583.1  RL-BC=+0.0  RL-PPO=+0.0  Rollout=-20.6  RL-API=-8.9
-  all: FCFS-VAA=+0.0  FCFS-Backlog=+10.7  Cyclic-VAA=+65.8  Cyclic-GILS=+31.1  Cyclic-GILS-strict=+1821.4  RL-BC=+0.0  RL-PPO=-0.0  Rollout=-16.8  RL-API=-10.6
+                  FCFS-VAA       FCFS-Backlog            SPT-VAA             Random         Cyclic-VAA      Cyclic-SA-RL5        Cyclic-GILS       Cyclic-CPSAT Cyclic-GILS-strict              RL-BC             RL-PPO            Rollout             RL-API
+  S  :                +0.0               +4.5               +0.5              +96.0              +38.5              +27.7              +26.7              +27.6             +985.6               +0.0               -0.0              -13.4              -11.7
+  M  :                +0.0              +13.5               -1.1             +142.6              +74.5              +33.1              +32.4              +31.6            +1895.6               +0.0               +0.0              -16.5              -11.3
+  L  :                +0.0              +14.1                  -                  -              +84.3                  -              +34.2                  -            +2583.1               +0.0               +0.0              -20.6               -8.9
+  all:                +0.0              +10.7               -0.3             +119.3              +65.8              +30.4              +31.1              +29.6            +1821.4               +0.0               -0.0              -16.8              -10.6
+
+Relative to Cyclic-VAA (%; mean of per-stream ratios, negative = better)
+                  FCFS-VAA       FCFS-Backlog            SPT-VAA             Random         Cyclic-VAA      Cyclic-SA-RL5        Cyclic-GILS       Cyclic-CPSAT Cyclic-GILS-strict              RL-BC             RL-PPO            Rollout             RL-API
+  S  :               -25.3              -22.3              -24.9              +39.1               +0.0               -6.7               -7.1               -6.8             +687.0              -25.3              -25.3              -35.1              -33.8
+  M  :               -30.5              -22.4              -31.0              +42.0               +0.0              -13.2              -13.4              -13.9            +1114.6              -30.5              -30.5              -41.4              -37.9
+  L  :               -28.0              -18.2                  -                  -               +0.0                  -              -12.7                  -            +1633.8              -28.0              -28.0              -42.7              -33.1
+  all:               -27.9              -21.0              -28.0              +40.6               +0.0              -10.0              -11.0              -10.4            +1145.1              -27.9              -27.9              -39.7              -34.9
+
+Relative to Cyclic-SA-RL5 (%; mean of per-stream ratios, negative = better)
+                  FCFS-VAA       FCFS-Backlog            SPT-VAA             Random         Cyclic-VAA      Cyclic-SA-RL5        Cyclic-GILS       Cyclic-CPSAT Cyclic-GILS-strict              RL-BC             RL-PPO            Rollout             RL-API
+  S  :               -20.3              -17.3              -19.9              +50.4               +7.8               +0.0               -0.5               -0.0             +737.0              -20.3              -20.3              -30.9              -29.5
+  M  :               -21.7              -12.7              -22.2              +72.6              +24.6               +0.0               -0.2               -0.7            +1344.3              -21.7              -21.7              -34.1              -30.4
+  L  :                   -                  -                  -                  -                  -                  -                  -                  -                  -                  -                  -                  -                  -
+  all:               -21.0              -15.0              -21.1              +61.5              +16.2               +0.0               -0.4               -0.4            +1040.6              -21.0              -21.0              -32.5              -29.9
+
+Relative to Cyclic-GILS (%; mean of per-stream ratios, negative = better)
+                  FCFS-VAA       FCFS-Backlog            SPT-VAA             Random         Cyclic-VAA      Cyclic-SA-RL5        Cyclic-GILS       Cyclic-CPSAT Cyclic-GILS-strict              RL-BC             RL-PPO            Rollout             RL-API
+  S  :               -20.0              -16.9              -19.6              +51.8               +8.6               +0.6               +0.0               +0.6             +736.2              -20.0              -20.0              -30.6              -29.3
+  M  :               -21.3              -12.6              -21.9              +74.0              +26.0               +0.8               +0.0               -0.2            +1351.2              -21.3              -21.3              -33.8              -30.1
+  L  :               -20.4               -9.9                  -                  -              +24.0                  -               +0.0                  -            +1903.8              -20.4              -20.4              -36.6              -26.6
+  all:               -20.6              -13.1              -20.8              +62.9              +19.5               +0.7               +0.0               +0.2            +1330.4              -20.6              -20.6              -33.7              -28.7
+
+Relative to Cyclic-CPSAT (%; mean of per-stream ratios, negative = better)
+                  FCFS-VAA       FCFS-Backlog            SPT-VAA             Random         Cyclic-VAA      Cyclic-SA-RL5        Cyclic-GILS       Cyclic-CPSAT Cyclic-GILS-strict              RL-BC             RL-PPO            Rollout             RL-API
+  S  :               -20.2              -17.2              -19.9              +50.4               +7.9               +0.1               -0.4               +0.0             +740.3              -20.2              -20.3              -30.9              -29.5
+  M  :               -21.2              -12.1              -21.8              +74.7              +26.0               +0.9               +0.5               +0.0            +1358.1              -21.2              -21.2              -33.8              -30.0
+  L  :                   -                  -                  -                  -                  -                  -                  -                  -                  -                  -                  -                  -                  -
+  all:               -20.7              -14.6              -20.9              +62.5              +16.9               +0.5               +0.1               +0.0            +1049.2              -20.7              -20.7              -32.3              -29.7
 
 Paired Wilcoxon (two-sided) of RL-API vs each method, per-stream J
   vs FCFS-VAA            S   n= 30 RL-API better in  30  p=1.8e-06
@@ -34,14 +63,26 @@ Paired Wilcoxon (two-sided) of RL-API vs each method, per-stream J
   vs FCFS-Backlog        M   n= 30 RL-API better in  30  p=1.8e-06
   vs FCFS-Backlog        L   n= 30 RL-API better in  29  p=2.2e-06
   vs FCFS-Backlog        all n= 90 RL-API better in  89  p=2e-16
+  vs SPT-VAA             S   n= 30 RL-API better in  30  p=1.8e-06
+  vs SPT-VAA             M   n= 30 RL-API better in  27  p=0.0002
+  vs SPT-VAA             all n= 60 RL-API better in  57  p=2.3e-09
+  vs Random              S   n= 30 RL-API better in  30  p=1.8e-06
+  vs Random              M   n= 30 RL-API better in  30  p=1.8e-06
+  vs Random              all n= 60 RL-API better in  60  p=1.7e-11
   vs Cyclic-VAA          S   n= 30 RL-API better in  30  p=1.8e-06
   vs Cyclic-VAA          M   n= 30 RL-API better in  30  p=1.8e-06
   vs Cyclic-VAA          L   n= 30 RL-API better in  28  p=6e-06
   vs Cyclic-VAA          all n= 90 RL-API better in  88  p=3e-16
+  vs Cyclic-SA-RL5       S   n= 30 RL-API better in  30  p=1.8e-06
+  vs Cyclic-SA-RL5       M   n= 30 RL-API better in  30  p=1.8e-06
+  vs Cyclic-SA-RL5       all n= 60 RL-API better in  60  p=1.7e-11
   vs Cyclic-GILS         S   n= 30 RL-API better in  30  p=1.8e-06
   vs Cyclic-GILS         M   n= 30 RL-API better in  30  p=1.8e-06
   vs Cyclic-GILS         L   n= 30 RL-API better in  27  p=7.3e-06
   vs Cyclic-GILS         all n= 90 RL-API better in  87  p=3.5e-16
+  vs Cyclic-CPSAT        S   n= 30 RL-API better in  30  p=1.8e-06
+  vs Cyclic-CPSAT        M   n= 30 RL-API better in  30  p=1.8e-06
+  vs Cyclic-CPSAT        all n= 60 RL-API better in  60  p=1.7e-11
   vs Cyclic-GILS-strict  S   n= 30 RL-API better in  30  p=1.8e-06
   vs Cyclic-GILS-strict  M   n= 30 RL-API better in  30  p=1.8e-06
   vs Cyclic-GILS-strict  L   n= 30 RL-API better in  30  p=1.8e-06
@@ -68,14 +109,26 @@ Paired Wilcoxon (two-sided) of Rollout vs each method, per-stream J
   vs FCFS-Backlog        M   n= 30 Rollout better in  30  p=1.8e-06
   vs FCFS-Backlog        L   n= 30 Rollout better in  30  p=1.8e-06
   vs FCFS-Backlog        all n= 90 Rollout better in  90  p=1.8e-16
+  vs SPT-VAA             S   n= 30 Rollout better in  30  p=1.8e-06
+  vs SPT-VAA             M   n= 30 Rollout better in  30  p=1.8e-06
+  vs SPT-VAA             all n= 60 Rollout better in  60  p=1.7e-11
+  vs Random              S   n= 30 Rollout better in  30  p=1.8e-06
+  vs Random              M   n= 30 Rollout better in  30  p=1.8e-06
+  vs Random              all n= 60 Rollout better in  60  p=1.7e-11
   vs Cyclic-VAA          S   n= 30 Rollout better in  30  p=1.8e-06
   vs Cyclic-VAA          M   n= 30 Rollout better in  30  p=1.8e-06
   vs Cyclic-VAA          L   n= 30 Rollout better in  30  p=1.8e-06
   vs Cyclic-VAA          all n= 90 Rollout better in  90  p=1.8e-16
+  vs Cyclic-SA-RL5       S   n= 30 Rollout better in  30  p=1.8e-06
+  vs Cyclic-SA-RL5       M   n= 30 Rollout better in  30  p=1.8e-06
+  vs Cyclic-SA-RL5       all n= 60 Rollout better in  60  p=1.7e-11
   vs Cyclic-GILS         S   n= 30 Rollout better in  30  p=1.8e-06
   vs Cyclic-GILS         M   n= 30 Rollout better in  30  p=1.8e-06
   vs Cyclic-GILS         L   n= 30 Rollout better in  30  p=1.8e-06
   vs Cyclic-GILS         all n= 90 Rollout better in  90  p=1.8e-16
+  vs Cyclic-CPSAT        S   n= 30 Rollout better in  30  p=1.8e-06
+  vs Cyclic-CPSAT        M   n= 30 Rollout better in  30  p=1.8e-06
+  vs Cyclic-CPSAT        all n= 60 Rollout better in  60  p=1.7e-11
   vs Cyclic-GILS-strict  S   n= 30 Rollout better in  30  p=1.8e-06
   vs Cyclic-GILS-strict  M   n= 30 Rollout better in  30  p=1.8e-06
   vs Cyclic-GILS-strict  L   n= 30 Rollout better in  30  p=1.8e-06
@@ -98,8 +151,12 @@ Diagnostics (mean over all streams of a size)
   size S
     FCFS-VAA            mean_lead=553 mean_tardiness=2.45 mean_yard_wait=34.5 utilization=0.566 empty_outbound_rate=0.0688 undelivered_units=0 hold_rate=0 decide_ms_mean=0.0104 decide_ms_max=0.41
     FCFS-Backlog        mean_lead=571 mean_tardiness=9.18 mean_yard_wait=76.2 utilization=0.663 empty_outbound_rate=0.073 undelivered_units=0 hold_rate=0 decide_ms_mean=0.00966 decide_ms_max=0.164
+    SPT-VAA             mean_lead=554 mean_tardiness=3.78 mean_yard_wait=24.5 utilization=0.562 empty_outbound_rate=0.0884 undelivered_units=0 hold_rate=0 decide_ms_mean=0.0122 decide_ms_max=0.232
+    Random              mean_lead=992 mean_tardiness=74.9 mean_yard_wait=176 utilization=0.759 empty_outbound_rate=0.341 undelivered_units=0 hold_rate=0 decide_ms_mean=0.0046 decide_ms_max=0.0328
     Cyclic-VAA          mean_lead=724 mean_tardiness=36.9 mean_yard_wait=258 utilization=0.736 empty_outbound_rate=0.117 undelivered_units=0 hold_rate=0.431 decide_ms_mean=0.0291 decide_ms_max=4.39 cycle_wait=128 plan_ms_mean=0.188 plan_ms_max=4.38
+    Cyclic-SA-RL5       mean_lead=679 mean_tardiness=25.5 mean_yard_wait=235 utilization=0.706 empty_outbound_rate=0.112 undelivered_units=0 hold_rate=0.451 decide_ms_mean=8.96 decide_ms_max=130 cycle_wait=128 plan_ms_mean=65.3 plan_ms_max=111
     Cyclic-GILS         mean_lead=677 mean_tardiness=24.5 mean_yard_wait=234 utilization=0.705 empty_outbound_rate=0.112 undelivered_units=0 hold_rate=0.452 decide_ms_mean=5.74 decide_ms_max=86.6 cycle_wait=128 plan_ms_mean=42.3 plan_ms_max=72.9
+    Cyclic-CPSAT        mean_lead=678 mean_tardiness=24.9 mean_yard_wait=234 utilization=0.707 empty_outbound_rate=0.111 undelivered_units=0 hold_rate=0.45 decide_ms_mean=10 decide_ms_max=191 cycle_wait=128 plan_ms_mean=72.4 plan_ms_max=181
     Cyclic-GILS-strict  mean_lead=3.69e+03 mean_tardiness=2.42e+03 mean_yard_wait=2.82e+03 utilization=0.619 empty_outbound_rate=0.257 undelivered_units=36.1 hold_rate=0.663 decide_ms_mean=4.15 decide_ms_max=118 cycle_wait=128 plan_ms_mean=47 plan_ms_max=117
     RL-BC               mean_lead=553 mean_tardiness=2.45 mean_yard_wait=34.5 utilization=0.566 empty_outbound_rate=0.0688 undelivered_units=0 hold_rate=0 decide_ms_mean=0.194 decide_ms_max=4.13
     RL-PPO              mean_lead=553 mean_tardiness=2.45 mean_yard_wait=34.5 utilization=0.566 empty_outbound_rate=0.0688 undelivered_units=0 hold_rate=5.49e-05 decide_ms_mean=0.204 decide_ms_max=6.15
@@ -108,8 +165,12 @@ Diagnostics (mean over all streams of a size)
   size M
     FCFS-VAA            mean_lead=1.11e+03 mean_tardiness=20.7 mean_yard_wait=112 utilization=0.637 empty_outbound_rate=0.024 undelivered_units=0 hold_rate=0 decide_ms_mean=0.0141 decide_ms_max=0.391
     FCFS-Backlog        mean_lead=1.25e+03 mean_tardiness=79.2 mean_yard_wait=253 utilization=0.748 empty_outbound_rate=0.0249 undelivered_units=0 hold_rate=0 decide_ms_mean=0.0129 decide_ms_max=0.405
+    SPT-VAA             mean_lead=1.09e+03 mean_tardiness=13.8 mean_yard_wait=65.2 utilization=0.631 empty_outbound_rate=0.0494 undelivered_units=0 hold_rate=0 decide_ms_mean=0.018 decide_ms_max=1.65
+    Random              mean_lead=2.27e+03 mean_tardiness=430 mean_yard_wait=711 utilization=0.835 empty_outbound_rate=0.232 undelivered_units=0 hold_rate=0 decide_ms_mean=0.0048 decide_ms_max=0.179
     Cyclic-VAA          mean_lead=1.61e+03 mean_tardiness=232 mean_yard_wait=696 utilization=0.808 empty_outbound_rate=0.086 undelivered_units=0 hold_rate=0.389 decide_ms_mean=0.0457 decide_ms_max=4.03 cycle_wait=236 plan_ms_mean=0.393 plan_ms_max=3.98
+    Cyclic-SA-RL5       mean_lead=1.4e+03 mean_tardiness=115 mean_yard_wait=529 utilization=0.767 empty_outbound_rate=0.0775 undelivered_units=0 hold_rate=0.438 decide_ms_mean=9.88 decide_ms_max=189 cycle_wait=236 plan_ms_mean=105 plan_ms_max=170
     Cyclic-GILS         mean_lead=1.39e+03 mean_tardiness=122 mean_yard_wait=533 utilization=0.762 empty_outbound_rate=0.0747 undelivered_units=0 hold_rate=0.445 decide_ms_mean=7.63 decide_ms_max=131 cycle_wait=236 plan_ms_mean=83.4 plan_ms_max=123
+    Cyclic-CPSAT        mean_lead=1.38e+03 mean_tardiness=105 mean_yard_wait=517 utilization=0.766 empty_outbound_rate=0.0755 undelivered_units=0 hold_rate=0.44 decide_ms_mean=140 decide_ms_max=4.57e+03 cycle_wait=236 plan_ms_mean=1.59e+03 plan_ms_max=4.54e+03
     Cyclic-GILS-strict  mean_lead=1.27e+04 mean_tardiness=9.87e+03 mean_yard_wait=1.07e+04 utilization=0.63 empty_outbound_rate=0.202 undelivered_units=294 hold_rate=0.681 decide_ms_mean=5.37 decide_ms_max=144 cycle_wait=236 plan_ms_mean=87.4 plan_ms_max=144
     RL-BC               mean_lead=1.11e+03 mean_tardiness=20.7 mean_yard_wait=112 utilization=0.637 empty_outbound_rate=0.024 undelivered_units=0 hold_rate=0 decide_ms_mean=0.284 decide_ms_max=5.27
     RL-PPO              mean_lead=1.11e+03 mean_tardiness=20.7 mean_yard_wait=112 utilization=0.637 empty_outbound_rate=0.024 undelivered_units=0 hold_rate=0 decide_ms_mean=0.258 decide_ms_max=6.86
@@ -125,3 +186,7 @@ Diagnostics (mean over all streams of a size)
     RL-PPO              mean_lead=1.7e+03 mean_tardiness=193 mean_yard_wait=386 utilization=0.685 empty_outbound_rate=0.0167 undelivered_units=0 hold_rate=0 decide_ms_mean=0.357 decide_ms_max=18.9
     Rollout             mean_lead=1.3e+03 mean_tardiness=27.6 mean_yard_wait=162 utilization=0.75 empty_outbound_rate=0.0127 undelivered_units=0 hold_rate=0.0799 decide_ms_mean=227 decide_ms_max=731
     RL-API              mean_lead=1.56e+03 mean_tardiness=146 mean_yard_wait=383 utilization=0.739 empty_outbound_rate=0.0205 undelivered_units=0 hold_rate=0.175 decide_ms_mean=0.394 decide_ms_max=21.6
+
+Cyclic-CPSAT: cycles proved optimal by CP-SAT (10 s per cycle)
+  S: 8923/9043 (98.7%) over 30 streams
+  M: 6042/6056 (99.8%) over 30 streams

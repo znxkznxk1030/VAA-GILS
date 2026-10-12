@@ -8,7 +8,8 @@ import pytest
 import torch
 
 from crossdock_solver.stream.config import stream_config
-from crossdock_solver.stream.policies import CyclicPlanPolicy, FCFSRulePolicy
+from crossdock_solver.stream.policies import CyclicPlanPolicy, FCFSRulePolicy, SPTRulePolicy
+from crossdock_solver.stream.policies import RandomPolicy as RandomDispatch
 from crossdock_solver.stream.rl import (
     DispatchNet,
     RLPolicy,
@@ -36,7 +37,19 @@ class RandomPolicy:
         return self.rng.choice(env.candidates())
 
 
-@pytest.mark.parametrize("policy", [FCFSRulePolicy(), RandomPolicy(), CyclicPlanPolicy(iterations=20)], ids=lambda p: p.name)
+@pytest.mark.parametrize(
+    "policy",
+    [
+        FCFSRulePolicy(),
+        SPTRulePolicy(),
+        RandomPolicy(),
+        RandomDispatch(),
+        CyclicPlanPolicy(iterations=20),
+        CyclicPlanPolicy(iterations=20, solver="sa-rl5"),
+        CyclicPlanPolicy(solver="cpsat", cpsat_time_limit=2.0),
+    ],
+    ids=lambda p: f"{type(p).__name__}-{p.name}",
+)
 def test_freight_is_conserved_and_delivered(policy) -> None:
     env = _env()
     metrics = run_stream(env, policy)

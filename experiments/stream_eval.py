@@ -5,7 +5,10 @@ cell, measurement window = trucks 200..1199 of each stream. L is never seen in
 training (generalization). Methods:
 
     FCFS-VAA, FCFS-Backlog                 dispatching rules
-    Cyclic-VAA, Cyclic-GILS               the static method in cycles of |D| trucks
+    SPT-VAA, Random                       shortest-processing-time sequencing, random dispatching
+    Cyclic-VAA, Cyclic-SA-RL5, Cyclic-GILS the static methods of the JKIIE study in cycles of |D| trucks
+                                          (SA-RL5 = original paper's Q-learning SA, objective with tardiness)
+    Cyclic-CPSAT                          each cycle solved by CP-SAT (per-cycle optimum reference)
     Cyclic-GILS-strict                    same plan, executed on the planned doors
     RL-BC                                 the network after imitation only
     RL-PPO                                the PPO checkpoint selected on tuning
@@ -48,8 +51,12 @@ SEEDS = range(5)
 METHODS = (
     "FCFS-VAA",
     "FCFS-Backlog",
+    "SPT-VAA",
+    "Random",
     "Cyclic-VAA",
+    "Cyclic-SA-RL5",
     "Cyclic-GILS",
+    "Cyclic-CPSAT",
     "Cyclic-GILS-strict",
     "RL-BC",
     "RL-PPO",
@@ -60,6 +67,8 @@ CHECKPOINTS = {
     "RL-PPO": ROOT / "outputs" / "stream_rl" / "ppo2_tau1.pt",
     "RL-API": ROOT / "outputs" / "stream_rl" / "api.pt",
 }
+# references for the relative tables ("how much better than X")
+REFERENCES = ("FCFS-VAA", "Cyclic-VAA", "Cyclic-SA-RL5", "Cyclic-GILS", "Cyclic-CPSAT")
 CELLS = [(s, l, d) for s in SIZES for l in LOADS for d in DEMANDS]
 
 
@@ -89,17 +98,25 @@ def _net(kind: str):
 
 
 def _policy(method: str):
-    from crossdock_solver.stream.policies import CyclicPlanPolicy, FCFSRulePolicy
+    from crossdock_solver.stream.policies import CyclicPlanPolicy, FCFSRulePolicy, RandomPolicy, SPTRulePolicy
     from crossdock_solver.stream.rl import RLPolicy
 
     if method == "FCFS-VAA":
         return FCFSRulePolicy()
     if method == "FCFS-Backlog":
         return FCFSRulePolicy(backlog=True)
+    if method == "SPT-VAA":
+        return SPTRulePolicy()
+    if method == "Random":
+        return RandomPolicy()
     if method == "Cyclic-VAA":
         return CyclicPlanPolicy(iterations=0)
+    if method == "Cyclic-SA-RL5":
+        return CyclicPlanPolicy(iterations=1000, solver="sa-rl5")
     if method == "Cyclic-GILS":
         return CyclicPlanPolicy(iterations=1000)
+    if method == "Cyclic-CPSAT":
+        return CyclicPlanPolicy(solver="cpsat", cpsat_time_limit=10.0)
     if method == "Cyclic-GILS-strict":
         return CyclicPlanPolicy(iterations=1000, execution="strict")
     if method in ("RL-BC", "RL-PPO", "RL-API"):
@@ -166,16 +183,20 @@ def _execute(job: tuple) -> dict:
         record["cycle_wait"] = float(np.mean(inner.cycle_wait)) if inner.cycle_wait else 0.0
         record["plan_ms_mean"] = 1000 * float(np.mean(inner.plan_seconds)) if inner.plan_seconds else 0.0
         record["plan_ms_max"] = 1000 * float(np.max(inner.plan_seconds)) if inner.plan_seconds else 0.0
+        if inner.solver == "cpsat":
+            record["cycles"] = len(inner.plan_seconds)
+            record["cpsat_optimal_cycles"] = inner.cpsat_optimal
     return record
 
 
-def run(workers: int = 6, methods: tuple[str, ...] = METHODS) -> int:
+def run(workers: int = 6, methods: tuple[str, ...] = METHODS, sizes: tuple[str, ...] = SIZES) -> int:
     done = set()
     if OUTPUT.exists():
         done = {json.loads(line)["key"] for line in OUTPUT.read_text().splitlines() if line}
     jobs = [
         (m, s, l, d, r)
         for (s, l, d) in CELLS
+        if s in sizes
         for r in SEEDS
         for m in methods
         if f"{m}|{s}|{l}|{d}|{r}" not in done
@@ -183,8 +204,8 @@ def run(workers: int = 6, methods: tuple[str, ...] = METHODS) -> int:
     if not jobs:
         return 0
     # slow jobs first for better load balance
-    slow = {"Rollout": 0, "Cyclic-GILS-strict": 1, "Cyclic-GILS": 2}
-    jobs.sort(key=lambda j: (slow.get(j[0], 9), j[1] != "L"))
+    slow = {"Cyclic-CPSAT": 0, "Rollout": 1, "Cyclic-GILS-strict": 2, "Cyclic-GILS": 3, "Cyclic-SA-RL5": 3}
+    jobs.sort(key=lambda j: (slow.get(j[0], 9), "LMS".index(j[1])))
     with OUTPUT.open("a", encoding="utf-8") as sink, multiprocessing.Pool(workers) as pool:
         for record in pool.imap_unordered(_execute, jobs):
             sink.write(json.dumps(record) + "\n")
@@ -199,29 +220,32 @@ def summarize() -> str:
     out: list[str] = []
 
     out.append("Normalized objective J / mean truck work (mean over 5 test streams)")
-    header = f"{'size':4} {'load':4} {'demand':8}" + "".join(f"{m:>19}" for m in METHODS)
+    width = max(len(m) for m in METHODS) + 1
+    header = f"{'size':4} {'load':4} {'demand':8}" + "".join(f"{m:>{width}}" for m in METHODS)
     out.append(header)
     for size, load, demand in CELLS:
         row = []
         for m in METHODS:
             vals = [norm(by[(m, size, load, demand, r)]) for r in SEEDS if (m, size, load, demand, r) in by]
-            row.append(f"{statistics.mean(vals):19.3f}" if vals else f"{'-':>19}")
+            row.append(f"{statistics.mean(vals):{width}.3f}" if vals else f"{'-':>{width}}")
         out.append(f"{size:4} {load:<4} {demand:8}" + "".join(row))
 
-    out.append("")
-    out.append("Relative to FCFS-VAA (%; mean of per-stream ratios, negative = better)")
-    for scope in (*SIZES, "all"):
-        cells = [c for c in CELLS if scope in ("all", c[0])]
-        parts = []
-        for m in METHODS:
-            ratios = [
-                100 * (norm(by[(m, *c, r)]) / norm(by[("FCFS-VAA", *c, r)]) - 1)
-                for c in cells
-                for r in SEEDS
-                if (m, *c, r) in by and ("FCFS-VAA", *c, r) in by
-            ]
-            parts.append(f"{m}={statistics.mean(ratios):+.1f}" if ratios else f"{m}=-")
-        out.append(f"  {scope:3}: " + "  ".join(parts))
+    for ref in REFERENCES:
+        out.append("")
+        out.append(f"Relative to {ref} (%; mean of per-stream ratios, negative = better)")
+        out.append(f"  {'':5}" + "".join(f"{m:>{width}}" for m in METHODS))
+        for scope in (*SIZES, "all"):
+            cells = [c for c in CELLS if scope in ("all", c[0])]
+            parts = []
+            for m in METHODS:
+                ratios = [
+                    100 * (norm(by[(m, *c, r)]) / norm(by[(ref, *c, r)]) - 1)
+                    for c in cells
+                    for r in SEEDS
+                    if (m, *c, r) in by and (ref, *c, r) in by
+                ]
+                parts.append(f"{statistics.mean(ratios):+{width}.1f}" if ratios else f"{'-':>{width}}")
+            out.append(f"  {scope:3}: " + "".join(parts))
 
     out.append("")
     for primary in ("RL-API", "Rollout"):
@@ -261,6 +285,16 @@ def summarize() -> str:
                 if xs:
                     vals.append(f"{k}={statistics.mean(xs):.3g}")
             out.append(f"    {m:19} " + " ".join(vals))
+    cp = [r for r in records if r["method"] == "Cyclic-CPSAT" and "cycles" in r]
+    if cp:
+        out.append("")
+        out.append("Cyclic-CPSAT: cycles proved optimal by CP-SAT (10 s per cycle)")
+        for size in SIZES:
+            rows = [r for r in cp if r["size"] == size]
+            if rows:
+                total = sum(r["cycles"] for r in rows)
+                opt = sum(r["cpsat_optimal_cycles"] for r in rows)
+                out.append(f"  {size}: {opt}/{total} ({100 * opt / total:.1f}%) over {len(rows)} streams")
     return "\n".join(out)
 
 
@@ -269,9 +303,10 @@ def main() -> None:
     parser.add_argument("mode", nargs="?", default="run")
     parser.add_argument("--workers", type=int, default=6)
     parser.add_argument("--methods", default=",".join(METHODS))
+    parser.add_argument("--sizes", default=",".join(SIZES))
     args = parser.parse_args()
     if args.mode != "summary":
-        executed = run(args.workers, tuple(args.methods.split(",")))
+        executed = run(args.workers, tuple(args.methods.split(",")), tuple(args.sizes.split(",")))
         print(f"executed {executed} new jobs -> {OUTPUT}")
     print(summarize())
 

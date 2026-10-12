@@ -5,11 +5,15 @@
   handling (the per-truck essence of the VAA regret rule) or, with
   `backlog=True`, own handling plus the waiting backlog; an outbound truck
   serves the destination with the largest claimable backlog.
+- `SPTRulePolicy`: shortest-processing-time sequencing among the front yard
+  trucks, with the FCFS-VAA destination and door rules.
+- `RandomPolicy`: a random front yard truck, free door and destination (no hold).
 - `CyclicPlanPolicy`: the static method applied as-is. Its model needs exactly
   one carrier per destination, so arriving trucks are grouped first-come
   first-served into cycles of |D| trucks (|I_c| + |F_c| = |D|), each cycle is
-  solved as a static instance by VAA or VAA-GILS, and the plan is executed door
-  by door (compound first, then the outbound sequence).
+  solved as a static instance by VAA, VAA-GILS, the original paper's SA-RL5
+  or CP-SAT, and the plan is executed door by door (compound first, then the
+  outbound sequence).
 """
 
 from __future__ import annotations
@@ -18,6 +22,7 @@ import time
 
 import numpy as np
 
+from crossdock_solver.baselines.paper_sa_rl import PaperSARLConfig, run_paper_sa_rl
 from crossdock_solver.baselines.vaa import vaa_solution
 from crossdock_solver.baselines.vaa_qrl import ACTIONS_TW, VaaQRLConfig, run_vaa_qrl
 from crossdock_solver.data.instance import CrossDockInstance
@@ -69,8 +74,66 @@ class FCFSRulePolicy:
         return truck, door, destination
 
 
+class SPTRulePolicy:
+    """Shortest processing time first among the front yard trucks.
+
+    Processing time is the truck's own door work: entry + exit + its freight
+    handling for a compound truck, entry + exit + the backlog it would claim
+    for an outbound truck. Destination and door follow FCFS-VAA. (EDD equals
+    FCFS here because every due date is arrival + the same SLA.)
+    """
+
+    name = "SPT-VAA"
+
+    def act(self, env: CrossDockStream):
+        doors = env.free_doors()
+        waiting = backlog_handling(env)
+        top = float(waiting.max())
+
+        def work(truck: Truck) -> float:
+            own = float(truck.handling.sum()) if truck.compound else top
+            return truck.enter + truck.leave + own
+
+        truck = min(env.yard[: env.max_candidates], key=lambda t: (work(t), t.uid))
+        if truck.compound:
+            destination = int(np.argmax(truck.handling))
+            door = central_door(env, doors)
+        else:
+            destination = int(np.argmax(waiting))
+            door = nearest_door_to_lots(env, doors, destination)
+        return truck, door, destination
+
+
+class RandomPolicy:
+    """Uniformly random (front yard truck, free door, destination); never holds."""
+
+    name = "Random"
+
+    def __init__(self, seed: int = 0) -> None:
+        self.seed = seed
+
+    def reset(self, env: CrossDockStream) -> None:
+        self._rng = np.random.default_rng(self.seed * 100_003 + env.seed)
+
+    def act(self, env: CrossDockStream):
+        rng = self._rng
+        trucks = env.yard[: env.max_candidates]
+        doors = env.free_doors()
+        truck = trucks[int(rng.integers(len(trucks)))]
+        return truck, doors[int(rng.integers(len(doors)))], int(rng.integers(env.config.num_destinations))
+
+
+CYCLIC_SOLVERS = {"vaa": "Cyclic-VAA", "gils": "Cyclic-GILS", "sa-rl5": "Cyclic-SA-RL5", "cpsat": "Cyclic-CPSAT"}
+
+
 class CyclicPlanPolicy:
     """Cycle-wise static planning with VAA (`iterations=0`) or VAA-GILS.
+
+    `solver` overrides the choice: "sa-rl5" runs the original paper's SA-RL5
+    (Q-learning neighbourhood selection + SA acceptance, objective makespan +
+    lambda * tardiness, i.e. Extended-SA-RL5 of the JKIIE study) for
+    `iterations` iterations; "cpsat" solves each cycle with CP-SAT
+    (`cpsat_time_limit` seconds, falling back to VAA-GILS when no incumbent).
 
     The plan fixes each truck's destination and the dispatch order (cycle by
     cycle; compound trucks first, then outbound trucks in door-sequence order).
@@ -81,13 +144,26 @@ class CyclicPlanPolicy:
     the carrier claims that freight as the static model assumes.
     """
 
-    def __init__(self, *, iterations: int = 1000, seed: int = 0, execution: str = "adaptive") -> None:
+    def __init__(
+        self,
+        *,
+        iterations: int = 1000,
+        seed: int = 0,
+        execution: str = "adaptive",
+        solver: str | None = None,
+        cpsat_time_limit: float = 10.0,
+    ) -> None:
         if execution not in ("adaptive", "strict"):
             raise ValueError("execution must be 'adaptive' or 'strict'")
+        solver = solver or ("vaa" if iterations == 0 else "gils")
+        if solver not in CYCLIC_SOLVERS:
+            raise ValueError(f"solver must be one of {sorted(CYCLIC_SOLVERS)}")
         self.iterations = iterations
         self.seed = seed
         self.execution = execution
-        base = "Cyclic-VAA" if iterations == 0 else "Cyclic-GILS"
+        self.solver = solver
+        self.cpsat_time_limit = cpsat_time_limit
+        base = CYCLIC_SOLVERS[solver]
         self.name = base if execution == "adaptive" else f"{base}-strict"
 
     def reset(self, env: CrossDockStream) -> None:
@@ -97,6 +173,7 @@ class CyclicPlanPolicy:
         self._cycle = 0
         self.plan_seconds: list[float] = []
         self.cycle_wait: list[float] = []
+        self.cpsat_optimal = 0  # cycles CP-SAT proved optimal (solver="cpsat")
 
     def act(self, env: CrossDockStream):
         for truck in env.yard:
@@ -131,19 +208,7 @@ class CyclicPlanPolicy:
         entries: list[tuple[Truck, int, int, list[Truck]]] = []
         if compounds:
             instance = cycle_instance(env, compounds, outbounds, env.now)
-            if self.iterations > 0:
-                solution = run_vaa_qrl(
-                    instance,
-                    VaaQRLConfig(
-                        max_iterations=self.iterations,
-                        tardiness_weight=env.config.tardiness_weight,
-                        seed=self.seed * 100_003 + self._cycle,
-                        use_sa_acceptance=False,
-                    ),
-                    selector=UniformSelector(ACTIONS_TW),
-                ).solution
-            else:
-                solution = vaa_solution(instance)
+            solution = self._solve(instance, env.config.tardiness_weight)
             by_name = {f"T{t.uid}": t for t in cycle}
             for name, (dest, door) in sorted(solution.compound_assignment.items(), key=lambda kv: kv[1][1]):
                 entries.append((by_name[name], int(dest[1:]), door, []))
@@ -166,6 +231,41 @@ class CyclicPlanPolicy:
         self.cycle_wait.extend(complete - t.arrival for t in cycle)
         self.plan_seconds.append(time.perf_counter() - start)
         self._cycle += 1
+
+    def _solve(self, instance: CrossDockInstance, weight: float):
+        seed = self.seed * 100_003 + self._cycle
+        if self.solver == "vaa":
+            return vaa_solution(instance)
+        if self.solver == "sa-rl5":
+            return run_paper_sa_rl(
+                instance,
+                PaperSARLConfig(
+                    max_iterations=self.iterations,
+                    tardiness_weight=weight,
+                    seed=seed,
+                    name="Extended-SA-RL5",
+                ),
+            ).solution
+        gils = lambda: run_vaa_qrl(  # noqa: E731
+            instance,
+            VaaQRLConfig(
+                max_iterations=self.iterations,
+                tardiness_weight=weight,
+                seed=seed,
+                use_sa_acceptance=False,
+            ),
+            selector=UniformSelector(ACTIONS_TW),
+        ).solution
+        if self.solver == "gils":
+            return gils()
+        from crossdock_solver.exact.cpsat import ExactCPSATConfig, solve_exact_cpsat
+
+        exact = solve_exact_cpsat(
+            instance,
+            ExactCPSATConfig(time_limit_sec=self.cpsat_time_limit, workers=1, tardiness_weight=weight),
+        )
+        self.cpsat_optimal += exact.proven_optimal
+        return exact.run.solution if exact.run is not None else gils()
 
 
 def cycle_instance(

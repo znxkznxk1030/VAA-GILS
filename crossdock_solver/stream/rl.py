@@ -234,6 +234,23 @@ class RLPolicy:
         return decode(env, index)
 
 
+class LinearScorePolicy:
+    """Same information as the network (candidate_features, HOLD included) but a
+    linear score w . x. With w = e_23 (the rule-indicator feature) it reproduces
+    FCFS-VAA; tuned by experiments/stream_rule_tune.py --kind linear24 as the
+    same-information linear baseline."""
+
+    def __init__(self, weights, name: str = "Tuned-Linear") -> None:
+        self.weights = np.asarray(weights, dtype=np.float32)
+        if self.weights.shape != (NUM_FEATURES,):
+            raise ValueError(f"need {NUM_FEATURES} weights")
+        self.name = name
+
+    def act(self, env: CrossDockStream):
+        feats, _ = candidate_features(env)
+        return decode(env, int(np.argmax(feats @ self.weights)))
+
+
 def decode(env: CrossDockStream, index: int):
     candidates = env.candidates()
     return None if index == len(candidates) else candidates[index]

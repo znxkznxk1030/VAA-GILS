@@ -170,3 +170,29 @@ def test_candidate_index_round_trips() -> None:
             env.hold()
         else:
             env.dispatch(*action)
+
+
+def test_lower_bound_is_below_every_policy() -> None:
+    from crossdock_solver.stream.bounds import stream_lower_bound
+    from crossdock_solver.stream.policies import PriorityRulePolicy
+
+    policies = [FCFSRulePolicy(), SPTRulePolicy(), RandomPolicy(seed=2), PriorityRulePolicy([1, 0, 5, 1, 0, 0, 1, -1, 2])]
+    for load, demand in ((0.5, "uniform"), (0.7, "skewed")):
+        bounds = []
+        for policy in policies:
+            env = _env(load=load, demand=demand)
+            metrics = run_stream(env, policy)
+            bound = stream_lower_bound(env)
+            bounds.append(bound)
+            assert 0 < bound <= metrics.objective + 1e-9
+        assert max(bounds) - min(bounds) < 1e-9  # policy independent
+
+
+def test_linear_policy_at_rule_indicator_reproduces_fcfs() -> None:
+    from crossdock_solver.stream.rl import NUM_FEATURES, LinearScorePolicy
+
+    weights = np.zeros(NUM_FEATURES)
+    weights[23] = 1.0
+    a = run_stream(_env(load=0.7), FCFSRulePolicy())
+    b = run_stream(_env(load=0.7), LinearScorePolicy(weights))
+    assert a.objective == pytest.approx(b.objective)

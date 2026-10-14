@@ -8,6 +8,9 @@
 - `SPTRulePolicy`: shortest-processing-time sequencing among the front yard
   trucks, with the FCFS-VAA destination and door rules.
 - `RandomPolicy`: a random front yard truck, free door and destination (no hold).
+- `PriorityRulePolicy`: a linear priority rule over interpretable (truck,
+  destination) features with a hold threshold; its weights are tuned
+  (experiments/stream_rule_tune.py) and it serves as the tuned-rule baseline.
 - `CyclicPlanPolicy`: the static method applied as-is. Its model needs exactly
   one carrier per destination, so arriving trucks are grouped first-come
   first-served into cycles of |D| trucks (|I_c| + |F_c| = |D|), each cycle is
@@ -121,6 +124,71 @@ class RandomPolicy:
         doors = env.free_doors()
         truck = trucks[int(rng.integers(len(trucks)))]
         return truck, doors[int(rng.integers(len(doors)))], int(rng.integers(env.config.num_destinations))
+
+
+PRIORITY_FEATURES = (
+    "wait",  # time the truck has waited in the yard
+    "slack",  # time left until the truck's due date
+    "own_share",  # share of the truck's own freight bound for d (compound only)
+    "backlog",  # handling of unclaimed lots for d
+    "oldest",  # age of the oldest unclaimed lot for d
+    "since_last",  # time since the last departure to d
+    "outbound",  # 1 for an outbound truck
+    "work",  # the truck's own door work if it serves d (unload of the rest, or the claimable backlog)
+    "unready",  # handling of lots for d still being unloaded (the carrier would wait at the door)
+)
+
+
+class PriorityRulePolicy:
+    """Score every (front yard truck, destination) by a weighted sum of
+    PRIORITY_FEATURES (times in units of the mean truck work), dispatch the best
+    one to the rule door, or hold when the best score is below `threshold`."""
+
+    def __init__(self, weights, threshold: float = -np.inf, name: str = "Tuned-Rule") -> None:
+        self.weights = np.asarray(weights, dtype=float)
+        if self.weights.shape != (len(PRIORITY_FEATURES),):
+            raise ValueError(f"need {len(PRIORITY_FEATURES)} weights")
+        self.threshold = float(threshold)
+        self.name = name
+
+    def features(self, env: CrossDockStream, trucks: list[Truck]) -> np.ndarray:
+        work = env.facility.mean_work
+        now = env.now
+        D = env.config.num_destinations
+        backlog = backlog_handling(env)
+        oldest = np.zeros(D)
+        unready = np.zeros(D)
+        for d, lots in enumerate(env.open_lots):
+            if lots:
+                oldest[d] = now - min(lot.source.arrival for lot in lots)
+                unready[d] = sum(lot.handling for lot in lots if lot.ready > now)
+        since_last = now - env.last_departure
+        out = np.zeros((len(trucks), D, len(PRIORITY_FEATURES)))
+        for i, truck in enumerate(trucks):
+            total = float(truck.handling.sum())
+            f = out[i]
+            f[:, 0] = now - truck.arrival
+            f[:, 1] = truck.due - now
+            f[:, 2] = truck.handling / total if truck.compound and total > 0 else 0.0
+            f[:, 3] = backlog
+            f[:, 4] = oldest
+            f[:, 5] = since_last
+            f[:, 6] = 0.0 if truck.compound else 1.0
+            f[:, 7] = truck.enter + truck.leave + ((total - truck.handling) if truck.compound else backlog)
+            f[:, 8] = unready
+        out[..., [0, 1, 3, 4, 5, 7, 8]] /= work
+        return out
+
+    def act(self, env: CrossDockStream):
+        trucks = env.yard[: env.max_candidates]
+        scores = self.features(env, trucks) @ self.weights  # (T, D)
+        i, d = np.unravel_index(int(np.argmax(scores)), scores.shape)
+        if scores[i, d] < self.threshold:
+            return None
+        truck = trucks[i]
+        doors = env.free_doors()
+        door = central_door(env, doors) if truck.compound else nearest_door_to_lots(env, doors, int(d))
+        return truck, door, int(d)
 
 
 CYCLIC_SOLVERS = {"vaa": "Cyclic-VAA", "gils": "Cyclic-GILS", "sa-rl5": "Cyclic-SA-RL5", "cpsat": "Cyclic-CPSAT"}

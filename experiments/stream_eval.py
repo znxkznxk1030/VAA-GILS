@@ -6,6 +6,8 @@ training (generalization). Methods:
 
     FCFS-VAA, FCFS-Backlog                 dispatching rules
     SPT-VAA, Random                       shortest-processing-time sequencing, random dispatching
+    Tuned-Rule                            linear priority rule tuned by CEM on train/tuning pools (stream_rule_tune.py)
+    Tuned-Linear                          linear score over the RL network's 24 candidate features (same information), tuned likewise
     Cyclic-VAA, Cyclic-SA-RL5, Cyclic-GILS the static methods of the JKIIE study in cycles of |D| trucks
                                           (SA-RL5 = original paper's Q-learning SA, objective with tardiness)
     Cyclic-CPSAT                          each cycle solved by CP-SAT (per-cycle optimum reference)
@@ -53,6 +55,8 @@ METHODS = (
     "FCFS-Backlog",
     "SPT-VAA",
     "Random",
+    "Tuned-Rule",
+    "Tuned-Linear",
     "Cyclic-VAA",
     "Cyclic-SA-RL5",
     "Cyclic-GILS",
@@ -67,6 +71,9 @@ CHECKPOINTS = {
     "RL-PPO": ROOT / "outputs" / "stream_rl" / "ppo2_tau1.pt",
     "RL-API": ROOT / "outputs" / "stream_rl" / "api.pt",
 }
+BOUNDS = ROOT / "outputs" / "stream_bounds.jsonl"
+TUNED_RULE = ROOT / "outputs" / "stream_rl" / "tuned_rule.json"
+TUNED_LINEAR = ROOT / "outputs" / "stream_rl" / "tuned_linear.json"
 # references for the relative tables ("how much better than X")
 REFERENCES = ("FCFS-VAA", "Cyclic-VAA", "Cyclic-SA-RL5", "Cyclic-GILS", "Cyclic-CPSAT")
 CELLS = [(s, l, d) for s in SIZES for l in LOADS for d in DEMANDS]
@@ -109,6 +116,15 @@ def _policy(method: str):
         return SPTRulePolicy()
     if method == "Random":
         return RandomPolicy()
+    if method == "Tuned-Rule":
+        from crossdock_solver.stream.policies import PriorityRulePolicy
+
+        tuned = json.loads(TUNED_RULE.read_text())
+        return PriorityRulePolicy(tuned["weights"], tuned["threshold"])
+    if method == "Tuned-Linear":
+        from crossdock_solver.stream.rl import LinearScorePolicy
+
+        return LinearScorePolicy(json.loads(TUNED_LINEAR.read_text())["weights"], name="Tuned-Linear")
     if method == "Cyclic-VAA":
         return CyclicPlanPolicy(iterations=0)
     if method == "Cyclic-SA-RL5":
@@ -213,6 +229,31 @@ def run(workers: int = 6, methods: tuple[str, ...] = METHODS, sizes: tuple[str, 
     return len(jobs)
 
 
+def _bound(job: tuple) -> dict:
+    from crossdock_solver.stream.bounds import stream_lower_bound
+    from crossdock_solver.stream.policies import FCFSRulePolicy
+
+    size, load, demand, rep = job
+    cell = (size, load, demand)
+    env = CrossDockStream(stream_config(size, load=load, demand=demand), seed=_seed(cell, rep),
+                          measure_from=200, measure_to=1200)
+    run_stream(env, FCFSRulePolicy())  # any policy: the measured trucks do not depend on it
+    return {"key": f"{size}|{load}|{demand}|{rep}", "size": size, "load": load, "demand": demand, "rep": rep,
+            "mean_work": env.facility.mean_work, "lower_bound": stream_lower_bound(env)}
+
+
+def bounds(workers: int, sizes: tuple[str, ...]) -> int:
+    done = set()
+    if BOUNDS.exists():
+        done = {json.loads(line)["key"] for line in BOUNDS.read_text().splitlines() if line}
+    jobs = [(s, l, d, r) for (s, l, d) in CELLS if s in sizes for r in SEEDS if f"{s}|{l}|{d}|{r}" not in done]
+    with BOUNDS.open("a", encoding="utf-8") as sink, multiprocessing.Pool(workers) as pool:
+        for record in pool.imap_unordered(_bound, jobs):
+            sink.write(json.dumps(record) + "\n")
+            sink.flush()
+    return len(jobs)
+
+
 def summarize() -> str:
     records = [json.loads(line) for line in OUTPUT.read_text().splitlines() if line]
     by = {(r["method"], r["size"], r["load"], r["demand"], r["rep"]): r for r in records}
@@ -285,6 +326,34 @@ def summarize() -> str:
                 if xs:
                     vals.append(f"{k}={statistics.mean(xs):.3g}")
             out.append(f"    {m:19} " + " ".join(vals))
+    if BOUNDS.exists():
+        lb = {(b["size"], b["load"], b["demand"], b["rep"]): b["lower_bound"] for b in
+              (json.loads(line) for line in BOUNDS.read_text().splitlines() if line)}
+        out.append("")
+        out.append("Absolute references (per stream): gap % above the lower bound (stream_lower_bound) and above the best")
+        out.append("observed method on that stream (over all methods run on it); mean over the streams that have the bound")
+        out.append(f"  {'':5}" + "".join(f"{m:>{width}}" for m in METHODS))
+        for kind in ("vs LB", "vs best"):
+            for scope in (*SIZES, "all"):
+                keys = [(*c, r) for c in CELLS if scope in ("all", c[0]) for r in SEEDS if (*c, r) in lb]
+                parts = []
+                for m in METHODS:
+                    vals = []
+                    for k in keys:
+                        if (m, *k) not in by:
+                            continue
+                        mine = by[(m, *k)]["objective"]
+                        if kind == "vs LB":
+                            vals.append(100 * (mine / lb[k] - 1))
+                        else:
+                            best = min(by[(o, *k)]["objective"] for o in METHODS if (o, *k) in by)
+                            vals.append(100 * (mine / best - 1))
+                    parts.append(f"{statistics.mean(vals):+{width}.1f}" if vals else f"{'-':>{width}}")
+                out.append(f"  {kind[:7]:7}{scope:3}: " + "".join(parts))
+        ratios = [by[("Rollout", *k)]["objective"] / lb[k] for k in lb if ("Rollout", *k) in by]
+        if ratios:
+            out.append(f"  Rollout / lower bound: mean {statistics.mean(ratios):.2f}, min {min(ratios):.2f}, max {max(ratios):.2f}")
+
     cp = [r for r in records if r["method"] == "Cyclic-CPSAT" and "cycles" in r]
     if cp:
         out.append("")
@@ -305,7 +374,9 @@ def main() -> None:
     parser.add_argument("--methods", default=",".join(METHODS))
     parser.add_argument("--sizes", default=",".join(SIZES))
     args = parser.parse_args()
-    if args.mode != "summary":
+    if args.mode == "bounds":
+        print(f"computed {bounds(args.workers, tuple(args.sizes.split(',')))} new bounds -> {BOUNDS}")
+    elif args.mode != "summary":
         executed = run(args.workers, tuple(args.methods.split(",")), tuple(args.sizes.split(",")))
         print(f"executed {executed} new jobs -> {OUTPUT}")
     print(summarize())

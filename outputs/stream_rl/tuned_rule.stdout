@@ -1,0 +1,77 @@
+init train J/work=2.0769
+it  0 best=2.0769 elite=2.3770 so_far=2.0769 (30s)
+it  1 best=2.0629 elite=2.1929 so_far=2.0629 (46s)
+it  2 best=1.9735 elite=2.0170 so_far=1.9735 (62s)
+it  3 best=1.8989 elite=1.9541 so_far=1.8989 (80s)
+it  4 best=1.8676 elite=1.8960 so_far=1.8676 (91s)
+it  5 best=1.8304 elite=1.8535 so_far=1.8304 (103s)
+it  6 best=1.8380 elite=1.8474 so_far=1.8304 (117s)
+it  7 best=1.8216 elite=1.8296 so_far=1.8216 (129s)
+it  8 best=1.8037 elite=1.8216 so_far=1.8037 (141s)
+it  9 best=1.8050 elite=1.8136 so_far=1.8037 (153s)
+it 10 best=1.8100 elite=1.8158 so_far=1.8037 (165s)
+it 11 best=1.8025 elite=1.8130 so_far=1.8025 (177s)
+it 12 best=1.7962 elite=1.8087 so_far=1.7962 (189s)
+it 13 best=1.8007 elite=1.8069 so_far=1.7962 (201s)
+it 14 best=1.8026 elite=1.8090 so_far=1.7962 (213s)
+it 15 best=1.7938 elite=1.8044 so_far=1.7938 (226s)
+it 16 best=1.7980 elite=1.8045 so_far=1.7938 (238s)
+it 17 best=1.7943 elite=1.8032 so_far=1.7938 (250s)
+it 18 best=1.8007 elite=1.8063 so_far=1.7938 (262s)
+it 19 best=1.8018 elite=1.8060 so_far=1.7938 (274s)
+it 20 best=1.7973 elite=1.8005 so_far=1.7938 (286s)
+it 21 best=1.8018 elite=1.8059 so_far=1.7938 (298s)
+it 22 best=1.7930 elite=1.8030 so_far=1.7930 (310s)
+it 23 best=1.7858 elite=1.7999 so_far=1.7858 (322s)
+it 24 best=1.7971 elite=1.8003 so_far=1.7858 (334s)
+it 25 best=1.8000 elite=1.8037 so_far=1.7858 (347s)
+it 26 best=1.7895 elite=1.7990 so_far=1.7858 (360s)
+it 27 best=1.7941 elite=1.8009 so_far=1.7858 (374s)
+it 28 best=1.7969 elite=1.8019 so_far=1.7858 (388s)
+it 29 best=1.7894 elite=1.8010 so_far=1.7858 (401s)
+it 30 best=1.7982 elite=1.8022 so_far=1.7858 (414s)
+it 31 best=1.8018 elite=1.8038 so_far=1.7858 (427s)
+it 32 best=1.7915 elite=1.7997 so_far=1.7858 (440s)
+it 33 best=1.7975 elite=1.8035 so_far=1.7858 (453s)
+it 34 best=1.7948 elite=1.8008 so_far=1.7858 (466s)
+it 35 best=1.7827 elite=1.7990 so_far=1.7827 (479s)
+it 36 best=1.7888 elite=1.8000 so_far=1.7827 (492s)
+it 37 best=1.7920 elite=1.8013 so_far=1.7827 (504s)
+it 38 best=1.7893 elite=1.7994 so_far=1.7827 (519s)
+it 39 best=1.7938 elite=1.7981 so_far=1.7827 (533s)
+{
+  "features": [
+    "wait",
+    "slack",
+    "own_share",
+    "backlog",
+    "oldest",
+    "since_last",
+    "outbound",
+    "work",
+    "unready"
+  ],
+  "weights": [
+    0.7546365020682387,
+    0.2614122677260107,
+    5.323493964282121,
+    1.3584561209987556,
+    0.2607956692904604,
+    0.037421307375704614,
+    1.1196307991468868,
+    -0.9465434830655666,
+    1.756815046822347
+  ],
+  "threshold": -23.695360534425404,
+  "train_score": 1.7951951731499132,
+  "tuning_score": 1.7703499231564266,
+  "tuning_scores_candidates": [
+    1.7881994226058895,
+    1.7770765227049905,
+    1.7823359548656548,
+    1.776505677626546,
+    1.7703499231564266,
+    1.7964246392247007
+  ],
+  "init_train_score": 2.076881816184115
+}

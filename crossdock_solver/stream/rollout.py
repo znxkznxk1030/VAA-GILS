@@ -56,6 +56,7 @@ class RolloutPolicy:
         horizon_sla: float = 1.0,
         extra_trucks: int = 2,
         seed: int = 0,
+        oracle: bool = False,
         name: str = "Rollout",
     ) -> None:
         self.base = base or FCFSRulePolicy()
@@ -63,6 +64,7 @@ class RolloutPolicy:
         self.horizon_sla = horizon_sla
         self.extra_trucks = extra_trucks
         self.seed = seed
+        self.oracle = oracle  # look ahead with the real future (value-of-information study only)
         self.name = name
         self._step = 0
 
@@ -75,7 +77,7 @@ class RolloutPolicy:
         for r in range(self.samples):
             seed = (self.seed * 1_000_003 + self._step * 7_919 + r) & 0x7FFFFFFF
             for i, action in enumerate(actions):
-                sim = env.fork(seed, until)
+                sim = env.fork(seed, until, oracle=self.oracle)
                 start = sim.cost_snapshot()
                 if action is None:
                     sim.hold()

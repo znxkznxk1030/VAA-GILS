@@ -196,3 +196,63 @@ def test_linear_policy_at_rule_indicator_reproduces_fcfs() -> None:
     a = run_stream(_env(load=0.7), FCFSRulePolicy())
     b = run_stream(_env(load=0.7), LinearScorePolicy(weights))
     assert a.objective == pytest.approx(b.objective)
+
+
+def test_oracle_fork_replays_the_real_future() -> None:
+    env = _env(seed=11)
+    for _ in range(30):
+        env.dispatch(*FCFSRulePolicy().act(env))
+    first_future = max(t.uid for t in env.in_system) + 1
+    fork = env.fork(seed=0, until=env.now + 2 * env.facility.sla, oracle=True)
+    while not fork.done:
+        fork.dispatch(*FCFSRulePolicy().act(fork))
+    while env.now < fork.now and not env.done:
+        env.dispatch(*FCFSRulePolicy().act(env))
+    real = {t.uid: t.arrival for t in [*env.departed, *env.in_system] if t.arrival <= fork.now}
+    seen = {t.uid: t.arrival for t in [*fork.departed, *fork.in_system]}
+    assert all(seen[uid] == pytest.approx(arrival) for uid, arrival in real.items() if uid in seen)
+    assert sum(uid >= first_future for uid in set(real) & set(seen)) >= 5  # future trucks reproduced
+
+
+def test_hindsight_model_matches_simulator_and_bounds_policies() -> None:
+    from crossdock_solver.stream.finite import FiniteStream, sample_finite_instance
+    from crossdock_solver.stream.hindsight import evaluate_schedule, schedule_of, solve_hindsight
+    from crossdock_solver.stream.rollout import RolloutPolicy
+
+    instance = sample_finite_instance(stream_config("S", load=0.6), seed=7, n=4)
+    values = []
+    for policy in (FCFSRulePolicy(), RandomDispatch(seed=1), RolloutPolicy(samples=1, oracle=True)):
+        env = FiniteStream(instance)
+        metrics = run_stream(env, policy)
+        assert metrics.undelivered_units == 0
+        assert evaluate_schedule(instance, schedule_of(env)).objective == pytest.approx(metrics.objective, abs=1e-6)
+        values.append(metrics.objective)
+    best = solve_hindsight(instance, time_limit=60, workers=4)
+    relaxed = solve_hindsight(instance, time_limit=60, workers=4, relax_doors=True)
+    assert relaxed.bound <= best.objective + 1e-6
+    assert best.objective <= min(values) + 1e-6
+
+
+def test_finite_forks_know_the_shift_length_and_sweep() -> None:
+    from crossdock_solver.stream.finite import FiniteStream, sample_finite_instance
+
+    instance = sample_finite_instance(stream_config("S", load=0.6), seed=5, n=8)
+    env = FiniteStream(instance)
+    env.dispatch(*FCFSRulePolicy().act(env))
+    fork = env.fork(seed=3, until=1e9)
+    while not fork.done:
+        fork.dispatch(*FCFSRulePolicy().act(fork))
+    assert fork._arrivals == 8  # resampled future, but no truck beyond the shift
+    assert not any(fork.open_lots)  # stranded freight went to the sweeper
+    assert fork.units_in_system == pytest.approx(0.0)
+
+
+def test_rolling_horizon_conserves_freight() -> None:
+    from crossdock_solver.stream.rolling import RollingHorizonPolicy
+
+    env = CrossDockStream(stream_config("S", load=0.6), seed=4, measure_from=10, measure_to=40)
+    policy = RollingHorizonPolicy(time_limit=0.2)
+    metrics = run_stream(env, policy)
+    assert metrics.undelivered_units == 0
+    assert env.units_in_system >= 0
+    assert policy.solves > 0

@@ -12,10 +12,15 @@ training (generalization). Methods:
                                           (SA-RL5 = original paper's Q-learning SA, objective with tardiness)
     Cyclic-CPSAT                          each cycle solved by CP-SAT (per-cycle optimum reference)
     Cyclic-GILS-strict                    same plan, executed on the planned doors
+    Rolling-CPSAT                         rolling-horizon re-optimization: the current state in the generalized model
+                                          (several carriers per destination), CP-SAT 1 s per decision (stream_rolling_tune.py)
     RL-BC                                 the network after imitation only
     RL-PPO                                the PPO checkpoint selected on tuning
     Rollout                               simulation-based policy improvement over FCFS-VAA
     RL-API                                the network distilled from Rollout (DAgger)
+    Rollout-32                            Rollout with 32 samples and a 2-SLA horizon (stronger observed-best reference)
+    Rollout-Oracle                        Rollout whose look-ahead sees the real future arrivals (not an online
+                                          method: measures the value of arrival information; never counted as best observed)
 
 Usage:
     python experiments/stream_eval.py              # run missing jobs + summarize
@@ -62,11 +67,15 @@ METHODS = (
     "Cyclic-GILS",
     "Cyclic-CPSAT",
     "Cyclic-GILS-strict",
+    "Rolling-CPSAT",
     "RL-BC",
     "RL-PPO",
     "Rollout",
     "RL-API",
+    "Rollout-32",
+    "Rollout-Oracle",
 )
+ORACLES = ("Rollout-Oracle",)  # use information an online policy does not have
 CHECKPOINTS = {
     "RL-PPO": ROOT / "outputs" / "stream_rl" / "ppo2_tau1.pt",
     "RL-API": ROOT / "outputs" / "stream_rl" / "api.pt",
@@ -74,6 +83,7 @@ CHECKPOINTS = {
 BOUNDS = ROOT / "outputs" / "stream_bounds.jsonl"
 TUNED_RULE = ROOT / "outputs" / "stream_rl" / "tuned_rule.json"
 TUNED_LINEAR = ROOT / "outputs" / "stream_rl" / "tuned_linear.json"
+ROLLING = ROOT / "outputs" / "stream_rl" / "rolling.json"
 # references for the relative tables ("how much better than X")
 REFERENCES = ("FCFS-VAA", "Cyclic-VAA", "Cyclic-SA-RL5", "Cyclic-GILS", "Cyclic-CPSAT")
 CELLS = [(s, l, d) for s in SIZES for l in LOADS for d in DEMANDS]
@@ -133,6 +143,11 @@ def _policy(method: str):
         return CyclicPlanPolicy(iterations=1000)
     if method == "Cyclic-CPSAT":
         return CyclicPlanPolicy(solver="cpsat", cpsat_time_limit=10.0)
+    if method == "Rolling-CPSAT":
+        from crossdock_solver.stream.rolling import RollingHorizonPolicy
+
+        tuned = json.loads(ROLLING.read_text())
+        return RollingHorizonPolicy(time_limit=tuned["time_limit"], terminal=tuned["terminal"])
     if method == "Cyclic-GILS-strict":
         return CyclicPlanPolicy(iterations=1000, execution="strict")
     if method in ("RL-BC", "RL-PPO", "RL-API"):
@@ -141,6 +156,14 @@ def _policy(method: str):
         from crossdock_solver.stream.rollout import RolloutPolicy
 
         return RolloutPolicy(samples=8, horizon_sla=1.0)
+    if method == "Rollout-32":
+        from crossdock_solver.stream.rollout import RolloutPolicy
+
+        return RolloutPolicy(samples=32, horizon_sla=2.0, name=method)
+    if method == "Rollout-Oracle":
+        from crossdock_solver.stream.rollout import RolloutPolicy
+
+        return RolloutPolicy(samples=1, horizon_sla=1.0, oracle=True, name=method)
     raise ValueError(method)
 
 
@@ -195,6 +218,10 @@ def _execute(job: tuple) -> dict:
         "decide_ms_max": 1000 * policy.max_seconds,
     }
     inner = policy.inner
+    if hasattr(inner, "fallbacks"):
+        record["solves"] = inner.solves
+        record["fallbacks"] = inner.fallbacks
+        record["optimal_solves"] = inner.optimal
     if hasattr(inner, "cycle_wait"):
         record["cycle_wait"] = float(np.mean(inner.cycle_wait)) if inner.cycle_wait else 0.0
         record["plan_ms_mean"] = 1000 * float(np.mean(inner.plan_seconds)) if inner.plan_seconds else 0.0
@@ -220,7 +247,7 @@ def run(workers: int = 6, methods: tuple[str, ...] = METHODS, sizes: tuple[str, 
     if not jobs:
         return 0
     # slow jobs first for better load balance
-    slow = {"Cyclic-CPSAT": 0, "Rollout": 1, "Cyclic-GILS-strict": 2, "Cyclic-GILS": 3, "Cyclic-SA-RL5": 3}
+    slow = {"Rollout-32": 0, "Rolling-CPSAT": 0, "Cyclic-CPSAT": 0, "Rollout": 1, "Cyclic-GILS-strict": 2, "Cyclic-GILS": 3, "Cyclic-SA-RL5": 3}
     jobs.sort(key=lambda j: (slow.get(j[0], 9), "LMS".index(j[1])))
     with OUTPUT.open("a", encoding="utf-8") as sink, multiprocessing.Pool(workers) as pool:
         for record in pool.imap_unordered(_execute, jobs):
@@ -331,7 +358,8 @@ def summarize() -> str:
               (json.loads(line) for line in BOUNDS.read_text().splitlines() if line)}
         out.append("")
         out.append("Absolute references (per stream): gap % above the lower bound (stream_lower_bound) and above the best")
-        out.append("observed method on that stream (over all methods run on it); mean over the streams that have the bound")
+        out.append("observed online method on that stream (over all methods run on it except Rollout-Oracle); mean over")
+        out.append("the streams that have the bound")
         out.append(f"  {'':5}" + "".join(f"{m:>{width}}" for m in METHODS))
         for kind in ("vs LB", "vs best"):
             for scope in (*SIZES, "all"):
@@ -346,7 +374,7 @@ def summarize() -> str:
                         if kind == "vs LB":
                             vals.append(100 * (mine / lb[k] - 1))
                         else:
-                            best = min(by[(o, *k)]["objective"] for o in METHODS if (o, *k) in by)
+                            best = min(by[(o, *k)]["objective"] for o in METHODS if (o, *k) in by and o not in ORACLES)
                             vals.append(100 * (mine / best - 1))
                     parts.append(f"{statistics.mean(vals):+{width}.1f}" if vals else f"{'-':>{width}}")
                 out.append(f"  {kind[:7]:7}{scope:3}: " + "".join(parts))

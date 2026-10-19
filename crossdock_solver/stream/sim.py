@@ -36,6 +36,7 @@ from crossdock_solver.stream.config import Facility, StreamConfig, build_facilit
 
 
 ARRIVE, CLAIM, DEPART = 0, 1, 2
+SWEEP_LEAVE = 5.0  # exit time of the terminal sweeper (the largest exit time of a real truck)
 
 
 @dataclass(eq=False)
@@ -105,8 +106,13 @@ class CrossDockStream:
         measure_to: int = 600,
         max_candidates: int = 6,
         time_cap_factor: float = 20.0,
+        max_arrivals: int | None = None,
     ) -> None:
         self.config = config
+        # finite shift (crossdock_solver/stream/finite.py): arrivals stop after
+        # `max_arrivals` trucks, look-ahead forks inherit the limit, and freight
+        # left without a carrier at the end goes to the terminal sweeper
+        self.max_arrivals = max_arrivals
         self.seed = seed
         self.measure_from = measure_from
         self.measure_to = measure_to
@@ -186,23 +192,46 @@ class CrossDockStream:
     def hold(self) -> None:
         if not self.needs_decision:
             raise RuntimeError("no decision pending")
+        if self.max_arrivals is not None and not self._events:
+            # nothing left to happen: holding would end the shift with trucks in
+            # the yard, so the FCFS-VAA action is taken instead
+            from crossdock_solver.stream.policies import FCFSRulePolicy
+
+            self.dispatch(*FCFSRulePolicy().act(self))
+            return
         self._held = True
         self._advance()
 
-    def fork(self, seed: int, until: float) -> "CrossDockStream":
+    def fork(self, seed: int, until: float, *, oracle: bool = False) -> "CrossDockStream":
         """Copy of the live state for look-ahead simulation up to time `until`.
 
         Future arrivals are resampled from a fresh generator (the pending
         arrival time is dropped and redrawn, which is exact for a Poisson
         stream), so a fork carries no information about the real future.
+        `oracle=True` instead keeps the real future (pending arrival and the
+        generator state): a perfect-information look-ahead used only to
+        measure the value of information.
         """
 
-        clone = object.__new__(CrossDockStream)
+        clone = object.__new__(type(self) if oracle else CrossDockStream)
         clone.__dict__.update(self.__dict__)
         memo: dict[int, object] = {}
         clone.yard, clone.doors, clone.open_lots, clone.in_system, events = copy.deepcopy(
             (self.yard, self.doors, self.open_lots, self.in_system, self._events), memo
         )
+        if oracle:
+            clone._events = events
+            heapq.heapify(clone._events)
+            clone._seq = itertools.count(next(copy.copy(self._seq)))
+            clone._uid = itertools.count(next(copy.copy(self._uid)))
+            clone.last_departure = self.last_departure.copy()
+            clone._rng = copy.deepcopy(self._rng)
+            clone.departed = []
+            clone._measured = []
+            clone.measure_from = clone.measure_to = 1 << 60
+            clone._time_cap = until
+            clone.done = False
+            return clone
         clone._events = [e for e in events if e[2] != ARRIVE]
         heapq.heapify(clone._events)
         clone._seq = itertools.count(next(copy.copy(self._seq)))
@@ -214,7 +243,8 @@ class CrossDockStream:
         clone.measure_from = clone.measure_to = 1 << 60
         clone._time_cap = until
         clone.done = False
-        clone._schedule(clone.now + clone._interarrival(), ARRIVE, None)
+        if clone.max_arrivals is None or clone._arrivals < clone.max_arrivals:
+            clone._schedule(clone.now + clone._interarrival(), ARRIVE, None)
         return clone
 
     def truck_by_uid(self, uid: int) -> Truck:
@@ -259,6 +289,29 @@ class CrossDockStream:
                 self._on_depart(truck)
             if self._finished():
                 self.done = True
+        if self.max_arrivals is not None and self.done and not self._events and not self.in_system:
+            self._sweep()
+
+    def _sweep(self) -> None:
+        """Terminal sweeper: once every truck has left (time Cmax), one virtual
+        carrier per destination with stranded lots loads them (no travel) and
+        leaves after SWEEP_LEAVE. Sweepers have negative uids and no tardiness."""
+
+        D = self.config.num_destinations
+        for d, lots in enumerate(self.open_lots):
+            if not lots:
+                continue
+            sweeper = Truck(uid=-1 - d, compound=False, arrival=self.now, due=math.inf, enter=0.0,
+                            leave=SWEEP_LEAVE, units=np.zeros(D), handling=np.zeros(D),
+                            destination=d, dock_time=self.now)
+            sweeper.claim_time = self.now
+            sweeper.lots = lots
+            sweeper.departure = sweeper.expected_departure = self.now + sum(lot.handling for lot in lots) + SWEEP_LEAVE
+            units = sum(lot.units for lot in lots)
+            self.unit_integral += units * (sweeper.departure - self.now)
+            self.units_in_system -= units
+            self.departed.append(sweeper)
+            self.open_lots[d] = []
 
     def _accrue(self, time: float) -> None:
         dt = time - self.now
@@ -302,7 +355,8 @@ class CrossDockStream:
         if self._arrivals == self.measure_to:
             self._time_cap = self.now + self.time_cap_factor * fac.sla
         self._held = False
-        self._schedule(self.now + self._interarrival(), ARRIVE, None)
+        if self.max_arrivals is None or self._arrivals < self.max_arrivals:
+            self._schedule(self.now + self._interarrival(), ARRIVE, None)
 
     def _on_claim(self, truck: Truck) -> None:
         d = truck.destination

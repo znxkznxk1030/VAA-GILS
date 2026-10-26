@@ -557,7 +557,7 @@ def collect_soft_labels(
         teacher.reset(env)
     while not env.done:
         feats, _ = candidate_features(env)
-        actions = shortlist(env, teacher.extra_trucks)
+        actions = shortlist(env, teacher.extra_trucks, teacher.base)
         costs = teacher.scores(env, actions)
         teacher._step += 1
         index = np.array([candidate_index(env, a) for a in actions])

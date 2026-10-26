@@ -14,6 +14,7 @@ the teacher's action costs (soft targets) instead of its argmax.
 Usage:
     python experiments/stream_api_train.py --name api --rounds 5
     python experiments/stream_api_train.py --name api_hs --rounds 6 --oracle --samples 1
+    python experiments/stream_api_train.py --name api2 --base api --init api --episodes 16 --rounds 6
     python experiments/stream_api_train.py --name api_hs_soft --rounds 6 --oracle --samples 1 --episodes 16 --soft 0.5
 """
 
@@ -53,7 +54,7 @@ DEMANDS = ("uniform", "skewed")
 
 
 def _label(job):
-    episode, state, beta, samples, horizon, oracle, soft = job
+    episode, state, beta, samples, horizon, oracle, soft, base = job
     torch.set_num_threads(1)
     rng = random.Random(episode)
     size, load, demand = rng.choice(SIZES), rng.choice(LOADS), rng.choice(DEMANDS)
@@ -68,7 +69,14 @@ def _label(job):
         net = DispatchNet()
         net.load_state_dict(state)
         net.eval()
-    teacher = RolloutPolicy(samples=samples, horizon_sla=horizon, seed=episode, oracle=oracle)
+    base_policy = None
+    if base:
+        from crossdock_solver.stream.rl import RLPolicy
+
+        base_net = DispatchNet()
+        base_net.load_state_dict(torch.load(OUT / f"{base}.pt"))
+        base_policy = RLPolicy(base_net.eval(), name=base)
+    teacher = RolloutPolicy(base_policy, samples=samples, horizon_sla=horizon, seed=episode, oracle=oracle)
     if soft:
         return collect_soft_labels(net, teacher, env, beta=beta, rng=rng, temperature=soft)
     return collect_labels(net, teacher, env, beta=beta, rng=rng)
@@ -85,22 +93,27 @@ def main() -> None:
     parser.add_argument("--epochs", type=int, default=30)
     parser.add_argument("--oracle", action="store_true", help="hindsight teacher (real future)")
     parser.add_argument("--soft", type=float, default=0.0, help="cost-sensitive soft targets with this temperature")
+    parser.add_argument("--base", default="", help="checkpoint name of the teacher's base policy (policy iteration)")
+    parser.add_argument("--init", default="", help="start the student from this checkpoint instead of BC")
     args = parser.parse_args()
 
     OUT.mkdir(parents=True, exist_ok=True)
     torch.manual_seed(0)
     net = DispatchNet()
-    behaviour_clone(net, TrainConfig(bc_episodes=16))  # start from FCFS-VAA
+    if args.init:
+        net.load_state_dict(torch.load(OUT / f"{args.init}.pt"))
+    else:
+        behaviour_clone(net, TrainConfig(bc_episodes=16))  # start from FCFS-VAA
     best = {"score": tuning_score(net), "round": -1}
     torch.save(net.state_dict(), OUT / f"{args.name}.pt")
-    print(f"round -1 (BC) tuning J/work={best['score']:.4f}", flush=True)
+    print(f"round -1 ({args.init or 'BC'}) tuning J/work={best['score']:.4f}", flush=True)
     log = (OUT / f"{args.name}.log.jsonl").open("w")
     dataset: list = []
     episode = 0
     for round_ in range(args.rounds):
         beta = 1.0 if round_ == 0 else 0.5
         state = None if round_ == 0 else {k: v.clone() for k, v in net.state_dict().items()}
-        jobs = [(episode + e, state, beta, args.samples, args.horizon, args.oracle, args.soft) for e in range(args.episodes)]
+        jobs = [(episode + e, state, beta, args.samples, args.horizon, args.oracle, args.soft, args.base) for e in range(args.episodes)]
         episode += args.episodes
         with multiprocessing.Pool(args.workers) as pool:
             for data in pool.imap_unordered(_label, jobs):

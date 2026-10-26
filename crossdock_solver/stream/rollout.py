@@ -5,7 +5,8 @@ the next `horizon_sla * SLA` time units from a fork of the current state
 (future arrivals resampled, common random numbers across candidates) with
 the base policy taking every later decision. The candidate with the lowest
 accrued cost is executed. This is one policy-improvement step of approximate
-policy iteration; `distill` in `rl.py` turns its decisions into a fast
+policy iteration; with a learned base policy (e.g. RL-API) it is the next
+iteration; `distill` in `rl.py` turns its decisions into a fast
 network policy.
 """
 
@@ -28,8 +29,9 @@ def rule_door(env: CrossDockStream, truck, destination: int, doors: list[int]) -
     return nearest_door_to_lots(env, doors, destination)
 
 
-def shortlist(env: CrossDockStream, extra_trucks: int = 2) -> list:
-    """Head truck with every destination, the rule action of the next trucks, HOLD."""
+def shortlist(env: CrossDockStream, extra_trucks: int = 2, base=None) -> list:
+    """Head truck with every destination, the rule action of the next trucks, HOLD,
+    and the base policy's own action when it is not already listed."""
 
     doors = env.free_doors()
     head = env.yard[0]
@@ -44,6 +46,10 @@ def shortlist(env: CrossDockStream, extra_trucks: int = 2) -> list:
     actions.append(None)
     # the rule action is always the head truck's entry for its rule destination
     assert rule.act(env) in actions
+    if base is not None and not isinstance(base, FCFSRulePolicy):
+        own = base.act(env)
+        if own not in actions:
+            actions.append(own)
     return actions
 
 
@@ -85,12 +91,16 @@ class RolloutPolicy:
                     truck, door, destination = action
                     sim.dispatch(sim.truck_by_uid(truck.uid), door, destination)
                 while not sim.done:
-                    sim.dispatch(*self.base.act(sim))
+                    step = self.base.act(sim)
+                    if step is None:
+                        sim.hold()
+                    else:
+                        sim.dispatch(*step)
                 totals[i] += sim.cost_snapshot() - start
         return totals / self.samples
 
     def act(self, env: CrossDockStream):
-        actions = shortlist(env, self.extra_trucks)
+        actions = shortlist(env, self.extra_trucks, self.base)
         best = actions[int(np.argmin(self.scores(env, actions)))]
         self._step += 1
         return best

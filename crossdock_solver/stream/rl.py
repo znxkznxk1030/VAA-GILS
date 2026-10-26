@@ -531,3 +531,73 @@ def fit_classifier(net: DispatchNet, data: list[tuple[np.ndarray, int]], *, epoc
             opt.step()
             loss_value = float(loss)
     return loss_value
+
+
+def collect_soft_labels(
+    net: DispatchNet | None,
+    teacher,
+    env: CrossDockStream,
+    *,
+    beta: float,
+    rng: random.Random,
+    temperature: float,
+) -> list[tuple[np.ndarray, np.ndarray, np.ndarray]]:
+    """DAgger with cost-sensitive targets: the rollout teacher scores its whole
+    shortlist and the target is softmax(-(cost - min) / (temperature * spread))
+    over those candidates (spread = std of the shortlist costs), so actions the
+    teacher finds nearly as good keep probability mass. With an oracle teacher
+    this is hindsight learning with hindsight action costs (Sinclair et al. 2022)
+    instead of the hindsight argmax."""
+
+    from crossdock_solver.stream.rollout import shortlist
+
+    data: list[tuple[np.ndarray, np.ndarray, np.ndarray]] = []
+    learner = RLPolicy(net) if net is not None else None
+    if hasattr(teacher, "reset"):
+        teacher.reset(env)
+    while not env.done:
+        feats, _ = candidate_features(env)
+        actions = shortlist(env, teacher.extra_trucks)
+        costs = teacher.scores(env, actions)
+        teacher._step += 1
+        index = np.array([candidate_index(env, a) for a in actions])
+        spread = max(float(np.std(costs)), 1e-9)
+        logits = -(costs - costs.min()) / (temperature * spread)
+        target = np.exp(logits - logits.max())
+        target /= target.sum()
+        data.append((feats, index, target.astype(np.float32)))
+        best = actions[int(np.argmin(costs))]
+        action = best if learner is None or rng.random() < beta else learner.act(env)
+        if action is None:
+            env.hold()
+        else:
+            env.dispatch(*action)
+    return data
+
+
+def fit_soft(net: DispatchNet, data: list[tuple[np.ndarray, np.ndarray, np.ndarray]], *, epochs: int, lr: float,
+             seed: int) -> float:
+    """Cross-entropy against the soft targets (candidates outside the teacher's
+    shortlist get target 0)."""
+
+    opt = torch.optim.Adam(net.score.parameters(), lr=lr)
+    order = list(range(len(data)))
+    shuffle = random.Random(seed)
+    loss_value = float("nan")
+    for _ in range(epochs):
+        shuffle.shuffle(order)
+        for start in range(0, len(order), 256):
+            chunk = [data[i] for i in order[start : start + 256]]
+            steps = [Step(f, np.zeros(GLOBAL_FEATURES, np.float32), 0, 0.0, 0.0) for f, _, _ in chunk]
+            feats, mask, _ = _batch(steps)
+            target = torch.zeros(mask.shape)
+            for row, (_, index, probs) in enumerate(chunk):
+                target[row, torch.from_numpy(index)] = torch.from_numpy(probs)
+            logp = torch.log_softmax(net.logits(feats, mask), dim=1)
+            loss = -(target * logp.masked_fill(~mask, 0.0)).sum(1).mean()
+            opt.zero_grad()
+            loss.backward()
+            opt.step()
+            loss_value = float(loss)
+    return loss_value
+

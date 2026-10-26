@@ -1,0 +1,46 @@
+Hindsight benchmark (S facility, finite truck sets from the hindsight pool, empty start, terminal sweeper)
+gap % = 100 * (policy / reference - 1), mean over instances
+  HS-event = best realizable perfect-information schedule found (policy action space)
+  HS-free* = proven optimum / CP-SAT bound of the free-timing relaxation (valid lower reference)
+
+n = 6 trucks: 30 instances; HS-event proved optimal 17, HS-free proved optimal 17
+                      vs HS-event  vs HS-free LB beats HS-event
+  FCFS-VAA                  +14.8          +51.5              0
+  SPT-VAA                   +14.8          +51.5              0
+  Tuned-Rule                +14.2          +50.8              0
+  Tuned-Linear              +17.5          +53.8              0
+  RL-API                    +17.0          +53.3              0
+  Rollout                    +8.0          +42.2              0
+  Rollout-32                 +8.3          +42.5              0
+  Rollout-Oracle             +8.2          +41.8              0
+  HS-event                   +0.0          +31.3
+  HS-free (inc.)             -1.3
+  Rollout - FCFS-VAA           mean   -22.83 (-6.8% of HS-event)  negative in 21/30  p=0.0026
+  Rollout-32 - Rollout         mean    +0.12 (+0.0% of HS-event)  negative in 9/30  p=0.96
+  Rollout-Oracle - Rollout     mean    -1.05 (-0.3% of HS-event)  negative in 18/30  p=0.46
+  Rollout-Oracle - HS-event    mean   +27.06 (+8.1% of HS-event)  negative in 0/30  p=2.7e-06
+  load 0.5: vs HS-event FCFS-VAA=+14.1 RL-API=+16.1 Rollout=+5.8 Rollout-Oracle=+10.5
+  load 0.6: vs HS-event FCFS-VAA=+15.7 RL-API=+17.7 Rollout=+7.7 Rollout-Oracle=+7.1
+  load 0.7: vs HS-event FCFS-VAA=+14.8 RL-API=+17.3 Rollout=+10.6 Rollout-Oracle=+7.1
+  HS-free proof time: mean 2s, max 7s
+
+n = 10 trucks: 12 instances; HS-event proved optimal 0, HS-free proved optimal 0
+                      vs HS-event  vs HS-free LB beats HS-event
+  FCFS-VAA                  +24.3         +106.9              0
+  SPT-VAA                   +25.0         +108.1              0
+  Tuned-Rule                +22.5         +102.2              0
+  Tuned-Linear              +26.3         +109.9              0
+  RL-API                    +16.5          +93.6              0
+  Rollout                   +10.3          +83.3              0
+  Rollout-32                 +9.4          +81.9              0
+  Rollout-Oracle             +6.1          +76.4              0
+  HS-event                   +0.0          +66.3
+  HS-free (inc.)             -1.6
+  Rollout - FCFS-VAA           mean   -51.05 (-13.6% of HS-event)  negative in 10/12  p=0.0068
+  Rollout-32 - Rollout         mean    -1.42 (-0.4% of HS-event)  negative in 6/12  p=0.9
+  Rollout-Oracle - Rollout     mean   -13.13 (-3.5% of HS-event)  negative in 11/12  p=0.0049
+  Rollout-Oracle - HS-event    mean   +23.31 (+6.2% of HS-event)  negative in 0/12  p=0.00049
+  load 0.5: vs HS-event FCFS-VAA=+29.6 RL-API=+26.8 Rollout=+9.9 Rollout-Oracle=+7.1
+  load 0.6: vs HS-event FCFS-VAA=+23.8 RL-API=+11.5 Rollout=+12.1 Rollout-Oracle=+6.2
+  load 0.7: vs HS-event FCFS-VAA=+19.4 RL-API=+11.2 Rollout=+8.9 Rollout-Oracle=+4.9
+

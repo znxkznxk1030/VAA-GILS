@@ -28,7 +28,8 @@ from crossdock_solver.stream.policies import FCFSRulePolicy
 from crossdock_solver.stream.sim import CrossDockStream, Truck
 
 
-def state_data(env: CrossDockStream, max_yard: int, sweep_delay: float = 0.0) -> tuple[ModelData, list[Truck]]:
+def state_data(env: CrossDockStream, max_yard: int, sweep_delay=0.0) -> tuple[ModelData, list[Truck]]:
+    """`sweep_delay`: one delay or one per destination (time units)."""
     docked = [t for t in env.doors if t is not None]
     yard = env.yard[:max_yard]
     trucks: dict[int, Truck] = {t.uid: t for t in [*docked, *yard]}
@@ -82,7 +83,7 @@ def state_data(env: CrossDockStream, max_yard: int, sweep_delay: float = 0.0) ->
         claims_new=claims_new,
         counts=counts,
         norm=(max(1, sum(counts)), max(1, int(sum(t.units.sum() for t in order)))),
-        sweep_delay=_ticks(sweep_delay),
+        sweep_delay=[_ticks(x) for x in sweep_delay] if hasattr(sweep_delay, "__len__") else _ticks(sweep_delay),
     )
     assert D == len(data.units[0])
     return data, order
@@ -90,9 +91,12 @@ def state_data(env: CrossDockStream, max_yard: int, sweep_delay: float = 0.0) ->
 
 class RollingHorizonPolicy:
     def __init__(self, *, time_limit: float = 1.0, max_yard: int = 8, workers: int = 1,
-                 event_aligned: bool = True, terminal: float = 1.0, name: str = "Rolling-CPSAT") -> None:
+                 event_aligned: bool = True, terminal: float = 1.0, terminal_model=None,
+                 name: str = "Rolling-CPSAT") -> None:
         self.time_limit = time_limit
         self.terminal = terminal  # sweeper delay in units of (|D| interarrival times + mean truck work)
+        # optional learned per-destination delay (terminal.py): callable(env, max_yard) -> delays (time units)
+        self.terminal_model = terminal_model
         self.event_aligned = event_aligned
         self.max_yard = max_yard
         self.workers = workers
@@ -121,7 +125,10 @@ class RollingHorizonPolicy:
         self._plan_time = env.now
         self._plan = []
         fac = env.facility
-        delay = self.terminal * (env.config.num_destinations / fac.arrival_rate + fac.mean_work)
+        if self.terminal_model is not None:
+            delay = self.terminal_model(env, self.max_yard)
+        else:
+            delay = self.terminal * (env.config.num_destinations / fac.arrival_rate + fac.mean_work)
         data, order = state_data(env, self.max_yard, delay)
         result = solve_model(data, time_limit=self.time_limit, workers=self.workers, event_aligned=self.event_aligned)
         self.solves += 1

@@ -73,7 +73,8 @@ class ModelData:
     - `norm`: (trucks, units) normalizing J,
     - `sweep_delay`: extra wait before the terminal sweeper claims (0 for a
       finite instance; a rolling horizon uses it as the expected wait for a
-      future carrier, otherwise stranded freight would look cheap).
+      future carrier, otherwise stranded freight would look cheap). One value
+      or one per destination.
     """
 
     a: list[int]
@@ -91,7 +92,7 @@ class ModelData:
     claims_new: list[bool]
     counts: list[bool]
     norm: tuple[int, int]
-    sweep_delay: int = 0
+    sweep_delay: int | list[int] = 0
 
     @property
     def size(self) -> tuple[int, int, int]:
@@ -177,7 +178,8 @@ def solve_model(
     fixed_departures = [f["departure"] for f in data.fixed if f is not None and f.get("departure") is not None]
     horizon = (max([*a, *data.release, *fixed_departures]) + sum(enter) + sum(leave) + 2 * sum(total)
                + max(flat_travel) * N + 1)
-    far = 2 * horizon + data.sweep_delay  # latest possible freight departure (sweeper)
+    delays = data.sweep_delay if isinstance(data.sweep_delay, list) else [data.sweep_delay] * D
+    far = 2 * horizon + max(delays)  # latest possible freight departure (sweeper)
 
     model = cp_model.CpModel()
     s = [model.NewIntVar(max(a[j], data.release[j]), horizon, f"s{j}") for j in range(N)]
@@ -334,7 +336,7 @@ def solve_model(
 
     for d in range(D):
         loaded = sum(v * hd for v, hd in sweep_load[d]) if sweep_load[d] else 0
-        model.Add(sweep_depart[d] >= cmax + data.sweep_delay + loaded + _ticks(SWEEP_LEAVE))
+        model.Add(sweep_depart[d] >= cmax + delays[d] + loaded + _ticks(SWEEP_LEAVE))
 
     # objective: n * sum(units * lead) + lambda * U * sum(tardiness)   (ticks)
     n, U = data.norm

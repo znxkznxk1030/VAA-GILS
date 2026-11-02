@@ -1,6 +1,6 @@
 # 문헌 조사: 연속 도착 크로스도크 디스패칭과 학습 기반 방법 (research/rl)
 
-조사일 2026-10-12. 웹 검색(제목·초록·검색 요약 수준)으로 찾은 결과이며, **원문의 모델 절까지 확인한 문헌은 없다**.
+조사일 2026-10-12 (3.4·3.5절은 2026-11-02 추가). 웹 검색(제목·초록·검색 요약 수준)으로 찾은 결과이며, **원문의 모델 절까지 확인한 문헌은 없다**.
 "확인 수준" 열을 반드시 같이 볼 것. 논문에 인용하기 전에 원문 대조가 필요하다
 (JKIIE 때 Nowak & Puladi 2025가 제목만 보고 판단했다가 모델 절에서 뒤집힌 전례가 있음).
 
@@ -88,6 +88,46 @@ Kemmerling et al.의 "학습 가치 + rollout 평가 혼합" 결과는 본 연�
 시사점: COMA는 반사실 기준선을 **학습된 Q로 근사**한다. 본 시뮬레이터는 상태 복제(fork)로 반사실을 **직접 시뮬레이션**할 수 있어
 근사가 필요 없다. 이 점은 MARL 제안의 방법론 차별점이 될 수 있다(유사 선례는 이번 검색에서 찾지 못함).
 
+### 3.4 추가 조사 (2026-11-02): Rollout 증류, 미래 표본 rollout, 사후 모방
+
+현재 최선 방법(Rollout, RL-API)과 구조가 비슷한 연구. 같은 확인 수준 기준(A/B/C)을 쓴다. 3.1에 이미 있는 문헌은 뺐다.
+
+| 문헌 | 내용 | 본 연구와의 관계 | 확인 |
+|---|---|---|---|
+| Mukunda, Somani & Malaiya (SSRN 7076169, 2026), Sample-efficient adaptive heuristic selection via offline rollout distillation for dynamic warehouse order dispatching | 시뮬레이션한 교대의 결정 상태마다 후보 규칙을 짧은 구간 rollout으로 평가하고, 비용 벡터로 gradient boosting 순위 모형을 학습. 납기·신선도 제약 창고 주문 디스패칭 | **RL-API와 가장 가까운 구조**(rollout 평가 → 빠른 정책 증류). 차이: 규칙 선택기 대 (트럭, 도어, 목적지) 직접 선택, 오프라인 1회 대 DAgger 반복. 투고 시 필수 인용·비교 | B |
+| Ulmer, Goodson, Mattfeld & Hennig (2019), Transportation Science 53(1), 185–202, Offline–online ADP for dynamic VRP with stochastic requests | 오프라인 가치함수 근사 + 온라인 rollout. 실시간 계산량을 줄이면서 예측(공간·시간 예상)을 반영 | 3.1의 "Offline–online ADP" 서지 확정. 로드맵 제안 1(가치망 절단 rollout)의 직접 선례 | A |
+| Ulmer, Mattfeld et al., A rollout algorithm for vehicle routing with stochastic customer requests (Springer, Operations Research Proceedings 장) | 미래 요청 표본 + cheapest insertion 기본 정책으로 남은 비용 추정 | 본 연구 Rollout과 같은 구조(FCFS-VAA = 기본 정책, `fork` = 미래 표본) | B |
+| The dynamic dispatch waves problem for same-day delivery (ResearchGate 308962698; 학술지·저자 확인 필요) | 동적 rollout 정책의 기대 비용이 최적 사전(a priori) 계획 이하임을 증명 | 사이클 계획 대 상태 기반 정책 결과(stream_rl_research.md 5.4)의 이론적 근거 후보 | B |
+| A rollout algorithm framework for heuristic solutions to finite-horizon stochastic dynamic programs (EJOR, S0377221716307925; 저자 확인 필요) | 유한 구간 확률 DP의 rollout 일반 틀, 확률적 배낭 문제 예시 | 방법론 절의 정의 출처 | B |
+| Dynamic dispatching and routing with random demand (arXiv 2107.13058) | 순차적 불확실 주문의 배차를 ADP rollout으로 | 같은 계열 | B |
+| Baty et al. (arXiv 2304.00789, 2023), Combinatorial optimization enriched ML for dynamic VRPTW (EURO Meets NeurIPS 2022 동적 트랙 1위, Kléopatra 팀) | 신경망 + prize-collecting VRPTW 최적화 층, 미래를 아는 해를 모방하는 구조적 학습 | **대조 사례.** 같은 계열(사후 교사·COAML, 5.7–5.8)이 본 문제에서는 실패. 사후 편향이 큰 묶음 적재 타이밍 문제에서 사후 모방이 통하지 않는 조건을 논의할 근거 | B |
+| EURO Meets NeurIPS 2022 2위 OptiML (Wouda et al., GitHub N-Wouda/Euro-NeurIPS-2022) | 미래 요청 시뮬레이션 + 배송 연기 | Rollout에 가까운 접근. 1위 팀 발표에 따르면 상위 5개 방법 차이 약 4% → 방법을 바꿔도 Rollout 수준에서 정체한 본 결과와 비슷한 양상 | B |
+| Semiconductor fab scheduling with self-supervised and RL (arXiv 2302.07162, WSC 2023) | 로트 수에 불변인 self-attention 전역 디스패처 | 규모 일반화(L 평가) 설계 참고 | B |
+| RL based dispatching solutions in semiconductor manufacturing: a literature review on validation and deployment (2025, T&F 10.1080/21693277.2025.2582472) | 모방학습은 초기 정책 확보에 그친다는 정리, 기본 규칙보다 국소적으로 좋을 때만 켜는 배포 사례 | RL-API가 교사 이득의 2/3만 얻는 한계와 같은 지적 | B |
+
+시사점: rollout → 빠른 정책 증류는 창고 디스패칭(2026)에 거의 같은 구조의 선례가 있다. 방법의 새로움은 더 약해졌고,
+기여는 문제 설정, 정적 최적화 한계 정량화, 정보 가치·최적화 격차 분해와 사후 학습이 실패하는 조건에 둬야 한다.
+
+### 3.5 추가 조사 (2026-11-02): 예측 정보, 출발 시점(합적), MARL 배차
+
+"비정상 목적지별 수요 + 예측 정보 + 출발 시점 결정" 실험 설계의 배경.
+
+| 문헌 | 내용 | 본 연구와의 관계 | 확인 |
+|---|---|---|---|
+| A machine learning approach to shipment consolidation (ResearchGate 325925137; 학술지·저자 확인 필요) | 시간·수량 혼합(TQ) 합적 정책의 최적 매개변수와 DRL·모방학습 비교 | 출발 시점 행동을 넣을 때 TQ 규칙 비교 대상 | B |
+| Learning algorithms for regenerative stopping problems with applications to shipping consolidation (arXiv 2105.02318) | 합적을 재생 정지 문제(연속 시간 MDP)로, 신경망 정책이 출발 시점 결정 | 출발 시점 결정의 학습 선례 | B |
+| Optimal outbound shipment policy for an inventory system with advance demand information (EJOR, 2025, S0377221725000451) | 사전 수요 정보 아래 출고 정책의 구조, 3단계 임계 휴리스틱, 사후 결정 상태 가치 DRL | 예측(사전 정보) + 출발 시점의 결합 선례 | B |
+| Real-time integrated dispatching and idle fleet steering with DRL for a meal delivery platform (arXiv 2501.05808, 2025) | 단기 수요 예측을 RL 배차·유휴 차량 이동의 입력으로 쓰는 predict-then-optimize | 예측 특징을 RL 정책에 넣는 설계 참고 | B |
+| A smart predict-then-optimize framework for vehicle rebalancing (ResearchGate 401296666) | 예측 모형을 결정 손실로 학습 | COAML 중단 판단(5.8)과 같은 문제의식 | B |
+| 택배 허브 운영 일정용 도착 예측 (arXiv 2602.03135, 2026) | 허브 도착 예측과 자원 배정, 운영 일정용 예측 연구가 적다고 언급 | 허브 예측 정보의 현실성 근거 | B |
+| DeepFreight (arXiv 2103.03450) | 트럭 배차(QMIX) + 화물 매칭(MIP) 분해 | MARL + 최적화 결합 선례 | B |
+| Ride-hailing MARL: mean-field MARL (arXiv 1901.11454), CoRide (arXiv 1905.11353), 분포 매칭 MARL (arXiv 1910.02591) | 파라미터 공유, 수요-공급 분포를 반영한 장기 가치 | 목적지 에이전트 설계 참고 | B |
+| Triple-BERT: Do we really need MARL for order dispatch on ride-sharing platforms? (ICLR 2026) | 배차는 본질적으로 중앙집중 문제, 단일 에이전트 방법이 더 낫다는 주장 | **MARL 반론.** 로드맵의 "왜 MARL인가" 위험의 근거 | B |
+| Truck scheduling model in the cross-docking terminal by using multi-agent system and SRT (IJACSA 12(7), 2021) | 입고·출고 스케줄러·자재 처리 3종 규칙 기반 에이전트 | 크로스도크 다중 에이전트(학습 없음) 추가 사례 | B |
+
+시사점: 크로스도크·허브에서 목적지별 수요 예측을 RL 디스패처 입력으로 쓰고 출발 시점까지 결정한 연구는 찾지 못했다.
+MARL은 같은 정보를 보는 중앙 정책보다 나아야 의미가 있다(Triple-BERT 반론).
+
 ## 4. 공백(gap)과 본 연구의 위치
 
 검색 범위 안에서 확인한 공백
@@ -112,7 +152,10 @@ Kemmerling et al.의 "학습 가치 + rollout 평가 혼합" 결과는 본 연�
 3. Container port truck dispatching Real2Sim DRL (EJOR 2024): 상태·행동 설계, 기준선
 4. Liu et al. DRMARL (2025): 에이전트 정의, 보상, 확장성
 5. Bhattacharya et al. multiagent rollout (2020): 본 연구 RL-API와의 차이
-6. Offline–online ADP (Transportation Science): 저자, 가치함수 근사 형태
+6. Offline–online ADP (Ulmer et al. 2019, Transportation Science): 가치함수 근사 형태 (서지는 3.4에서 확정)
+7. (2026-11-02 추가) Mukunda et al. 2026 (SSRN): 증류 방식, 비교 대상, 규모. RL-API와의 차이를 정리할 1순위
+8. (2026-11-02 추가) Baty et al. 2023 (EURO-NeurIPS 1위): 사후 모방이 통한 조건과 본 문제와의 차이
+9. (2026-11-02 추가) Dynamic dispatch waves: rollout ≥ a priori 증명의 가정
 
 ## 출처
 
@@ -149,3 +192,28 @@ Kemmerling et al.의 "학습 가치 + rollout 평가 혼합" 결과는 본 연�
 - https://ojs.aaai.org/index.php/ICAPS/article/view/15952
 - https://arxiv.org/html/1705.08926v3
 - https://arxiv.org/pdf/2511.13103
+
+- (2026-11-02 추가)
+- https://papers.ssrn.com/sol3/papers.cfm?abstract_id=7076169
+- https://pubsonline.informs.org/doi/fpi/10.1287/trsc.2017.0767
+- https://link.springer.com/chapter/10.1007/978-3-319-20863-3_16
+- https://www.researchgate.net/publication/308962698_The_Dynamic_Dispatch_Waves_Problem_for_Same-Day_Delivery
+- https://www.sciencedirect.com/science/article/abs/pii/S0377221716307925
+- https://arxiv.org/pdf/2107.13058
+- https://ar5iv.labs.arxiv.org/html/2304.00789
+- https://github.com/N-Wouda/Euro-NeurIPS-2022
+- https://batyleo.github.io/assets/pdf/roadef2023_pres.pdf
+- https://arxiv.org/pdf/2302.07162
+- https://www.tandfonline.com/doi/full/10.1080/21693277.2025.2582472
+- https://www.researchgate.net/publication/325925137_A_Machine_Learning_Approach_to_Shipment_Consolidation
+- https://arxiv.org/html/2105.02318
+- https://www.sciencedirect.com/science/article/pii/S0377221725000451
+- https://arxiv.org/html/2501.05808v1
+- https://www.researchgate.net/publication/401296666_A_smart_predict-then-optimize_framework_for_vehicle_rebalancing_problem
+- https://arxiv.org/pdf/2602.03135
+- https://arxiv.org/pdf/2103.03450
+- https://arxiv.org/pdf/1901.11454
+- https://arxiv.org/pdf/1905.11353.pdf
+- https://arxiv.org/pdf/1910.02591.pdf
+- https://iclr.cc/virtual/2026/oral/10007021
+- https://thesai.org/Publications/ViewPaper?Volume=12&Issue=7&Code=IJACSA&SerialNo=15

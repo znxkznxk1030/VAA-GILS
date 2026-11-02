@@ -41,8 +41,22 @@
 |---|---|---|
 | S17 | Bhattacharya, S., et al. (2020). Multiagent rollout and policy iteration for POMDP with application to multi-robot repair problems. arXiv:2011.04222 (공개, 저자 목록 확인 필요) | 본 연구의 Rollout → 증류와의 차이 |
 | S18 | Goodson, J. C., Ohlmann, J. W., & Thomas, B. W. (2013). Rollout policies for dynamic solutions to the multivehicle routing problem with stochastic demand and duration limits. *Operations Research*, 61(1), 138–154. | rollout 대 롤링 호라이즌 비교 방식 |
-| S19 | Offline–online approximate dynamic programming for dynamic vehicle routing with stochastic requests. *Transportation Science* (DOI 10.1287/trsc.2017.0767). 저자 (확인 필요) | 가치함수 근사 + rollout 결합(제안 1의 직접 선례) |
+| S19 | Ulmer, M. W., Goodson, J. C., Mattfeld, D. C., & Hennig, M. (2019). Offline–online approximate dynamic programming for dynamic vehicle routing with stochastic requests. *Transportation Science*, 53(1), 185–202 (DOI 10.1287/trsc.2017.0767) | 가치함수 근사 + rollout 결합(제안 1의 직접 선례) |
 | S20 | Zhang, C., et al. (2020). Learning to dispatch for job shop scheduling via deep reinforcement learning. *NeurIPS 33* (arXiv:2010.12367, 공개) | 그래프 정책망과 규모 일반화 실험 설계 |
+
+## D. Rollout 증류·예측·출발 시점 관련 (2026-11-02 추가)
+
+| 번호 | 서지 | 확인할 내용 |
+|---|---|---|
+| S24 | Mukunda, V., Somani, A., & Malaiya, P. (2026). Sample-efficient adaptive heuristic selection via offline rollout distillation for dynamic warehouse order dispatching. SSRN 7076169 (공개 여부 확인 필요) | **최우선.** rollout 구간·표본 수, 증류 모형과 레이블, 비교 대상, 규모. RL-API(DAgger, 직접 행동 선택)와의 차이 |
+| S25 | Baty, L., Jungel, K., Klein, P. S., Parmentier, A., & Schiffer, M. (2023). Combinatorial optimization enriched machine learning to solve the dynamic vehicle routing problem with time windows. arXiv:2304.00789 (공개, 저자 목록·출판 학술지 확인 필요) | 사후(anticipative) 해 모방이 통한 조건, 최적화 층의 역할. 본 연구 5.7–5.8의 실패와 대비 |
+| S26 | The dynamic dispatch waves problem for same-day delivery. 학술지·저자·연도 (확인 필요, ResearchGate 308962698) | rollout 정책 ≤ 최적 a priori 정책 증명의 가정. 사이클 계획 대 상태 기반 정책 논의에 쓸 수 있는지 |
+| S27 | Ulmer, M. W., Mattfeld, D. C., et al. A rollout algorithm for vehicle routing with stochastic customer requests. *Operations Research Proceedings* (Springer, DOI 10.1007/978-3-319-20863-3_16, 연도·저자 확인 필요) | 미래 표본 rollout 설계(표본 수, 구간), 기본 정책 |
+| S28 | A rollout algorithm framework for heuristic solutions to finite-horizon stochastic dynamic programs. *European Journal of Operational Research* (S0377221716307925). 저자 (확인 필요) | 방법론 절의 rollout 정의, 개선 보장 조건 |
+| S29 | A machine learning approach to shipment consolidation. 학술지·저자 (확인 필요, ResearchGate 325925137) | TQ 합적 정책과 DRL 비교 방식. 출발 시점 행동 실험의 규칙 기준 |
+| S30 | Optimal outbound shipment policy for an inventory system with advance demand information. *European Journal of Operational Research* (2025, S0377221725000451). 저자 (확인 필요) | 사전 수요 정보와 출고 시점 정책의 구조, 임계 휴리스틱 |
+| S31 | Learning algorithms for regenerative stopping problems with applications to shipping consolidation in logistics. arXiv:2105.02318 (공개) | 출발 시점 학습의 상태·보상 정의 |
+| S32 | Triple-BERT: Do we really need MARL for order dispatch on ride-sharing platforms? *ICLR 2026* (공개, 저자 확인 필요) | 중앙 단일 정책이 MARL보다 나은 조건. MARL 확장 판단 근거 |
 
 ## 권장 확보 순서
 
@@ -50,3 +64,4 @@
 2. S03–S05, S06–S09 중 접근되는 것(산업 수치)
 3. **S11**(서지 미확인 경쟁 연구) → S12–S15
 4. C 묶음은 RL 방법 착수 시점에
+5. D 묶음: S24(가장 가까운 방법 선례) → S25 → S26, 출발 시점 실험 착수 전 S29–S31

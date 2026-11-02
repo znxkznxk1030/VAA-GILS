@@ -28,6 +28,15 @@ class StreamConfig:
     demand: str = "uniform"
     flow_high: int = 20
     tardiness_weight: float = 1.0
+    # C3 gate (crossdock_solver/stream/demand.py): time-varying demand ...
+    amplitude: float = 0.0  # total arrival rate wave, A
+    dest_amplitude: float = 0.0  # destination share waves, A_d
+    period_sla: float = 4.0  # wave period P in SLA units
+    # ... and the carrier claim decision: at its claim moment a carrier may
+    # wait `extension_work` mean truck works (at most `max_extensions` times)
+    # to take freight unloaded meanwhile. 0 = claim at once (earlier model).
+    max_extensions: int = 0
+    extension_work: float = 0.25
 
     def __post_init__(self) -> None:
         if self.num_destinations > self.num_doors:
@@ -36,6 +45,10 @@ class StreamConfig:
             raise ValueError(f"demand must be one of {DEMAND_PATTERNS}, got {self.demand!r}")
         if not 0 < self.load < 1.2:
             raise ValueError("load must be in (0, 1.2)")
+        if not (0 <= self.amplitude < 1 and 0 <= self.dest_amplitude < 1):
+            raise ValueError("amplitudes must be in [0, 1)")
+        if self.period_sla <= 0 or self.extension_work <= 0 or self.max_extensions < 0:
+            raise ValueError("period_sla and extension_work must be positive, max_extensions >= 0")
 
 
 SIZE_PRESETS: dict[str, tuple[int, int]] = {
@@ -68,6 +81,7 @@ class Facility:
     arrival_rate: float
     mean_work: float
     mean_units: float
+    phase: np.ndarray  # wave phases: [total rate, destination 0..D-1]
 
     @property
     def num_doors(self) -> int:
@@ -110,6 +124,12 @@ def build_facility(config: StreamConfig, rng: np.random.Generator) -> Facility:
     p = config.compound_fraction
     mean_work = p * compound_work + (1 - p) * outbound_work
     arrival_rate = config.load * doors / mean_work
+    # drawn last so every earlier facility draw is unchanged; destination waves
+    # are evenly staggered (each destination peaks at a different time)
+    D = config.num_destinations
+    offset = rng.uniform(0.0, 2.0 * np.pi, size=2)
+    stagger = offset[1] + 2.0 * np.pi * rng.permutation(D) / D
+    phase = np.concatenate([[offset[0]], stagger])
     return Facility(
         config=config,
         travel=travel,
@@ -118,4 +138,5 @@ def build_facility(config: StreamConfig, rng: np.random.Generator) -> Facility:
         arrival_rate=arrival_rate,
         mean_work=mean_work,
         mean_units=p * units_per_compound,
+        phase=phase,
     )

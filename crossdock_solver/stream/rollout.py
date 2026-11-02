@@ -8,6 +8,11 @@ accrued cost is executed. This is one policy-improvement step of approximate
 policy iteration; with a learned base policy (e.g. RL-API) it is the next
 iteration; `distill` in `rl.py` turns its decisions into a fast
 network policy.
+
+With the claim decision on (`max_extensions > 0`) the same look-ahead also
+decides each pending claim (claim now vs extend) when `claims=True`; the
+base policy claims at once. `demand` is the model the look-ahead samples
+future arrivals from (information level I0/I1/I2, demand.py).
 """
 
 from __future__ import annotations
@@ -20,7 +25,7 @@ from crossdock_solver.stream.policies import (
     central_door,
     nearest_door_to_lots,
 )
-from crossdock_solver.stream.sim import CrossDockStream
+from crossdock_solver.stream.sim import CrossDockStream, step
 
 
 def rule_door(env: CrossDockStream, truck, destination: int, doors: list[int]) -> int:
@@ -63,6 +68,8 @@ class RolloutPolicy:
         extra_trucks: int = 2,
         seed: int = 0,
         oracle: bool = False,
+        demand=None,
+        claims: bool = True,
         name: str = "Rollout",
     ) -> None:
         self.base = base or FCFSRulePolicy()
@@ -71,6 +78,8 @@ class RolloutPolicy:
         self.extra_trucks = extra_trucks
         self.seed = seed
         self.oracle = oracle  # look ahead with the real future (value-of-information study only)
+        self.demand = demand  # None: the true demand curves (I2); see demand.demand_model
+        self.claims = claims
         self.name = name
         self._step = 0
 
@@ -78,24 +87,25 @@ class RolloutPolicy:
         self._step = 0
 
     def scores(self, env: CrossDockStream, actions: list) -> np.ndarray:
+        """Mean look-ahead cost of each action: dispatch tuples / None (HOLD) at a
+        dispatch decision, or booleans (extend?) at a claim decision."""
+
         until = env.now + self.horizon_sla * env.facility.sla
         totals = np.zeros(len(actions))
         for r in range(self.samples):
             seed = (self.seed * 1_000_003 + self._step * 7_919 + r) & 0x7FFFFFFF
             for i, action in enumerate(actions):
-                sim = env.fork(seed, until, oracle=self.oracle)
+                sim = env.fork(seed, until, oracle=self.oracle, demand=self.demand)
                 start = sim.cost_snapshot()
-                if action is None:
+                if isinstance(action, bool):
+                    sim.resolve_claim(action)
+                elif action is None:
                     sim.hold()
                 else:
                     truck, door, destination = action
                     sim.dispatch(sim.truck_by_uid(truck.uid), door, destination)
                 while not sim.done:
-                    step = self.base.act(sim)
-                    if step is None:
-                        sim.hold()
-                    else:
-                        sim.dispatch(*step)
+                    step(sim, self.base)
                 totals[i] += sim.cost_snapshot() - start
         return totals / self.samples
 
@@ -104,3 +114,10 @@ class RolloutPolicy:
         best = actions[int(np.argmin(self.scores(env, actions)))]
         self._step += 1
         return best
+
+    def claim(self, env: CrossDockStream, truck) -> bool:
+        if not self.claims:
+            return False
+        scores = self.scores(env, [False, True])
+        self._step += 1
+        return bool(scores[1] < scores[0])

@@ -256,3 +256,129 @@ def test_rolling_horizon_conserves_freight() -> None:
     assert metrics.undelivered_units == 0
     assert env.units_in_system >= 0
     assert policy.solves > 0
+
+
+# ------------------------------------------------------------ C3 gate: demand waves and claim decision
+def _c3_env(seed: int = 3, measure_to: int = 120, **kwargs) -> CrossDockStream:
+    config = stream_config("S", load=0.7, demand="skewed", **kwargs)
+    return CrossDockStream(config, seed=seed, measure_from=20, measure_to=measure_to)
+
+
+class _AlwaysExtend(FCFSRulePolicy):
+    def claim(self, env, truck) -> bool:
+        return True
+
+
+def test_true_demand_waves_keep_shares_and_mean_rate() -> None:
+    from crossdock_solver.stream.demand import TrueDemand
+
+    env = _c3_env(amplitude=0.6, dest_amplitude=0.6)
+    demand = TrueDemand(env.facility)
+    grid = np.linspace(0, demand.period, 400, endpoint=False)
+    weights = np.array([demand.weights(t) for t in grid])
+    assert np.allclose(weights.sum(axis=1), env.config.num_destinations)
+    assert np.ptp(weights, axis=0).min() > 0.3  # every destination share moves
+    rates = np.array([demand.rate(t) for t in grid])
+    assert rates.mean() == pytest.approx(env.facility.arrival_rate, rel=1e-6)
+    assert rates.max() <= demand.rate_max + 1e-12
+    # staggered: destinations peak at different times
+    assert len(set(np.argmax(weights, axis=0))) == env.config.num_destinations
+
+
+def test_nonstationary_arrivals_follow_the_rate_curve() -> None:
+    from crossdock_solver.stream.demand import TrueDemand
+
+    env = _c3_env(amplitude=0.6, measure_to=3000)
+    demand = TrueDemand(env.facility)
+    while not env.done:
+        step_policy = FCFSRulePolicy()
+        env.dispatch(*step_policy.act(env))
+    arrivals = np.array(sorted(t.arrival for t in env.departed if t.uid >= 0))
+    phase = (2 * np.pi * arrivals / demand.period + env.facility.phase[0]) % (2 * np.pi)
+    high = np.sum(phase < np.pi)  # sin > 0 half of each period
+    low = np.sum(phase >= np.pi)
+    # expected ratio (1 + 2A/pi) / (1 - 2A/pi) = 2.23 for A = 0.6
+    assert 1.9 < high / low < 2.6
+
+
+def test_stationary_model_fork_matches_default_fork() -> None:
+    from crossdock_solver.stream.demand import StationaryDemand
+
+    env = _c3_env()
+    _advance(env, 30)
+    until = env.now + env.facility.sla
+    costs = []
+    for demand in (None, StationaryDemand(env.facility)):
+        sim = env.fork(seed=4, until=until, demand=demand)
+        while not sim.done:
+            sim.dispatch(*FCFSRulePolicy().act(sim))
+        costs.append(sim.cost_snapshot())
+    assert costs[0] == costs[1]
+
+
+def test_noisy_forecast_is_fixed_per_seed_and_unbiased() -> None:
+    from crossdock_solver.stream.demand import NoisyDemand, TrueDemand
+
+    env = _c3_env(amplitude=0.3, dest_amplitude=0.3)
+    true = TrueDemand(env.facility)
+    a, b = NoisyDemand(true, 0.3, seed=1), NoisyDemand(true, 0.3, seed=1)
+    grid = np.linspace(0, 400 * env.facility.mean_work, 4000)
+    ra = np.array([a.rate(t) for t in grid])
+    assert np.array_equal(ra, [b.rate(t) for t in grid])
+    ratio = ra / np.array([true.rate(t) for t in grid])
+    assert ratio.std() > 0.1 and abs(ratio.mean() - 1) < 0.1
+    assert np.allclose(np.array([a.weights(t) for t in grid[:50]]).sum(axis=1), env.config.num_destinations)
+
+
+def test_expected_units_match_the_stream() -> None:
+    from crossdock_solver.stream.demand import StationaryDemand
+
+    env = _c3_env(measure_to=2000)
+    while not env.done:
+        env.dispatch(*FCFSRulePolicy().act(env))
+    trucks = [t for t in env.departed if t.uid >= 0]
+    horizon = max(t.arrival for t in trucks)
+    observed = np.sum([t.units for t in trucks], axis=0)
+    expected = StationaryDemand(env.facility).expected_units(0.0, horizon)
+    assert np.allclose(observed, expected, rtol=0.1)
+
+
+def test_claim_now_policy_reproduces_model_without_claim_decision() -> None:
+    a = run_stream(_c3_env(), FCFSRulePolicy())
+    b = run_stream(_c3_env(max_extensions=2), FCFSRulePolicy())
+    assert a.objective == b.objective
+
+
+def test_extension_takes_freight_unloaded_meanwhile() -> None:
+    env = _c3_env(max_extensions=1)
+    metrics = run_stream(env, _AlwaysExtend())
+    carriers = [t for t in env.departed if t.uid >= 0]
+    assert all(t.extensions == 1 for t in carriers)
+    wait = env.config.extension_work * env.facility.mean_work
+    for truck in carriers:
+        # claimed one extension after its first claim moment
+        first = truck.dock_time + truck.enter + (
+            float(truck.handling.sum() - truck.handling[truck.destination]) if truck.compound else 0.0)
+        assert truck.claim_time == pytest.approx(first + wait)
+        assert all(lot.source.dock_time <= truck.claim_time for lot in truck.lots)
+    assert metrics.objective != run_stream(_c3_env(), FCFSRulePolicy()).objective
+
+
+def test_fork_at_pending_claim_and_rollout_claim_decision() -> None:
+    from crossdock_solver.stream.demand import demand_model
+    from crossdock_solver.stream.rollout import RolloutPolicy
+
+    env = _c3_env(amplitude=0.6, dest_amplitude=0.6, max_extensions=2, measure_to=60)
+    while not env.needs_claim:
+        env.dispatch(*FCFSRulePolicy().act(env))
+    pending = env.pending_claim
+    sim = env.fork(seed=0, until=env.now + env.facility.sla)
+    assert sim.pending_claim is not pending and sim.pending_claim.uid == pending.uid
+    sim.resolve_claim(True)
+    assert env.pending_claim is pending and pending.extensions == 0
+    for level in ("I0", "I1", "I2"):
+        policy = RolloutPolicy(samples=2, horizon_sla=0.3, demand=demand_model(level, env.facility, seed=1))
+        assert isinstance(policy.claim(env, pending), bool)
+    metrics = run_stream(_c3_env(amplitude=0.6, dest_amplitude=0.6, max_extensions=2, measure_to=60),
+                         RolloutPolicy(samples=2, horizon_sla=0.3))
+    assert metrics.trucks == 40

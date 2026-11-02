@@ -14,6 +14,10 @@ Process (compound-truck mechanics of the static model, generalized):
   unclaimed lot for d of compound trucks already docked, waits until each lot
   is unloaded and moved to its door (travel time), loads it, and leaves.
   Lots unloaded later wait for the next carrier of d.
+- Optional claim decision (`max_extensions > 0`, C3 gate): at its claim moment
+  a carrier may instead wait `extension_work` mean truck works at its door
+  and claim again, taking the lots unloaded meanwhile (`needs_claim`,
+  `resolve_claim`). Arrivals may follow time-varying demand (demand.py).
 
 Objective (long-run average, trucks of the measurement window):
     J = mean freight lead time (per unit: carrier departure - compound arrival)
@@ -33,6 +37,7 @@ import math
 import numpy as np
 
 from crossdock_solver.stream.config import Facility, StreamConfig, build_facility
+from crossdock_solver.stream.demand import DemandModel, TrueDemand
 
 
 ARRIVE, CLAIM, DEPART = 0, 1, 2
@@ -56,6 +61,7 @@ class Truck:
     expected_departure: float = math.nan
     departure: float = math.nan
     lots: list["Lot"] = field(default_factory=list)
+    extensions: int = 0  # claim extensions taken (claim decision)
 
     @property
     def retained_units(self) -> float:
@@ -123,6 +129,8 @@ class CrossDockStream:
     # ------------------------------------------------------------------ setup
     def reset(self) -> None:
         self.facility: Facility = build_facility(self.config, np.random.default_rng(self.seed))
+        self.demand: DemandModel = TrueDemand(self.facility)
+        self.pending_claim: Truck | None = None
         self._rng = np.random.default_rng(self.seed + 1)
         self.now = 0.0
         self.yard: list[Truck] = []
@@ -149,9 +157,27 @@ class CrossDockStream:
     # -------------------------------------------------------------- decisions
     @property
     def needs_decision(self) -> bool:
-        return not self.done and not self._held and bool(self.yard) and any(
+        return not self.done and not self._held and self.pending_claim is None and bool(self.yard) and any(
             truck is None for truck in self.doors
         )
+
+    @property
+    def needs_claim(self) -> bool:
+        """A carrier reached its claim moment and may extend (C3 gate)."""
+
+        return not self.done and self.pending_claim is not None
+
+    def resolve_claim(self, extend: bool) -> None:
+        if not self.needs_claim:
+            raise RuntimeError("no claim decision pending")
+        truck = self.pending_claim
+        self.pending_claim = None
+        if extend:
+            truck.extensions += 1
+            self._schedule(self.now + self.config.extension_work * self.facility.mean_work, CLAIM, truck)
+        else:
+            self._on_claim(truck)
+        self._advance()
 
     def free_doors(self) -> list[int]:
         return [m for m, truck in enumerate(self.doors) if truck is None]
@@ -202,7 +228,8 @@ class CrossDockStream:
         self._held = True
         self._advance()
 
-    def fork(self, seed: int, until: float, *, oracle: bool = False) -> "CrossDockStream":
+    def fork(self, seed: int, until: float, *, oracle: bool = False,
+             demand: DemandModel | None = None) -> "CrossDockStream":
         """Copy of the live state for look-ahead simulation up to time `until`.
 
         Future arrivals are resampled from a fresh generator (the pending
@@ -210,7 +237,9 @@ class CrossDockStream:
         stream), so a fork carries no information about the real future.
         `oracle=True` instead keeps the real future (pending arrival and the
         generator state): a perfect-information look-ahead used only to
-        measure the value of information.
+        measure the value of information. `demand` is the model the resampled
+        future is drawn from (the information level of the look-ahead);
+        default: the true demand curves.
         """
 
         clone = object.__new__(type(self) if oracle else CrossDockStream)
@@ -219,6 +248,8 @@ class CrossDockStream:
         clone.yard, clone.doors, clone.open_lots, clone.in_system, events = copy.deepcopy(
             (self.yard, self.doors, self.open_lots, self.in_system, self._events), memo
         )
+        if self.pending_claim is not None:
+            clone.pending_claim = memo[id(self.pending_claim)]
         if oracle:
             clone._events = events
             heapq.heapify(clone._events)
@@ -232,6 +263,8 @@ class CrossDockStream:
             clone._time_cap = until
             clone.done = False
             return clone
+        if demand is not None:
+            clone.demand = demand
         clone._events = [e for e in events if e[2] != ARRIVE]
         heapq.heapify(clone._events)
         clone._seq = itertools.count(next(copy.copy(self._seq)))
@@ -268,10 +301,19 @@ class CrossDockStream:
         heapq.heappush(self._events, (time, next(self._seq), kind, truck))
 
     def _interarrival(self) -> float:
-        return float(self._rng.exponential(1.0 / self.facility.arrival_rate))
+        demand = self.demand
+        if demand.stationary:
+            return float(self._rng.exponential(1.0 / demand.rate(self.now)))
+        # non-homogeneous Poisson stream by thinning (exact from any start time)
+        bound = demand.rate_max
+        t = self.now
+        while True:
+            t += float(self._rng.exponential(1.0 / bound))
+            if self._rng.random() * bound < min(demand.rate(t), bound):
+                return t - self.now
 
     def _advance(self) -> None:
-        while not self.done and not self.needs_decision:
+        while not self.done and not self.needs_decision and self.pending_claim is None:
             if not self._events:
                 self.done = True
                 break
@@ -284,7 +326,10 @@ class CrossDockStream:
             if kind == ARRIVE:
                 self._on_arrive()
             elif kind == CLAIM:
-                self._on_claim(truck)
+                if truck.extensions < self.config.max_extensions:
+                    self.pending_claim = truck
+                else:
+                    self._on_claim(truck)
             else:
                 self._on_depart(truck)
             if self._finished():
@@ -329,7 +374,7 @@ class CrossDockStream:
         rng = self._rng
         compound = bool(rng.random() < cfg.compound_fraction)
         if compound:
-            highs = np.floor(cfg.flow_high * fac.demand_weight).astype(int) + 1
+            highs = np.floor(cfg.flow_high * self.demand.weights(self.now)).astype(int) + 1
             cargo = rng.integers(0, highs[:, None], size=(cfg.num_destinations, cfg.num_products))
             units = cargo.sum(axis=1).astype(float)
             handling = (cargo @ fac.product_time).astype(float)
@@ -452,15 +497,27 @@ class CrossDockStream:
         )
 
 
+def step(env: CrossDockStream, policy) -> None:
+    """One decision: a pending claim goes to `policy.claim(env, truck) -> bool`
+    (claim at once when the policy has no claim rule), otherwise
+    `policy.act(env) -> (truck, door, destination) | None`."""
+
+    if env.needs_claim:
+        decide = getattr(policy, "claim", None)
+        env.resolve_claim(bool(decide(env, env.pending_claim)) if decide is not None else False)
+        return
+    action = policy.act(env)
+    if action is None:
+        env.hold()
+    else:
+        env.dispatch(*action)
+
+
 def run_stream(env: CrossDockStream, policy) -> StreamMetrics:
-    """Drive `env` with `policy.act(env) -> (truck, door, destination) | None`."""
+    """Drive `env` with `policy` until done (see `step`)."""
 
     if hasattr(policy, "reset"):
         policy.reset(env)
     while not env.done:
-        action = policy.act(env)
-        if action is None:
-            env.hold()
-        else:
-            env.dispatch(*action)
+        step(env, policy)
     return env.metrics()

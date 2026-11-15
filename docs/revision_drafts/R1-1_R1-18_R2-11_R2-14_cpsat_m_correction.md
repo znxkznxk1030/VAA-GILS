@@ -1,4 +1,4 @@
-# CP-SAT M 조건 정정안 (M-medium, M-tight에 실행 가능해가 있음)
+# R1-1, R1-18, R2-11, R2-14 — CP-SAT M 조건 정정안 (M-medium, M-tight에 실행 가능해가 있음)
 
 - 배경: 제출본은 "M의 시간 제약 조건과 L의 모든 조건에서 CP-SAT가 제한시간 안에 실행 가능해를 반환하지 못했다"고 썼다. 2026-07-06 기록은 Mac이 잠들어 실제 계산 시간이 21~355초였고, 2026-11-13에 600초를 온전히 준 재실행에서는 M-medium과 M-tight의 인스턴스 4개 모두 실행 가능해를 반환했다(최적성 미증명).
 - 근거 자료: `outputs/cpsat_rerun.jsonl`, `experiments/cpsat_rerun.py`

@@ -1,5 +1,5 @@
 """Flowchart of VAA-GILS (Algorithm 1). Line numbers refer to
-docs/revision_drafts/algorithm1_pseudocode.md.
+docs/revision_drafts/R1-11_R2-9_algorithm1_pseudocode.md.
 
     python3 make_fig_algorithm_flow.py fig_algorithm_flow.drawio
 """

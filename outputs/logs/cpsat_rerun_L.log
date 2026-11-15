@@ -1,0 +1,863 @@
+### START CPSAT-600-rerun|test|L|uniform|medium|0 at 12:28:43
+
+Starting CP-SAT solver v9.15.6755
+Parameters: max_time_in_seconds: 600 log_search_progress: true num_search_workers: 8
+
+Initial optimization model '': (model_fingerprint: 0x840741813317b15a)
+#Variables: 21'392 (#ints: 1 in objective) (19'921 primary variables)
+  - 21'300 Booleans in [0,1]
+  - 91 in [0,12759180]
+  - 1 in [0,395534580000]
+#kBoolAnd: 3'600 (#enforced: 3'600) (#literals: 7'200)
+#kLinear1: 10
+#kLinear2: 6'966'760 (#enforced: 6'966'700 #multi: 6'964'000)
+#kLinearN: 2'501 (#terms: 101'152)
+
+Starting presolve at 1.49s
+  3.99e-01s  0.00e+00d  [DetectDominanceRelations] 
+  1.38e+01s  0.00e+00d  [PresolveToFixPoint] #num_loops=4 #num_dual_strengthening=3 
+  3.42e-02s  0.00e+00d  [ExtractEncodingFromLinear] #potential_supersets=1'580 #potential_subsets=20 #exo_encodings=20 #multiple_terms=518 #literals=12'000 
+  3.55e-01s  0.00e+00d  [DetectDuplicateColumns] 
+  3.24e-01s  0.00e+00d  [DetectDuplicateConstraints] 
+[Symmetry] Graph for symmetry has 7'023'131 nodes and 28'029'517 arcs.
+[Symmetry] Graph too large. Skipping. You can use symmetry_level:3 or more to force it.
+[SAT presolve] num removable Booleans: 0 / 21'818
+[SAT presolve] num trivial clauses: 0
+[SAT presolve] [0s] clauses:17'018 literals:47'318 vars:14'518 one_side_vars:0 simple_definition:14'318 singleton_clauses:0
+[SAT presolve] [0.000776s] clauses:17'018 literals:47'318 vars:14'518 one_side_vars:0 simple_definition:14'318 singleton_clauses:0
+[SAT presolve] [0.001496s] clauses:17'018 literals:47'318 vars:14'518 one_side_vars:0 simple_definition:14'318 singleton_clauses:0
+  9.29e+01s  0.00e+00d  [DetectDuplicateConstraintsWithDifferentEnforcements] #without_enforcements=5'130'777 
+  1.64e+02s  1.00e+00d *[Probe] #probed=2'258 #new_binary_clauses=124'057 
+  1.61e-01s  6.45e-01d  [MaxClique] Merged 15'620 constraints with 43'200 literals into 4'138 constraints with 31'718 literals
+  4.14e-01s  0.00e+00d  [DetectDominanceRelations] 
+  2.64e+01s  0.00e+00d  [PresolveToFixPoint] #num_loops=4 #num_dual_strengthening=3 
+  2.09e+00s  0.00e+00d  [ProcessAtMostOneAndLinear] 
+  3.03e-01s  0.00e+00d  [DetectDuplicateConstraints] 
+  6.94e-01s  0.00e+00d  [DetectDuplicateConstraintsWithDifferentEnforcements] #without_enforcements=5'130'777 
+  3.85e-02s  3.90e-07d  [DetectDominatedLinearConstraints] #relevant_constraints=60 
+  3.80e-02s  0.00e+00d  [DetectDifferentVariables] 
+  8.13e-02s  4.69e-04d  [ProcessSetPPC] #relevant_constraints=7'116 #num_inclusions=4'118 
+  5.18e-02s  8.73e-05d  [TransformClausesToExactlyOne] #num_amos=3'620 #num_clauses=900 #num_checked=900 
+  7.88e-02s  0.00e+00d  [DetectEncodedComplexDomains] 
+  2.70e-02s  0.00e+00d  [FindAlmostIdenticalLinearConstraints] 
+  4.85e-01s  5.61e-01d  [FindBigAtMostOneAndLinearOverlap] 
+  2.99e+00s  8.27e-01d  [FindBigVerticalLinearOverlap] #blocks=50 #saved_nz=599'850 
+  6.18e-02s  0.00e+00d  [FindBigHorizontalLinearOverlap] 
+  8.55e-02s  1.80e-05d  [MergeClauses] 
+  4.25e-01s  0.00e+00d  [DetectDominanceRelations] 
+  9.73e+00s  0.00e+00d  [PresolveToFixPoint] #num_loops=2 #num_dual_strengthening=1 
+  4.25e-01s  0.00e+00d  [DetectDominanceRelations] 
+  9.53e+00s  0.00e+00d  [PresolveToFixPoint] #num_loops=1 #num_dual_strengthening=1 
+  4.22e-01s  0.00e+00d  [DetectDuplicateColumns] 
+  3.27e-01s  0.00e+00d  [DetectDuplicateConstraints] 
+[Symmetry] Graph for symmetry has 6'998'743 nodes and 27'381'179 arcs.
+[Symmetry] Graph too large. Skipping. You can use symmetry_level:3 or more to force it.
+[SAT presolve] num removable Booleans: 0 / 21'818
+[SAT presolve] num trivial clauses: 0
+[SAT presolve] [0s] clauses:4'500 literals:10'800 vars:2'000 one_side_vars:0 simple_definition:1'800 singleton_clauses:0
+[SAT presolve] [0.000244s] clauses:4'500 literals:10'800 vars:2'000 one_side_vars:0 simple_definition:1'800 singleton_clauses:0
+[SAT presolve] [0.000814s] clauses:4'500 literals:10'800 vars:2'000 one_side_vars:0 simple_definition:1'800 singleton_clauses:0
+  9.10e+01s  0.00e+00d  [DetectDuplicateConstraintsWithDifferentEnforcements] #without_enforcements=5'130'777 
+  1.49e+02s  1.00e+00d *[Probe] #probed=1'930 #new_binary_clauses=106'830 
+  7.60e-02s  1.21e-01d  [MaxClique] 
+  4.25e-01s  0.00e+00d  [DetectDominanceRelations] 
+  9.57e+00s  0.00e+00d  [PresolveToFixPoint] #num_loops=1 #num_dual_strengthening=1 
+  1.90e+00s  0.00e+00d  [ProcessAtMostOneAndLinear] 
+  3.06e-01s  0.00e+00d  [DetectDuplicateConstraints] 
+  6.37e-01s  0.00e+00d  [DetectDuplicateConstraintsWithDifferentEnforcements] #without_enforcements=5'130'777 
+  3.85e-02s  9.06e-07d  [DetectDominatedLinearConstraints] #relevant_constraints=110 
+  3.28e-02s  0.00e+00d  [DetectDifferentVariables] 
+  8.12e-02s  3.94e-04d  [ProcessSetPPC] #relevant_constraints=6'598 #num_inclusions=3'600 
+  5.34e-02s  8.73e-05d  [TransformClausesToExactlyOne] #num_amos=3'620 #num_clauses=900 #num_checked=900 
+  4.97e-02s  0.00e+00d  [DetectEncodedComplexDomains] 
+  2.86e-02s  7.05e-07d  [FindAlmostIdenticalLinearConstraints] #num_tested_pairs=47 
+  5.03e-01s  5.37e-01d  [FindBigAtMostOneAndLinearOverlap] 
+  4.32e+00s  7.64e-01d  [FindBigVerticalLinearOverlap] #blocks=50 #saved_nz=599'850 
+  7.80e-02s  0.00e+00d  [FindBigHorizontalLinearOverlap] 
+  9.47e-02s  1.80e-05d  [MergeClauses] 
+  4.19e-01s  0.00e+00d  [DetectDominanceRelations] 
+  9.45e+00s  0.00e+00d  [PresolveToFixPoint] #num_loops=2 #num_dual_strengthening=1 
+  4.41e-01s  0.00e+00d  [DetectDominanceRelations] 
+  9.13e+00s  0.00e+00d  [PresolveToFixPoint] #num_loops=1 #num_dual_strengthening=1 
+  3.32e-01s  0.00e+00d  [DetectDuplicateColumns] 
+  3.05e-01s  0.00e+00d  [DetectDuplicateConstraints] 
+[Symmetry] Graph for symmetry has 6'998'873 nodes and 26'781'359 arcs.
+[Symmetry] Graph too large. Skipping. You can use symmetry_level:3 or more to force it.
+[SAT presolve] num removable Booleans: 0 / 21'818
+[SAT presolve] num trivial clauses: 0
+[SAT presolve] [0s] clauses:4'500 literals:10'800 vars:2'000 one_side_vars:0 simple_definition:1'800 singleton_clauses:0
+[SAT presolve] [0.000183s] clauses:4'500 literals:10'800 vars:2'000 one_side_vars:0 simple_definition:1'800 singleton_clauses:0
+[SAT presolve] [0.000566s] clauses:4'500 literals:10'800 vars:2'000 one_side_vars:0 simple_definition:1'800 singleton_clauses:0
+  8.96e+01s  0.00e+00d  [DetectDuplicateConstraintsWithDifferentEnforcements] #without_enforcements=5'130'777 
+  1.28e+02s  1.00e+00d *[Probe] #probed=1'452 #new_binary_clauses=81'718 
+  2.21e-01s  7.68e-03d  [MaxClique] 
+  6.58e-02s  8.73e-05d  [TransformClausesToExactlyOne] #num_amos=3'620 #num_clauses=900 #num_checked=900 
+  1.00e-06s  0.00e+00d  [MergeNoOverlap] 
+  1.00e-06s  0.00e+00d  [MergeNoOverlap2D] 
+
+Presolve summary:
+  - 20 affine relations were detected.
+  - rule 'TODO dual: only one blocking constraint?' was applied 34'840 times.
+  - rule 'TODO dual: only one unspecified blocking constraint?' was applied 341 times.
+  - rule 'affine: new relation' was applied 20 times.
+  - rule 'at_most_one: transformed into max clique' was applied 1 time.
+  - rule 'deductions: 2836 stored' was applied 1 time.
+  - rule 'dual: reduced domain' was applied 110 times.
+  - rule 'encoding: extracted from linear' was applied 20 times.
+  - rule 'encoding: reduced target domain' was applied 20 times.
+  - rule 'linear matrix: common vertical rectangle' was applied 100 times.
+  - rule 'linear1: x in domain' was applied 10 times.
+  - rule 'linear: divide by GCD' was applied 20 times.
+  - rule 'linear: negative clause' was applied 900 times.
+  - rule 'linear: positive at most one' was applied 20 times.
+  - rule 'linear: positive equal one' was applied 1'560 times.
+  - rule 'linear: reduced variable domains' was applied 20 times.
+  - rule 'linear: remapped using affine relations' was applied 6'960'620 times.
+  - rule 'linear: simplified rhs' was applied 1'537 times.
+  - rule 'linear: variable substitution 0' was applied 1 time.
+  - rule 'new_bool: integer encoding' was applied 518 times.
+  - rule 'presolve: 0 unused variables removed.' was applied 1 time.
+  - rule 'presolve: iteration' was applied 3 times.
+  - rule 'setppc: bool_or in at_most_one' was applied 518 times.
+  - rule 'variables: add encoding constraint' was applied 518 times.
+  - rule 'variables: canonicalize affine domain' was applied 20 times.
+
+Presolved optimization model '': (model_fingerprint: 0xfa90a0efc7bc508c)
+#Variables: 22'009 (#ints: 31 in objective) (20'415 primary variables)
+  - 21'818 Booleans in [0,1]
+  - 180 different domains in [-12564580,12759180] with a largest complexity of 23.
+#kAtMostOne: 20 (#literals: 12'000)
+#kBoolAnd: 200 (#enforced: 200) (#literals: 3'800)
+#kBoolOr: 900 (#literals: 3'600)
+#kExactlyOne: 2'078 (#literals: 86'018)
+#kLinear1: 1'201'036 (#enforced: 1'201'036 #multi: 1'200'000)
+#kLinear2: 5'766'760 (#enforced: 5'766'700 #multi: 5'764'000)
+#kLinear3: 100
+Stopped after presolve.
+PresolvedNumVariables: 22009
+PresolvedNumConstraints: 6971094
+PresolvedNumTerms: 26772010
+CpSolverResponse summary:
+status: UNKNOWN
+objective: 0
+best_bound: 0
+integers: 0
+booleans: 0
+conflicts: 0
+branches: 0
+propagations: 0
+integer_propagations: 0
+restarts: 0
+lp_iterations: 0
+walltime: 558.983
+usertime: 558.983
+deterministic_time: 6.47723
+gap_integral: 0
+
+### DONE {"key": "CPSAT-600-rerun|test|L|uniform|medium|0", "method": "CPSAT-600-rerun", "size_class": "L", "tw_tightness": "medium", "index": 0, "instance_seed": 326000, "status": "UNKNOWN", "proven_optimal": false, "objective": null, "lower_bound": 0.0, "runtime_sec": 589.4425077079795, "wall_sec": 589.4447560310364, "finished_at": 1794541112.517072}
+### START CPSAT-600-rerun|test|L|uniform|medium|1 at 12:38:32
+
+Starting CP-SAT solver v9.15.6755
+Parameters: max_time_in_seconds: 600 log_search_progress: true num_search_workers: 8
+
+Initial optimization model '': (model_fingerprint: 0xd32c9382a2986943)
+#Variables: 21'392 (#ints: 1 in objective) (19'921 primary variables)
+  - 21'300 Booleans in [0,1]
+  - 91 in [0,7283400]
+  - 1 in [0,225785400000]
+#kBoolAnd: 3'600 (#enforced: 3'600) (#literals: 7'200)
+#kLinear1: 10
+#kLinear2: 6'966'760 (#enforced: 6'966'700 #multi: 6'964'000)
+#kLinearN: 2'501 (#terms: 101'152)
+
+Starting presolve at 1.19s
+  3.94e-01s  0.00e+00d  [DetectDominanceRelations] 
+  1.37e+01s  0.00e+00d  [PresolveToFixPoint] #num_loops=4 #num_dual_strengthening=3 
+  3.23e-02s  0.00e+00d  [ExtractEncodingFromLinear] #potential_supersets=1'580 #potential_subsets=20 #exo_encodings=20 #multiple_terms=469 #literals=12'000 
+  3.44e-01s  0.00e+00d  [DetectDuplicateColumns] 
+  3.28e-01s  0.00e+00d  [DetectDuplicateConstraints] 
+[Symmetry] Graph for symmetry has 7'022'837 nodes and 28'029'174 arcs.
+[Symmetry] Graph too large. Skipping. You can use symmetry_level:3 or more to force it.
+[SAT presolve] num removable Booleans: 0 / 21'769
+[SAT presolve] num trivial clauses: 0
+[SAT presolve] [0s] clauses:16'969 literals:47'269 vars:14'469 one_side_vars:0 simple_definition:14'269 singleton_clauses:0
+[SAT presolve] [0.000833s] clauses:16'969 literals:47'269 vars:14'469 one_side_vars:0 simple_definition:14'269 singleton_clauses:0
+[SAT presolve] [0.001587s] clauses:16'969 literals:47'269 vars:14'469 one_side_vars:0 simple_definition:14'269 singleton_clauses:0
+### START CPSAT-600-rerun|test|L|uniform|medium|1 at 13:40:49
+
+Starting CP-SAT solver v9.15.6755
+Parameters: max_time_in_seconds: 600 log_search_progress: true num_search_workers: 8
+
+Initial optimization model '': (model_fingerprint: 0xd32c9382a2986943)
+#Variables: 21'392 (#ints: 1 in objective) (19'921 primary variables)
+  - 21'300 Booleans in [0,1]
+  - 91 in [0,7283400]
+  - 1 in [0,225785400000]
+#kBoolAnd: 3'600 (#enforced: 3'600) (#literals: 7'200)
+#kLinear1: 10
+#kLinear2: 6'966'760 (#enforced: 6'966'700 #multi: 6'964'000)
+#kLinearN: 2'501 (#terms: 101'152)
+
+Starting presolve at 1.70s
+  6.04e-01s  0.00e+00d  [DetectDominanceRelations] 
+  4.13e+01s  0.00e+00d  [PresolveToFixPoint] #num_loops=4 #num_dual_strengthening=3 
+  3.54e-02s  0.00e+00d  [ExtractEncodingFromLinear] #potential_supersets=1'580 #potential_subsets=20 #exo_encodings=20 #multiple_terms=469 #literals=12'000 
+  8.51e-01s  0.00e+00d  [DetectDuplicateColumns] 
+  3.58e-01s  0.00e+00d  [DetectDuplicateConstraints] 
+[Symmetry] Graph for symmetry has 7'022'837 nodes and 28'029'174 arcs.
+[Symmetry] Graph too large. Skipping. You can use symmetry_level:3 or more to force it.
+[SAT presolve] num removable Booleans: 0 / 21'769
+[SAT presolve] num trivial clauses: 0
+[SAT presolve] [0s] clauses:16'969 literals:47'269 vars:14'469 one_side_vars:0 simple_definition:14'269 singleton_clauses:0
+[SAT presolve] [0.001098s] clauses:16'969 literals:47'269 vars:14'469 one_side_vars:0 simple_definition:14'269 singleton_clauses:0
+[SAT presolve] [0.002143s] clauses:16'969 literals:47'269 vars:14'469 one_side_vars:0 simple_definition:14'269 singleton_clauses:0
+  6.74e+03s  0.00e+00d  [DetectDuplicateConstraintsWithDifferentEnforcements] #without_enforcements=5'170'977 
+  6.84e+03s  1.01e+00d *[Probe] #probed=2'352 #new_binary_clauses=126'468 
+  2.64e-01s  4.93e-03d  [MaxClique] 
+  5.24e-02s  7.93e-04d  [TransformClausesToExactlyOne] #num_amos=15'620 #num_clauses=1'369 #num_checked=1'369 
+  1.00e-06s  0.00e+00d  [MergeNoOverlap] 
+  0.00e+00s  0.00e+00d  [MergeNoOverlap2D] 
+
+Presolve summary:
+  - 20 affine relations were detected.
+  - rule 'TODO dual: only one blocking constraint?' was applied 9'450 times.
+  - rule 'TODO dual: only one unspecified blocking constraint?' was applied 93 times.
+  - rule 'affine: new relation' was applied 20 times.
+  - rule 'deductions: 1800 stored' was applied 1 time.
+  - rule 'dual: reduced domain' was applied 70 times.
+  - rule 'encoding: extracted from linear' was applied 20 times.
+  - rule 'encoding: reduced target domain' was applied 20 times.
+  - rule 'linear1: x in domain' was applied 10 times.
+  - rule 'linear: divide by GCD' was applied 20 times.
+  - rule 'linear: negative clause' was applied 900 times.
+  - rule 'linear: positive at most one' was applied 20 times.
+  - rule 'linear: positive equal one' was applied 1'560 times.
+  - rule 'linear: reduced variable domains' was applied 20 times.
+  - rule 'linear: remapped using affine relations' was applied 6'960'620 times.
+  - rule 'linear: variable substitution 0' was applied 1 time.
+  - rule 'new_bool: integer encoding' was applied 469 times.
+  - rule 'presolve: 0 unused variables removed.' was applied 1 time.
+  - rule 'presolve: iteration' was applied 1 time.
+  - rule 'variables: add encoding constraint' was applied 469 times.
+  - rule 'variables: canonicalize affine domain' was applied 20 times.
+
+Presolved optimization model '': (model_fingerprint: 0xd14e6dff12a92d44)
+#Variables: 21'860 (#ints: 31 in objective) (20'359 primary variables)
+  - 21'769 Booleans in [0,1]
+  - 1 in [0,69890]
+  - 1 in [0,73451]
+  - 1 in [0,75111]
+  - 1 in [0,86931]
+  - 1 in [0,87761]
+  - 1 in [0,89651]
+  - 1 in [0,94161]
+  - 1 in [0,96711]
+  - 1 in [0,98841]
+  - 1 in [0,99901]
+  - 1 in [0,103131]
+  - 1 in [0,104561]
+  - 1 in [0,108741]
+  - 1 in [0,112551]
+  - 1 in [0,112741]
+  - 1 in [0,118491]
+  - 1 in [0,118901]
+  - 1 in [0,121281]
+  - 1 in [0,125381]
+  - 1 in [0,127101]
+  - 1 in [0,270670]
+  - 1 in [0,271861]
+  - 1 in [0,272761]
+  - 1 in [0,273161]
+  - 2 in [0,273261]
+  - 1 in [0,273761]
+  - 1 in [0,273861]
+  - 1 in [0,274161]
+  - 1 in [0,274261]
+  - 1 in [0,274361]
+  - 1 in [0,274461]
+  - 1 in [0,274561]
+  - 2 in [0,274861]
+  - 1 in [0,275061]
+  - 1 in [0,275461]
+  - 1 in [0,275761]
+  - 1 in [0,275861]
+  - 1 in [0,276261]
+  - 1 in [0,7084760]
+  - 1 in [0,7089610]
+  - 1 in [0,7103310]
+  - 1 in [0,7117140]
+  - 1 in [0,7121550]
+  - 1 in [0,7124120]
+  - 1 in [0,7126910]
+  - 1 in [0,7133680]
+  - 1 in [0,7134950]
+  - 1 in [0,7135590]
+  - 11 in [0,7283400]
+  - 1 in [1067][1074,1075][1077][1079][1083][1088, ... 1104,1106][1111,1112][1114,1116][1118,1119][1122]
+  - 1 in [1200,1201][1205][1210][1212][1218,1220][1224][1226][1228][1230][1232,1236][1238][1240][1246]
+  - 1 in [1223][1234,1237][1243][1248,1250][1252,1 ... 60][1264][1267,1268][1270][1276,1277][1279][1283]
+  - 1 in [1234][1239][1241][1244][1247][1251,1252] ... 268][1270,1273][1275,1276][1278][1280][1284,1286]
+  - 1 in [1310][1321][1324,1325][1330][1333][1335] ... 341][1344,1347][1352,1354][1358,1360][1370][1384]
+  - 1 in [1311][1321][1325][1329,1330][1335,1340][1347][1349][1353,1356][1360,1362][1370][1379]
+  - 1 in [1324][1329][1333,1334][1338][1341][1343, ... 0][1353][1359,1363][1365][1368][1371][1373][1383]
+  - 1 in [1364][1369][1375][1378][1380,1382][1384, ... 387][1389,1392][1395,1396][1399][1401][1406,1407]
+  - 1 in [1417,1420][1426][1428][1430][1432][1435,1437][1441,1442][1446,1448][1451,1453][1456][1472]
+  - 1 in [1425][1428][1432,1433][1435,1436][1439][ ... 58][1463,1464][1466][1469][1471,1472][1474][1479]
+  - 1 in [1429][1439][1447,1448][1451,1453][1456][ ... 64][1467][1469][1472,1474][1479][1481][1483,1486]
+  - 1 in [1438][1442][1445,1447][1449,1450][1452,1 ... 465][1468,1469][1471,1474][1477,1478][1485][1488]
+  - 1 in [1441][1449,1450][1452,1453][1456][1458,1 ... 469,1470][1472][1476,1479][1483][1486,1487][1499]
+  - 1 in [1443][1458][1461,1463][1465,1466][1468][ ... 9][1484][1486][1488,1491][1493][1497][1503][1508]
+  - 1 in [1482][1486,1487][1489][1494][1496,1497][ ... 7,1520][1522][1525][1528][1532][1540][1544][1547]
+  - 1 in [1544][1547][1551,1553][1556,1558][1563,1565][1567][1571,1576][1584][1586][1589,1590][1594]
+  - 1 in [1597][1601][1603,1605][1612][1614,1615][ ... 35,1636][1638][1640][1642,1644][1648][1650][1659]
+  - 1 in [1713,1714][1718][1721][1723,1725][1727][ ... 49][1752][1755,1756][1760,1761][1767][1772][1776]
+  - 1 in [1732][1736,1737][1739][1743][1745,1748][ ... 62,1766][1769][1772][1775][1777][1779][1786,1787]
+  - 1 in [1773][1784][1787,1788][1790][1797,1800][ ... 14,1816][1822,1823][1826][1831][1835][1840][1844]
+  - 1 in [4300,7283400]
+  - 1 in [4940,7283400]
+  - 1 in [6210,7283400]
+  - 1 in [12980,7283400]
+  - 1 in [15770,7283400]
+  - 1 in [18340,7283400]
+  - 1 in [22750,7283400]
+  - 1 in [36580,7283400]
+  - 1 in [50280,7283400]
+  - 1 in [55130,7283400]
+#kAtMostOne: 20 (#literals: 12'000)
+#kBoolAnd: 669 (#enforced: 669) (#literals: 16'269)
+#kBoolOr: 1'369 (#literals: 16'069)
+#kExactlyOne: 1'560 (#literals: 73'500)
+#kLinear1: 938 (#enforced: 938)
+#kLinear2: 6'966'760 (#enforced: 6'966'700 #multi: 6'964'000)
+Stopped after presolve.
+PresolvedNumVariables: 21860
+PresolvedNumConstraints: 6971316
+PresolvedNumTerms: 27983934
+CpSolverResponse summary:
+status: UNKNOWN
+objective: 0
+best_bound: 0
+integers: 0
+booleans: 0
+conflicts: 0
+branches: 0
+propagations: 0
+integer_propagations: 0
+restarts: 0
+lp_iterations: 0
+walltime: 7940.77
+usertime: 7940.77
+deterministic_time: 1.01081
+gap_integral: 0
+
+### DONE {"key": "CPSAT-600-rerun|test|L|uniform|medium|1", "method": "CPSAT-600-rerun", "size_class": "L", "tw_tightness": "medium", "index": 1, "instance_seed": 326001, "status": "UNKNOWN", "proven_optimal": false, "objective": null, "lower_bound": 0.0, "runtime_sec": 267.5261526661925, "wall_sec": 7979.907525777817, "finished_at": 1794552829.55634}
+### START CPSAT-600-rerun|test|L|uniform|tight|0 at 15:53:49
+
+Starting CP-SAT solver v9.15.6755
+Parameters: max_time_in_seconds: 600 log_search_progress: true num_search_workers: 8
+
+Initial optimization model '': (model_fingerprint: 0x366cfb3b826e1d87)
+#Variables: 21'392 (#ints: 1 in objective) (19'921 primary variables)
+  - 21'300 Booleans in [0,1]
+  - 91 in [0,12957710]
+  - 1 in [0,401689010000]
+#kBoolAnd: 3'600 (#enforced: 3'600) (#literals: 7'200)
+#kLinear1: 10
+#kLinear2: 6'966'760 (#enforced: 6'966'700 #multi: 6'964'000)
+#kLinearN: 2'501 (#terms: 101'152)
+
+Starting presolve at 1.78s
+  3.92e-01s  0.00e+00d  [DetectDominanceRelations] 
+  1.99e+01s  0.00e+00d  [PresolveToFixPoint] #num_loops=4 #num_dual_strengthening=3 
+  3.20e-02s  0.00e+00d  [ExtractEncodingFromLinear] #potential_supersets=1'580 #potential_subsets=20 #exo_encodings=20 #multiple_terms=510 #literals=12'000 
+  9.83e+02s  0.00e+00d  [DetectDuplicateColumns] 
+[Symmetry] Graph for symmetry has 7'023'083 nodes and 28'029'461 arcs.
+[Symmetry] Graph too large. Skipping. You can use symmetry_level:3 or more to force it.
+  5.53e-02s  8.41e-04d  [TransformClausesToExactlyOne] #num_amos=15'620 #num_clauses=1'410 #num_checked=1'410 
+  1.00e-06s  0.00e+00d  [MergeNoOverlap] 
+  0.00e+00s  0.00e+00d  [MergeNoOverlap2D] 
+
+Presolve summary:
+  - 20 affine relations were detected.
+  - rule 'TODO dual: only one blocking constraint?' was applied 9'450 times.
+  - rule 'TODO dual: only one unspecified blocking constraint?' was applied 93 times.
+  - rule 'affine: new relation' was applied 20 times.
+  - rule 'deductions: 1800 stored' was applied 1 time.
+  - rule 'dual: reduced domain' was applied 70 times.
+  - rule 'encoding: extracted from linear' was applied 20 times.
+  - rule 'encoding: reduced target domain' was applied 20 times.
+  - rule 'linear1: x in domain' was applied 10 times.
+  - rule 'linear: divide by GCD' was applied 20 times.
+  - rule 'linear: negative clause' was applied 900 times.
+  - rule 'linear: positive at most one' was applied 20 times.
+  - rule 'linear: positive equal one' was applied 1'560 times.
+  - rule 'linear: reduced variable domains' was applied 20 times.
+  - rule 'linear: remapped using affine relations' was applied 6'960'620 times.
+  - rule 'linear: variable substitution 0' was applied 1 time.
+  - rule 'new_bool: integer encoding' was applied 510 times.
+  - rule 'presolve: 0 unused variables removed.' was applied 1 time.
+  - rule 'presolve: iteration' was applied 1 time.
+  - rule 'variables: add encoding constraint' was applied 510 times.
+  - rule 'variables: canonicalize affine domain' was applied 20 times.
+
+Presolved optimization model '': (model_fingerprint: 0x8350f8915bc741d4)
+#Variables: 21'901 (#ints: 31 in objective) (20'400 primary variables)
+  - 21'810 Booleans in [0,1]
+  - 1 in [0,212733]
+  - 1 in [0,213550]
+  - 1 in [0,222483]
+  - 1 in [0,232833]
+  - 1 in [0,245293]
+  - 1 in [0,257403]
+  - 1 in [0,258343]
+  - 1 in [0,259273]
+  - 1 in [0,268263]
+  - 1 in [0,274913]
+  - 1 in [0,281313]
+  - 1 in [0,289163]
+  - 1 in [0,289823]
+  - 1 in [0,294613]
+  - 1 in [0,326763]
+  - 1 in [0,333443]
+  - 1 in [0,353233]
+  - 1 in [0,376833]
+  - 1 in [0,382733]
+  - 1 in [0,386033]
+  - 1 in [0,555660]
+  - 1 in [0,555703]
+  - 1 in [0,555803]
+  - 1 in [0,556203]
+  - 2 in [0,556703]
+  - 1 in [0,556903]
+  - 1 in [0,557003]
+  - 1 in [0,557503]
+  - 1 in [0,557803]
+  - 1 in [0,558003]
+  - 1 in [0,558803]
+  - 1 in [0,559403]
+  - 2 in [0,561103]
+  - 1 in [0,561203]
+  - 1 in [0,561403]
+  - 1 in [0,562403]
+  - 1 in [0,562603]
+  - 1 in [0,563703]
+  - 1 in [0,12613940]
+  - 1 in [0,12643830]
+  - 1 in [0,12660030]
+  - 1 in [0,12677810]
+  - 1 in [0,12695140]
+  - 1 in [0,12696590]
+  - 1 in [0,12701700]
+  - 1 in [0,12741410]
+  - 1 in [0,12757920]
+  - 1 in [0,12791140]
+  - 11 in [0,12957710]
+  - 1 in [2226][2240][2246][2255][2258,2259][2261] ... 01,2302][2304,2306][2312][2317][2320][2323][2333]
+  - 1 in [2405][2426][2431][2436][2439][2441][2444 ... 61][2465][2470][2475,2476][2481,2482][2496][2502]
+  - 1 in [2634][2641,2642][2647,2652][2654][2661,2 ... 5][2679,2680][2687][2693][2696][2703][2706][2709]
+  - 1 in [2670][2682][2685,2687][2698][2701][2703, ... 28][2733][2735][2737,2738][2742,2743][2749][2774]
+  - 1 in [2709][2714][2717][2724][2742][2744][2748 ... 79][2785,2786][2790,2791][2797][2800][2808][2816]
+  - 1 in [2742][2746][2760,2761][2769,2771][2774][ ... 3][2805][2808][2818,2819][2822][2824][2827][2836]
+  - 1 in [3211][3214][3219,3220][3223][3234][3236] ... 9][3271][3273][3280][3285][3288,3290][3295][3300]
+  - 1 in [3227][3233][3242][3252][3254][3258][3261 ... ][3309][3312][3318][3322][3324][3333][3338][3349]
+  - 1 in [3253][3257][3260][3262][3267][3269][3274 ... 90][3296,3298][3301,3304][3306][3313][3336][3343]
+  - 1 in [3327,3328][3331,3333][3337][3340][3348][ ... 9][3384][3388,3389][3394][3397][3400][3417][3419]
+  - 1 in [3343][3346,3347][3361][3363][3369][3381, ... 10,3414][3416][3420][3423][3426,3427][3430][3455]
+  - 1 in [3360][3392,3393][3397][3401][3405,3406][ ... 34,3436][3438,3439][3445][3449][3462][3474][3478]
+  - 1 in [3393][3406][3413,3414][3420][3423,3426][ ... 3440,3441][3445,3446][3449,3452][3465,3466][3486]
+  - 1 in [3451][3457,3458][3468,3469][3472][3477][ ... 504,3505][3510,3511][3515][3520,3523][3529][3540]
+  - 1 in [3504][3507][3509][3513][3522][3526,3527] ... 9][3562,3563][3565][3569][3578][3584][3590][3597]
+  - 1 in [3760][3768][3775,3776][3782][3785][3792] ... ][3811][3817][3821][3824][3832][3835][3838][3841]
+  - 1 in [3767][3770][3774][3776][3779][3785,3786] ... 12][3814,3815][3819,3820][3825][3827][3835][3849]
+  - 1 in [3778,3779][3787,3788][3796,3797][3807][3 ... 34,3835][3837][3839][3841][3849][3854][3861,3863]
+  - 1 in [3860][3881][3886,3887][3891,3893][3899,3 ... 13][3915][3917][3919,3920][3924,3925][3927][3942]
+  - 1 in [3932][3937][3958][3961,3962][3966,3967][ ... 09][4013][4015,4016][4018][4020][4022][4033,4034]
+  - 1 in [18320,12957710]
+  - 1 in [51540,12957710]
+  - 1 in [68050,12957710]
+  - 1 in [107760,12957710]
+  - 1 in [112870,12957710]
+  - 1 in [114320,12957710]
+  - 1 in [131650,12957710]
+  - 1 in [149430,12957710]
+  - 1 in [165630,12957710]
+  - 1 in [195520,12957710]
+#kAtMostOne: 20 (#literals: 12'000)
+#kBoolAnd: 15'600 (#enforced: 15'600) (#literals: 31'200)
+#kBoolOr: 1'410 (#literals: 16'110)
+#kExactlyOne: 1'560 (#literals: 73'500)
+#kLinear1: 1'020 (#enforced: 1'020)
+#kLinear2: 6'966'760 (#enforced: 6'966'700 #multi: 6'964'000)
+Stopped after presolve.
+PresolvedNumVariables: 21901
+PresolvedNumConstraints: 6986370
+PresolvedNumTerms: 27999070
+CpSolverResponse summary:
+status: UNKNOWN
+objective: 0
+best_bound: 0
+integers: 0
+booleans: 0
+conflicts: 0
+branches: 0
+propagations: 0
+integer_propagations: 0
+restarts: 0
+lp_iterations: 0
+walltime: 1012.56
+usertime: 1012.56
+deterministic_time: 0.000840955
+gap_integral: 0
+
+### DONE {"key": "CPSAT-600-rerun|test|L|uniform|tight|0", "method": "CPSAT-600-rerun", "size_class": "L", "tw_tightness": "tight", "index": 0, "instance_seed": 327000, "status": "UNKNOWN", "proven_optimal": false, "objective": null, "lower_bound": 0.0, "runtime_sec": 64.99624029221013, "wall_sec": 3598.3010442256927, "finished_at": 1794556427.859652}
+### START CPSAT-600-rerun|test|L|uniform|tight|1 at 16:53:47
+
+Starting CP-SAT solver v9.15.6755
+Parameters: max_time_in_seconds: 600 log_search_progress: true num_search_workers: 8
+
+Initial optimization model '': (model_fingerprint: 0x183015a977e020f7)
+#Variables: 21'392 (#ints: 1 in objective) (19'921 primary variables)
+  - 21'300 Booleans in [0,1]
+  - 91 in [0,20125340]
+  - 1 in [0,623885540000]
+#kBoolAnd: 3'600 (#enforced: 3'600) (#literals: 7'200)
+#kLinear1: 10
+#kLinear2: 6'966'760 (#enforced: 6'966'700 #multi: 6'964'000)
+#kLinearN: 2'501 (#terms: 101'152)
+
+Starting presolve at 1.73s
+  1.00e+03s  0.00e+00d  [PresolveToFixPoint] #num_loops=1 #num_dual_strengthening=1 
+  1.03e-01s  0.00e+00d  [TransformClausesToExactlyOne] #num_amos=5'180 
+  1.00e-06s  0.00e+00d  [MergeNoOverlap] 
+  0.00e+00s  0.00e+00d  [MergeNoOverlap2D] 
+
+Presolve summary:
+  - 0 affine relations were detected.
+  - rule 'TODO dual: only one blocking constraint?' was applied 3'152 times.
+  - rule 'deductions: 1800 stored' was applied 1 time.
+  - rule 'dual: reduced domain' was applied 20 times.
+  - rule 'linear1: x in domain' was applied 10 times.
+  - rule 'linear: extracted at most one (max)' was applied 80 times.
+  - rule 'linear: extracted at most one (min)' was applied 1'500 times.
+  - rule 'presolve: 0 unused variables removed.' was applied 1 time.
+  - rule 'presolve: iteration' was applied 1 time.
+
+Presolved optimization model '': (model_fingerprint: 0x3d056fd3583ae835)
+#Variables: 21'392 (#ints: 1 in objective) (19'921 primary variables)
+  - 21'300 Booleans in [0,1]
+  - 1 in [0,334730]
+  - 1 in [0,342530]
+  - 1 in [0,356850]
+  - 1 in [0,361520]
+  - 1 in [0,368590]
+  - 1 in [0,402850]
+  - 1 in [0,432760]
+  - 1 in [0,441330]
+  - 1 in [0,458810]
+  - 1 in [0,480630]
+  - 1 in [0,521720]
+  - 1 in [0,523360]
+  - 1 in [0,526720]
+  - 1 in [0,530440]
+  - 1 in [0,548720]
+  - 1 in [0,562280]
+  - 1 in [0,577270]
+  - 1 in [0,584900]
+  - 1 in [0,635500]
+  - 1 in [0,654000]
+  - 61 in [0,20125340]
+  - 1 in [0,623885540000]
+  - 1 in [10180,20125340]
+  - 1 in [151210,20125340]
+  - 1 in [168020,20125340]
+  - 1 in [182930,20125340]
+  - 1 in [216430,20125340]
+  - 1 in [226750,20125340]
+  - 1 in [227540,20125340]
+  - 1 in [262090,20125340]
+  - 1 in [274800,20125340]
+  - 1 in [303130,20125340]
+#kAtMostOne: 1'580 (#literals: 85'500)
+#kBoolAnd: 3'600 (#enforced: 3'600) (#literals: 7'200)
+#kLinear2: 6'966'760 (#enforced: 6'966'700 #multi: 6'964'000)
+#kLinearN: 2'501 (#terms: 101'152)
+Stopped after presolve.
+PresolvedNumVariables: 21392
+PresolvedNumConstraints: 6974441
+PresolvedNumTerms: 28058072
+CpSolverResponse summary:
+status: UNKNOWN
+objective: 0
+best_bound: 0
+integers: 0
+booleans: 0
+conflicts: 0
+branches: 0
+propagations: 0
+integer_propagations: 0
+restarts: 0
+lp_iterations: 0
+walltime: 1967.62
+usertime: 1967.62
+deterministic_time: 0
+gap_integral: 0
+
+### DONE {"key": "CPSAT-600-rerun|test|L|uniform|tight|1", "method": "CPSAT-600-rerun", "size_class": "L", "tw_tightness": "tight", "index": 1, "instance_seed": 327001, "status": "UNKNOWN", "proven_optimal": false, "objective": null, "lower_bound": 0.0, "runtime_sec": 65.8407898331061, "wall_sec": 4619.758837938309, "finished_at": 1794561047.6205928}
+### START CPSAT-600-rerun|test|L|uniform|none|0 at 18:10:47
+
+Starting CP-SAT solver v9.15.6755
+Parameters: max_time_in_seconds: 600 log_search_progress: true num_search_workers: 8
+
+Initial optimization model '': (model_fingerprint: 0xe1714d760eea9783)
+#Variables: 21'362 (#ints: 1 in objective) (19'891 primary variables)
+  - 21'300 Booleans in [0,1]
+  - 61 in [0,10544770]
+  - 1 in [0,10544770000]
+#kBoolAnd: 3'600 (#enforced: 3'600) (#literals: 7'200)
+#kLinear1: 10
+#kLinear2: 6'966'731 (#enforced: 6'966'700 #multi: 6'964'000)
+#kLinearN: 2'500 (#terms: 101'120)
+
+Starting presolve at 2.28s
+  1.07e+03s  0.00e+00d  [PresolveToFixPoint] #num_loops=2 #num_dual_strengthening=1 
+  6.26e-02s  8.73e-05d  [TransformClausesToExactlyOne] #num_amos=3'620 #num_clauses=900 #num_checked=900 
+  1.00e-06s  0.00e+00d  [MergeNoOverlap] 
+  0.00e+00s  0.00e+00d  [MergeNoOverlap2D] 
+20 affine relations still in the model.
+
+Presolve summary:
+  - 21 affine relations were detected.
+  - rule 'TODO dual: only one blocking constraint?' was applied 3'100 times.
+  - rule 'TODO dual: only one unspecified blocking constraint?' was applied 21 times.
+  - rule 'affine: new relation' was applied 21 times.
+  - rule 'deductions: 1800 stored' was applied 1 time.
+  - rule 'dual: reduced domain' was applied 20 times.
+  - rule 'linear: always true' was applied 10 times.
+  - rule 'linear: divide by GCD' was applied 20 times.
+  - rule 'linear: negative clause' was applied 900 times.
+  - rule 'linear: positive at most one' was applied 20 times.
+  - rule 'linear: positive equal one' was applied 1'560 times.
+  - rule 'linear: reduced variable domains' was applied 20 times.
+  - rule 'linear: remapped using affine relations' was applied 840'684 times.
+  - rule 'presolve: 0 unused variables removed.' was applied 1 time.
+  - rule 'presolve: iteration' was applied 1 time.
+  - rule 'variables: canonicalize affine domain' was applied 20 times.
+
+Presolved optimization model '': (model_fingerprint: 0x1dc49c018b47514f)
+#Variables: 21'381 (#ints: 1 in objective) (19'890 primary variables)
+  - 21'300 Booleans in [0,1]
+  - 1 in [0,1556]
+  - 1 in [0,1637]
+  - 1 in [0,1643]
+  - 1 in [0,1644]
+  - 2 in [0,1655]
+  - 1 in [0,1674]
+  - 2 in [0,1697]
+  - 1 in [0,1756]
+  - 1 in [0,1769]
+  - 1 in [0,1792]
+  - 1 in [0,1796]
+  - 1 in [0,1805]
+  - 1 in [0,1812]
+  - 1 in [0,1845]
+  - 1 in [0,1876]
+  - 1 in [0,1885]
+  - 1 in [0,1898]
+  - 1 in [0,1948]
+  - 1 in [0,155600]
+  - 1 in [0,163700]
+  - 1 in [0,164300]
+  - 1 in [0,164400]
+  - 2 in [0,165500]
+  - 1 in [0,167400]
+  - 2 in [0,169700]
+  - 1 in [0,175600]
+  - 1 in [0,176900]
+  - 1 in [0,179200]
+  - 1 in [0,179600]
+  - 1 in [0,180500]
+  - 1 in [0,181200]
+  - 1 in [0,184500]
+  - 1 in [0,187600]
+  - 1 in [0,188500]
+  - 1 in [0,189800]
+  - 1 in [0,194800]
+  - 2 in [0,321049]
+  - 1 in [0,321249]
+  - 1 in [0,321349]
+  - 1 in [0,321449]
+  - 1 in [0,321649]
+  - 1 in [0,321949]
+  - 1 in [0,322100]
+  - 1 in [0,322249]
+  - 1 in [0,322449]
+  - 1 in [0,322649]
+  - 1 in [0,322749]
+  - 1 in [0,323349]
+  - 1 in [0,323449]
+  - 1 in [0,324149]
+  - 1 in [0,325149]
+  - 1 in [0,325349]
+  - 1 in [0,325449]
+  - 1 in [0,325749]
+  - 1 in [0,326049]
+  - 21 in [0,10544770]
+#kAtMostOne: 20 (#literals: 12'000)
+#kBoolAnd: 3'600 (#enforced: 3'600) (#literals: 7'200)
+#kBoolOr: 900 (#literals: 3'600)
+#kExactlyOne: 1'560 (#literals: 73'500)
+#kLinear2: 6'966'750 (#enforced: 6'966'700 #multi: 6'964'000)
+#kLinearN: 20 (#terms: 12'020)
+Stopped after presolve.
+PresolvedNumVariables: 21381
+PresolvedNumConstraints: 6972850
+PresolvedNumTerms: 27972520
+CpSolverResponse summary:
+status: UNKNOWN
+objective: 0
+best_bound: 0
+integers: 0
+booleans: 0
+conflicts: 0
+branches: 0
+propagations: 0
+integer_propagations: 0
+restarts: 0
+lp_iterations: 0
+walltime: 1077.7
+usertime: 1077.7
+deterministic_time: 8.73e-05
+gap_integral: 0
+
+### DONE {"key": "CPSAT-600-rerun|test|L|uniform|none|0", "method": "CPSAT-600-rerun", "size_class": "L", "tw_tightness": null, "index": 0, "instance_seed": 324000, "status": "UNKNOWN", "proven_optimal": false, "objective": null, "lower_bound": 0.0, "runtime_sec": 59.76339145889506, "wall_sec": 2777.275820016861, "finished_at": 1794563824.89868}
+### START CPSAT-600-rerun|test|L|uniform|none|1 at 18:57:04
+
+Starting CP-SAT solver v9.15.6755
+Parameters: max_time_in_seconds: 600 log_search_progress: true num_search_workers: 8
+
+Initial optimization model '': (model_fingerprint: 0xac88e102968539cb)
+#Variables: 21'362 (#ints: 1 in objective) (19'891 primary variables)
+  - 21'300 Booleans in [0,1]
+  - 61 in [0,17977450]
+  - 1 in [0,17977450000]
+#kBoolAnd: 3'600 (#enforced: 3'600) (#literals: 7'200)
+#kLinear1: 10
+#kLinear2: 6'966'731 (#enforced: 6'966'700 #multi: 6'964'000)
+#kLinearN: 2'500 (#terms: 101'120)
+
+Starting presolve at 3.00s
+  1.01e+03s  0.00e+00d  [PresolveToFixPoint] #num_loops=2 #num_dual_strengthening=1 
+  5.28e-02s  8.73e-05d  [TransformClausesToExactlyOne] #num_amos=3'620 #num_clauses=900 #num_checked=900 
+  1.00e-06s  0.00e+00d  [MergeNoOverlap] 
+  0.00e+00s  0.00e+00d  [MergeNoOverlap2D] 
+20 affine relations still in the model.
+
+Presolve summary:
+  - 21 affine relations were detected.
+  - rule 'TODO dual: only one blocking constraint?' was applied 3'100 times.
+  - rule 'TODO dual: only one unspecified blocking constraint?' was applied 21 times.
+  - rule 'affine: new relation' was applied 21 times.
+  - rule 'deductions: 1800 stored' was applied 1 time.
+  - rule 'dual: reduced domain' was applied 20 times.
+  - rule 'linear: always true' was applied 10 times.
+  - rule 'linear: divide by GCD' was applied 20 times.
+  - rule 'linear: negative clause' was applied 900 times.
+  - rule 'linear: positive at most one' was applied 20 times.
+  - rule 'linear: positive equal one' was applied 1'560 times.
+  - rule 'linear: reduced variable domains' was applied 20 times.
+  - rule 'linear: remapped using affine relations' was applied 4'219'549 times.
+  - rule 'presolve: 0 unused variables removed.' was applied 1 time.
+  - rule 'presolve: iteration' was applied 1 time.
+  - rule 'variables: canonicalize affine domain' was applied 20 times.
+
+Presolved optimization model '': (model_fingerprint: 0x16514511baa0f571)
+#Variables: 21'381 (#ints: 1 in objective) (19'890 primary variables)
+  - 21'300 Booleans in [0,1]
+  - 1 in [0,2443]
+  - 1 in [0,2726]
+  - 1 in [0,2744]
+  - 1 in [0,2779]
+  - 1 in [0,2810]
+  - 1 in [0,2812]
+  - 1 in [0,2865]
+  - 1 in [0,2918]
+  - 1 in [0,2937]
+  - 1 in [0,2939]
+  - 1 in [0,2989]
+  - 1 in [0,3108]
+  - 1 in [0,3116]
+  - 1 in [0,3136]
+  - 1 in [0,3146]
+  - 1 in [0,3168]
+  - 1 in [0,3212]
+  - 1 in [0,3243]
+  - 1 in [0,3337]
+  - 1 in [0,3359]
+  - 1 in [0,244300]
+  - 1 in [0,272600]
+  - 1 in [0,274400]
+  - 1 in [0,277900]
+  - 1 in [0,281000]
+  - 1 in [0,281200]
+  - 1 in [0,286500]
+  - 1 in [0,291800]
+  - 1 in [0,293700]
+  - 1 in [0,293900]
+  - 1 in [0,298900]
+  - 1 in [0,310800]
+  - 1 in [0,311600]
+  - 1 in [0,313600]
+  - 1 in [0,314600]
+  - 1 in [0,316800]
+  - 1 in [0,321200]
+  - 1 in [0,324300]
+  - 1 in [0,333700]
+  - 1 in [0,335900]
+  - 1 in [0,545475]
+  - 1 in [0,547175]
+  - 1 in [0,548175]
+  - 1 in [0,548375]
+  - 1 in [0,548575]
+  - 1 in [0,548975]
+  - 1 in [0,549575]
+  - 1 in [0,550075]
+  - 2 in [0,550175]
+  - 1 in [0,550475]
+  - 1 in [0,550700]
+  - 1 in [0,550775]
+  - 1 in [0,550975]
+  - 1 in [0,552275]
+  - 1 in [0,553075]
+  - 1 in [0,553475]
+  - 1 in [0,554975]
+  - 1 in [0,555975]
+  - 1 in [0,558075]
+  - 21 in [0,17977450]
+#kAtMostOne: 20 (#literals: 12'000)
+#kBoolAnd: 3'600 (#enforced: 3'600) (#literals: 7'200)
+#kBoolOr: 900 (#literals: 3'600)
+#kExactlyOne: 1'560 (#literals: 73'500)
+#kLinear2: 6'966'750 (#enforced: 6'966'700 #multi: 6'964'000)
+#kLinearN: 20 (#terms: 12'020)
+Stopped after presolve.
+PresolvedNumVariables: 21381
+PresolvedNumConstraints: 6972850
+PresolvedNumTerms: 27972520
+CpSolverResponse summary:
+status: UNKNOWN
+objective: 0
+best_bound: 0
+integers: 0
+booleans: 0
+conflicts: 0
+branches: 0
+propagations: 0
+integer_propagations: 0
+restarts: 0
+lp_iterations: 0
+walltime: 1025.97
+usertime: 1025.97
+deterministic_time: 8.73e-05
+gap_integral: 0
+
+### DONE {"key": "CPSAT-600-rerun|test|L|uniform|none|1", "method": "CPSAT-600-rerun", "size_class": "L", "tw_tightness": null, "index": 1, "instance_seed": 324001, "status": "UNKNOWN", "proven_optimal": false, "objective": null, "lower_bound": 0.0, "runtime_sec": 63.28324958309531, "wall_sec": 3603.4482128620148, "finished_at": 1794567428.349752}

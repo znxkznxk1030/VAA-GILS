@@ -34,6 +34,24 @@ OPERATOR_POOLS: dict[str, tuple[str, ...]] = {
     "full": ACTIONS_TW,
 }
 
+# Individual guided-operator ablation (reviewer comment R1-16). Two directions:
+#   add-gN  = generic + one guided operator (stand-alone effect vs generic);
+#   drop-gN = full minus one guided operator (marginal effect vs full).
+# Note: g3/g4 fall back to g1/g2 when no truck is tardy, so on cells without
+# time windows add-g3 behaves like add-g1 and add-g4 like add-g2.
+GUIDED_BY_TAG: dict[str, str] = {
+    "g1": "g1_critical_outbound_relocate",
+    "g2": "g2_critical_destination_swap",
+    "g3": "g3_tardy_truck_relocate",
+    "g4": "g4_tardy_destination_swap",
+}
+for _tag, _action in GUIDED_BY_TAG.items():
+    OPERATOR_POOLS[f"add-{_tag}"] = (*GENERIC_ACTIONS, _action)
+    OPERATOR_POOLS[f"drop-{_tag}"] = tuple(a for a in ACTIONS_TW if a != _action)
+INDIVIDUAL_POOLS: tuple[str, ...] = tuple(
+    f"{kind}-{tag}" for kind in ("add", "drop") for tag in GUIDED_BY_TAG
+)
+
 
 MethodFn = Callable[[CrossDockInstance, int, float | None], dict]
 
@@ -334,6 +352,7 @@ METHOD_REGISTRY: dict[str, MethodFn] = {
     "v2-GILS-generic-1000": _gils_pool(1000, "generic"),
     "v2-GILS-critical-1000": _gils_pool(1000, "critical"),
     "v2-GILS-full-1000": _gils_pool(1000, "full"),
+    **{f"v2-GILS-{pool}-1000": _gils_pool(1000, pool) for pool in INDIVIDUAL_POOLS},
     "v2-GILS-ablate-none-1000": _gils_ablate(1000, "none"),
     "v2-GILS-ablate-init-1000": _gils_ablate(1000, "init"),
     "v2-GILS-ablate-descent-1000": _gils_ablate(1000, "descent"),

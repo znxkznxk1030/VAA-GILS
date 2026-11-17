@@ -2,13 +2,18 @@
 
 The main experiments use only two (rho, delta) combinations, (0.25, 0.60) and
 (0.50, 0.35), so the release spread and the due-date slack change together.
-This script crosses three levels of each factor:
+This script crosses four levels of each factor, including "off":
 
-    rho   (release spread, r_q ~ U[0, rho*H])      in {0.10, 0.25, 0.50}
-    delta (due-date slack, d_q = r_q + delta*H)    in {0.35, 0.60, 1.00}
+    rho   (release spread, r_q ~ U[0, rho*H])      in {0 (all trucks at time 0), 0.10, 0.25, 0.50}
+    delta (due-date slack, d_q = r_q + delta*H)    in {inf (no due dates), 1.00, 0.60, 0.35}
+
+(rho, delta) = (0, inf) is the original setting without time constraints. The
+row rho = 0 adds due dates only and the column delta = inf adds release times
+only, so each factor can also be examined alone. With delta = inf the
+objective is the makespan (tardiness weight 0), as in the "none" condition.
 
 The same base instance (flows, handling times, door layout, enter/leave times)
-and the same uniform draws u_q are used in all nine cells of an instance, i.e.
+and the same uniform draws u_q are used in all sixteen cells of an instance, i.e.
 r_q = u_q * rho * H. Only rho and delta differ between cells, so differences
 between cells are paired by instance.
 
@@ -39,8 +44,8 @@ from experiments.methods import METHOD_REGISTRY
 OUTPUT = ROOT / "outputs" / "tw_factorial.jsonl"
 
 SIZES = ("S", "M", "L")
-RHOS = (0.10, 0.25, 0.50)
-DELTAS = (0.35, 0.60, 1.00)
+RHOS = (0.0, 0.10, 0.25, 0.50)
+DELTAS = (float("inf"), 1.00, 0.60, 0.35)
 INDICES = tuple(range(20))
 REPS = tuple(range(5))
 METHODS = ("VAA", "Extended-SA-RL5-1000", "v2-GILS-uniform-1000")
@@ -58,7 +63,10 @@ def build_instance(size: str, index: int, rho: float, delta: float):
     draws = random.Random(seed * 7 + 1)
     u = {truck: draws.random() for truck in base.all_trucks}
     release = {truck: round(u[truck] * rho * horizon, 1) for truck in base.all_trucks}
-    due = {truck: round(release[truck] + delta * horizon, 1) for truck in base.all_trucks}
+    if delta == float("inf"):
+        due = {truck: float("inf") for truck in base.all_trucks}
+    else:
+        due = {truck: round(release[truck] + delta * horizon, 1) for truck in base.all_trucks}
     return replace(base, release_time=release, due_time=due), horizon
 
 

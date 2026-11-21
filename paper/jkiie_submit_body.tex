@@ -8,6 +8,7 @@
 \usepackage{graphicx}
 \graphicspath{{figures/}}
 \usepackage{float}
+\usepackage{algpseudocode}
 \usepackage{booktabs,array}
 \usepackage[font=small,labelfont=bf]{caption}
 \captionsetup{labelformat=empty,labelsep=none}
@@ -37,7 +38,8 @@
 
 
 \begin{abstract}
-\noindent This study addresses compound-truck scheduling in a multi-door cross-dock under truck-specific release times and soft due dates. Unlike conventional models with fixed inbound and outbound roles, a compound truck partially unloads freight, retains freight for one destination, and then serves as its outbound carrier, so late arrivals can delay other carriers waiting for transferred freight. We formulate the problem to minimize makespan and total tardiness using mixed-integer linear programming and CP-SAT and propose a Vogel Approximation Algorithm--based Guided Iterated Local Search (VAA-GILS) that integrates Vogel-style initial construction, bottleneck-guided operators, best-improvement descent, and kick restarts. Computational results show that VAA-GILS achieves average gaps of 0.10--0.23\% from CP-SAT references in under 0.5 s. For 20 small instances with proven optimality, the average gap is 0.23\%. VAA-GILS consistently outperforms benchmark heuristics under equal runtime budgets and finds high-quality solutions within seconds when CP-SAT fails within 600 s.
+% R1-1, R1-18: 초록의 CP-SAT 실패 범위 명확화와 격차 범위 정정
+\noindent This study addresses compound-truck scheduling in a multi-door cross-dock under truck-specific release times and soft due dates. Unlike conventional models with fixed inbound and outbound roles, a compound truck partially unloads freight, retains freight for one destination, and then serves as its outbound carrier, so late arrivals can delay other carriers waiting for transferred freight. We formulate the problem to minimize makespan and total tardiness using mixed-integer linear programming and constraint programming-satisfiability (CP-SAT) and propose a Vogel Approximation Algorithm--based Guided Iterated Local Search (VAA-GILS) that integrates Vogel-style initial construction, bottleneck-guided operators, best-improvement descent, and kick restarts. Computational results show that VAA-GILS achieves average gaps of 0.11--0.23\% from CP-SAT references in under 0.5 s on the small conditions and the medium condition without time constraints. For 20 small instances with proven optimality, the average gap is 0.23\%. VAA-GILS consistently outperforms benchmark heuristics under equal runtime budgets and finds high-quality solutions within seconds on large instances, for which CP-SAT returns no feasible solution within 600 s.
 
 \smallskip
 \noindent\textbf{Keywords:} Cross-Docking, Compound Truck, Release Time, Soft Due Date, Iterated Local Search, Constraint Programming
@@ -143,6 +145,16 @@ CP-SAT 모형을 제시한다. 제 3장에서 제안 알고리즘인 VAA-GILS를
 
 \section{2. 문제 정의}
 
+% R2-1, R2-2: 문제 구조도 추가 (기존 방식과 본 연구의 차이, 운영 가정 표시)
+\begin{figure}[H]\centering
+\includegraphics[width=0.86\columnwidth]{fig_problem_structure.pdf}
+\caption{Figure 1. Freight flow in (a) a conventional cross-dock, where every inbound truck is fully unloaded and separate outbound trucks carry the freight away, and (b) the setting of this study, where a compound truck retains the freight of one destination and becomes its outbound carrier. Assumptions: at most one compound truck per door in the first stage, and exactly one carrier per destination.}\label{fig:struct}
+\end{figure}
+
+<Figure~\ref{fig:struct}>는 기존 크로스도킹과 본 연구의 차이를 보인다. (a)에서는 입고트럭이 화물을 모두 하역하고
+별도의 출고트럭이 이를 싣고 나간다. (b)에서는 병행 트럭이 한 목적지의 화물을 트럭에 유지한 채 나머지만 하역하고,
+다른 트럭에서 오는 그 목적지행 이송 화물을 받은 뒤 운송 트럭으로 출발한다.
+
 \subsection{2.1 기호 정의}
 본 장의 정식화에 사용하는 기호를 집합, 파라미터, 결정변수로 나누어 정리하면 다음과 같다.
 
@@ -211,8 +223,19 @@ $S_f+DE_f+L_d+DL_f$이다. 즉 $S_f$는 적재 시작이 아니라 도어 작업
 
 \begin{figure}[tbp]\centering
 \includegraphics[width=0.92\columnwidth]{{fig0_compound_timeline.drawio}.pdf}
-\caption{Figure 1. Processing timelines for the two alternative carrier configurations: (a) a compound truck retaining destination $d$, and (b) a dedicated outbound truck assigned to destination $d$.}\label{fig:timeline}
+\caption{Figure 2. Processing timelines for the two alternative carrier configurations: (a) a compound truck retaining destination $d$, and (b) a dedicated outbound truck assigned to destination $d$.}\label{fig:timeline}
 \end{figure}
+
+% R2-3: 도어 간 직접 이송의 시간 계산 방식과 예시
+\begin{figure}[H]\centering
+\includegraphics[width=0.86\columnwidth]{fig_transfer_example.pdf}
+\caption{Figure 3. Direct door-to-door transfer. The transfer time $t_{mn}$ depends only on the door pair, not on the transferred volume; handling time is charged separately through $t_k$ per unit.}\label{fig:transfer}
+\end{figure}
+
+% R2-3: 이송시간이 물량과 무관함을 본문에 명시
+이송시간 $t_{mn}$은 도어 쌍의 배치로만 정해지며 옮기는 물량과 무관하다(<Figure~\ref{fig:transfer}>). 물량에 비례하는
+시간은 단위 처리시간 $t_k$를 통해 하역과 적재에서 따로 계산한다. 즉 화물은 저장 구역을 거치지 않고 도어에서 도어로
+직접 옮겨지며, 운송 트럭은 자신에게 오는 모든 이송이 끝나야 적재를 마칠 수 있다.
 
 \subsection{2.3 Mixed-integer 정식화}
 2.1절의 결정변수를 사용하면 배정 제약은 다음과 같다.
@@ -276,6 +299,46 @@ SA 수락 규칙을 추가하면 해가 유의하게 나빠졌다(<Table~\ref{ta
 수행한다. 현재 최선해 $s^*$의 복사본에서 다시 시작하되, 아래 기본 이웃 7종에서
 균등 무작위로 뽑은 섭동 이동(kick)을 3회 연속 적용한다. 각 이동은 직전 이동의 결과에
 적용되며, 재시작 직후에는 하강 탐색을 수행하지 않는다.
+
+% R1-11, R2-9: 탐색 절차를 의사코드로 제시 (재현성)
+\begin{figure}[H]\centering
+\begin{minipage}{0.92\columnwidth}
+\rule{\linewidth}{0.8pt}
+\begin{algorithmic}[1]
+\small
+\State $s \gets \mathrm{VAA}(\text{instance})$ \Comment{initial solution construction}
+\State $s \gets \mathrm{Descent}(s)$
+\State $s^{*} \gets s$; $c \gets 0$ \Comment{$c$: iterations since $s^{*}$ was last updated}
+\For{$n = 1$ to $N$}
+  \State select an operator $\omega \in \Omega$ uniformly at random
+  \State $s' \gets \omega(s)$ \Comment{candidate from the current solution}
+  \If{$J(s') < J(s^{*})$} \Comment{new best solution}
+    \State $s' \gets \mathrm{Descent}(s')$
+    \State $s^{*} \gets s'$; $c \gets 0$
+  \Else
+    \State $c \gets c + 1$
+  \EndIf
+  \If{$J(s') < J(s)$} \Comment{greedy acceptance}
+    \State $s \gets s'$
+  \EndIf
+  \If{$c \ge P$} \Comment{kick restart}
+    \State $s \gets s^{*}$
+    \State apply $K$ generic moves drawn uniformly from $\Omega_{K}$ to $s$; $c \gets 0$
+  \EndIf
+\EndFor
+\State $s^{*} \gets \mathrm{Descent}(s^{*})$
+\State \Return $s^{*}$
+\end{algorithmic}
+\rule{\linewidth}{0.8pt}
+\end{minipage}
+\caption{Algorithm 1. VAA-GILS with the final engine: uniform operator selection, greedy acceptance, best-improvement descent on every new best solution, and kick restart after $P$ non-improving iterations. $\Omega = \Omega_{K} \cup \Omega_{G}$ with $|\Omega_{K}| = 7$ generic and $|\Omega_{G}| = 4$ guided operators; $N = 1{,}000$, $P = 30$, $K = 3$.}\label{alg:gils}
+\end{figure}
+
+% R1-10, R2-9: 알고리즘 흐름도 추가
+\begin{figure}[H]\centering
+\includegraphics[width=0.60\columnwidth]{fig_algorithm_flow.pdf}
+\caption{Figure 4. Flow of one VAA-GILS iteration; the line numbers correspond to Algorithm 1.}\label{fig:flow}
+\end{figure}
 
 연산자 집합(operator pool). 기본 이웃 7종은 원 모델의 이웃 구조를 그대로 사용하며, 각각
 (k1) 두 트럭의 목적지 교환, (k2) 병행 트럭 간 도어 교환, (k3) 출고트럭 간 도어
@@ -372,6 +435,9 @@ $\rho$는 도착이 퍼지는 폭, $\delta$는 도착 후 납기까지의 여유
 규모 3종과 시간 제약 3수준을 교차해 총 9개의 실험 조건을 만들고, 각 조건을 S-none,
 M-tight와 같이 규모-수준 형태로 표기한다.
 
+% R1-13: 두 요인을 분리하기 위한 요인실험 수준 정의
+두 요인의 영향을 분리하기 위해 5.5절의 요인실험에서는 $\rho$와 $\delta$를 각각 네 수준으로 교차한다. $\rho\in\{0,0.10,0.25,0.50\}$, $\delta\in\{\infty,1.00,0.60,0.35\}$이며, $\rho=0$과 $\delta=\infty$는 각 요인을 끈 수준이다. none 조건은 $(\rho,\delta)=(0,\infty)$, medium은 $(0.25,0.60)$, tight는 $(0.50,0.35)$에 해당하므로 기존 세 수준은 이 설계의 부분집합이다.
+
 \subsection{4.3 비교 대상과 측정}
 비교 대상은 여섯이다. (i) VAA는 구성 휴리스틱만 적용한 초기해, (ii) Paper-SA-RL5는 원
 모델의 재구현, (iii) Extended SA-RL5는 Paper-SA-RL5의 해 표현과 이웃 구조, Q-learning 연산자 선택, SA 수락 규칙을 그대로 두고 평가기와 목적식만 식 (16)으로 확장한 것이며,
@@ -391,7 +457,8 @@ ablation(<Table~\ref{tab:b1}>, <Table~\ref{tab:b2}>)은 같은 엔진에서 구�
 짝지은 비교여서 인스턴스 간 난이도 편차가 상쇄되므로 조건당 5개만 사용하고, 선택 정책
 비교(<Table~\ref{tab:sel}>)는 주 비교와 같은 조건당 20개 인스턴스를 사용한다.
 
-같은 인스턴스의 5회 반복은 서로 독립이 아니므로, 먼저 인스턴스별로 평균해 조건당 값
+같은 인스턴스의 5회 반복은 서로 독립이 아니므로, % R1-14: '조건당 값' -> '인스턴스당 값' 오기 정정
+먼저 인스턴스별로 평균해 인스턴스당 값
 하나를 만든 뒤 짝지은 인스턴스 평균에 양측 Wilcoxon signed-rank test를 적용한다. 따라서
 짝의 수 $n$은 비교에 포함된 인스턴스 수를 넘지 않으며, 두 방법의 평균이 같아 차이가 0인
 짝은 검정에서 제외된다.
@@ -402,24 +469,27 @@ CP-SAT가 제한시간 안에 반환한 현재 최선해로, 최적성이 증명
 관측 최선해(best observed solution)는 한 인스턴스에 대해 모든 방법, 모든 반복 횟수, CP-SAT 결과를
 통틀어 관측된 가장 좋은 해로, 최적성에 대한 보장이 없다. 주
 지표는 인스턴스별 격차 $\Delta_{bo}$이며, 해당 인스턴스에 대해 모든 방법과 모든 반복
-횟수, CP-SAT 결과까지 통틀어 관측된 가장 좋은 목적값을 기준으로 삼는다. 대형 조건에서는
-CP-SAT 기준해가 없어 최적해 대비 갭을 쓸 수 없기 때문이다.
+횟수, CP-SAT 결과까지 통틀어 관측된 가장 좋은 목적값을 기준으로 삼는다. % R1-1: M 조건의 기준해는 최적성이 증명되지 않음을 명시
+대형 조건에서는
+CP-SAT 기준해가 없어 최적해 대비 갭을 쓸 수 없고, 중형 조건에서는 기준해가 있으나 최적성이 증명되지 않기 때문이다.
 
 Paper-SA-RL5와 Extended SA-RL5를 포함한 모든 메타휴리스틱의 종료 조건은 반복 횟수 1{,}000회로 통일한다.
 한 반복은 선택된 연산자 하나로 후보해를 생성하고 평가하는 단계이며, GILS는 여기에 개선 시 하강 탐색을 더 수행한다.
 원 모델은 CPU 시간으로 종료하지만 본 연구는 모든 방법에 같은 반복 횟수를 부여하였고, 반복당 계산량이 방법마다
 다르므로 실행 시간은 <Table~\ref{tab:main}>에 함께 보고한다. CP-SAT는 인스턴스당 1회, 8개 스레드로 S에 300초(조건당 20개), M과 L에 600초(조건당 2개)를 부여하며, 최적성은 S-none 20개 전부와 S-medium 1개에서 증명된다. 보고하는 CP-SAT 계산 시간은 모형 구성과 solver 종료 처리를 포함한 실제 경과 시간이므로
-명목 제한시간(600초)을 약간 넘을 수 있다. 실험은 Apple M2 칩(8코어)과 16\,GB 메모리를 갖춘 macOS 환경에서 Python 3.12와 OR-Tools 9.15로 수행하였다.
+% R1 총평(재현성): CP-SAT 실행 방식과 실행 간 기준해 변동 명시
+명목 제한시간(600초)을 약간 넘을 수 있다. CP-SAT 실행은 한 건씩 순차로 수행하였고 계산 시간과 경과 시간이 일치함을 확인하였다. CP-SAT는 다중 스레드 탐색이어서 같은 제한시간에서도 실행마다 기준해가 달라질 수 있다. 실험은 Apple M2 칩(8코어)과 16\,GB 메모리를 갖춘 macOS 환경에서 Python 3.12와 OR-Tools 9.15로 수행하였다.
 
 \section{5. 실험 결과}
 \subsection{5.1 해 품질}
+% R1-1, R1-18, R2-11: CP-SAT 재실행(outputs/cpsat_rerun.jsonl)에 따른 5.1절 정정
 <Table~\ref{tab:main}>에 20개 인스턴스에 대한 시험 결과를 요약한다. CP-SAT가 기준해를 제공한
 실험 조건에서 GILS는 이에 근접하며, 기본 선택 정책인 균등 선택 기준으로 그 격차는
-평균 0.10--0.23\%이다(학습 선택 정책을 포함한 전체 변형은 0.08--0.48\%, 5.3절). 최적성이 증명된 S-none 20개 인스턴스에서 균등 선택 GILS는 최적해보다 평균 0.23\% 높다. 같은 선택 정책 기준으로 VAA 대비
+평균 0.11--0.23\%이다(S의 세 조건과 M-none 기준이며, 학습 선택 정책을 포함한 전체 변형은 0.11--0.48\%, 5.3절). 최적성이 증명된 S-none 20개 인스턴스에서 균등 선택 GILS는 최적해보다 평균 0.23\% 높다. 같은 선택 정책 기준으로 VAA 대비
 격차는 평균 2.66\%($n=180$, $p<0.0001$), SA-RL5 대비 격차는 1.44\%($n=60$, $p<0.0001$)이다.
 medium과 tight 조건에서 Extended SA-RL5 대비 격차는 평균 0.93\%($n=120$, $p<0.0001$)이다. 실행 시간은 S/M/L에서 각각 0.09, 0.49, 2.43초이다.
-CP-SAT가 기준해를 반환한 조건에서 CP-SAT의 평균 계산 시간은 S-none 40초, S-medium 245초, S-tight 250초, M-none 606초로 같은 조건의 GILS(각각 0.09, 0.09, 0.09, 0.47초)보다
-100배 이상 길며, M의 시간 제약 조건과 L의 모든 조건에서는 CP-SAT가 제한시간 안에 실행 가능해를 반환하지 못했다.
+CP-SAT가 기준해를 반환한 조건에서 CP-SAT의 평균 계산 시간은 S-none 40초, S-medium 245초, S-tight 250초, M-none 603초, M-medium 603초, M-tight 604초로 같은 조건의 GILS(각각 0.09, 0.09, 0.09, 0.47, 0.50, 0.52초)보다
+100배 이상 길다. M의 시간 제약 조건에서는 CP-SAT가 600초 안에 실행 가능해를 반환하였으나 최적성은 증명되지 않았고, 균등 선택 GILS의 목적값은 이 기준해보다 평균 0.12--0.26\% 낮았다. L의 모든 조건에서는 CP-SAT가 제한시간 안에 실행 가능해를 반환하지 못했다.
 
 GILS는 개선 이동 뒤 하강 탐색을 추가로 수행하므로 같은 반복 횟수가 같은 계산량을 뜻하지는 않는다. 이를 통제하기
 위해, 각 시험 실행(조건, 인스턴스, 반복)에서 GILS가 실제로 사용한 실행 시간을 같은 실행의 SA-RL5(시간 제약 조건은
@@ -429,7 +499,8 @@ Extended SA-RL5)에 그대로 부여하고 시간이 다할 때까지 반복하�
 (전체 평균 1.30\%, $p<0.0001$) SA-RL5가 앞선 인스턴스는 180개 중 하나도 없었다.
 
 \begin{table}[H]\centering
-\caption{Table 4. Test results over 20 instances per experimental condition (20 instances $\times$ 5 replications). $\Delta_{bo}$ is the mean gap to the best observed solution and time is the mean per run. The vs CP-SAT column is computed only on the subset for which CP-SAT returned a reference (20 instances per S condition, 2 for M-none); optimality was proven for all 20 S-none instances and one S-medium instance. On that subset the mean CP-SAT runtime is 178 s (S) and 606 s (M-none).}
+% R1-1: M 세 조건의 vs CP-SAT 열을 재실행 기준해로 채움
+\caption{Table 4. Test results over 20 instances per experimental condition (20 instances $\times$ 5 replications). $\Delta_{bo}$ is the mean gap to the best observed solution and time is the mean per run. The vs CP-SAT column is computed only on the subset for which CP-SAT returned a reference (20 instances per S condition, 2 per M condition); optimality was proven for all 20 S-none instances and one S-medium instance. On that subset the mean CP-SAT runtime is 178 s (S) and 603 s (M). A negative value means that the method is better than the CP-SAT reference, whose optimality is not proven.}
 \label{tab:main}\small
 \begin{tabular}{@{}llrrrr@{}}
 \toprule
@@ -444,15 +515,15 @@ S-medium & VAA & 5447.5 ± 1468.9 & 3.90 & +3.90 & 0.00\\
 S-tight & VAA & 9276.8 ± 2387.6 & 2.91 & +2.91 & 0.00\\
  & Extended-SA-RL5 & 9056.3 ± 2214.9 & 0.61 & +0.61 & 0.16\\
  & GILS-uniform & 9011.9 ± 2206.5 & 0.11 & +0.11 & 0.09\\
-M-none & VAA & 3030.9 ± 903.6 & 3.72 & +4.80 & 0.00\\
- & Paper-SA-RL5 & 2979.2 ± 860.9 & 1.98 & +1.55 & 0.60\\
- & GILS-uniform & 2929.5 ± 844.2 & 0.28 & +0.10 & 0.47\\
-M-medium & VAA & 23025.5 ± 4075.4 & 2.58 & --- & 0.00\\
- & Extended-SA-RL5 & 22821.9 ± 3985.3 & 1.65 & --- & 0.54\\
- & GILS-uniform & 22513.0 ± 3960.7 & 0.25 & --- & 0.50\\
-M-tight & VAA & 38903.7 ± 11283.5 & 1.26 & --- & 0.01\\
- & Extended-SA-RL5 & 38811.1 ± 11075.1 & 0.99 & --- & 0.52\\
- & GILS-uniform & 38501.1 ± 11067.3 & 0.13 & --- & 0.52\\
+M-none & VAA & 3030.9 ± 903.6 & 3.72 & +4.94 & 0.00\\
+ & Paper-SA-RL5 & 2979.2 ± 860.9 & 1.98 & +1.68 & 0.60\\
+ & GILS-uniform & 2929.5 ± 844.2 & 0.28 & +0.23 & 0.47\\
+M-medium & VAA & 23025.5 ± 4075.4 & 2.58 & +3.28 & 0.00\\
+ & Extended-SA-RL5 & 22821.9 ± 3985.3 & 1.65 & +1.65 & 0.54\\
+ & GILS-uniform & 22513.0 ± 3960.7 & 0.25 & $-$0.26 & 0.50\\
+M-tight & VAA & 38903.7 ± 11283.5 & 1.26 & +1.03 & 0.01\\
+ & Extended-SA-RL5 & 38811.1 ± 11075.1 & 0.99 & +0.84 & 0.52\\
+ & GILS-uniform & 38501.1 ± 11067.3 & 0.13 & $-$0.12 & 0.52\\
 L-none & VAA & 5492.3 ± 1482.2 & 2.17 & --- & 0.02\\
  & Paper-SA-RL5 & 5480.3 ± 1450.5 & 1.94 & --- & 1.95\\
  & GILS-uniform & 5383.9 ± 1423.8 & 0.15 & --- & 2.37\\
@@ -484,7 +555,8 @@ All & 180 & 1.01 & 994 & +1.10 & +1.30 & 0\\
 \end{table}
 
 \subsection{5.2 핵심 구성요소 분석}
-세 가지 통제된 ablation(반복 횟수 1{,}000회 고정)으로 엔진을 분해한다.
+% R1-15: 통제된 ablation의 대상과 표 번호 명시
+연산자 집합(<Table~\ref{tab:b1}>)과 엔진 구성요소(<Table~\ref{tab:b2}>)를 대상으로 한 두 가지 통제된 ablation(반복 횟수 1{,}000회 고정)으로 엔진을 분해한다. 선택 정책 비교(<Table~\ref{tab:sel}>)는 보조 분석으로 5.3절에서 따로 다룬다.
 
 연산자 집합. 선택 정책을 균등 선택으로 고정하고 연산자 집합만 기본(7종)/
 핵심(+g1,g2)/전체(+g3,g4)로 바꾸면, 기본에서 핵심으로 갈 때 $\Delta_{bo}$가 9개 실험 조건
@@ -508,7 +580,7 @@ generic → full (all guided) & 45 & +0.184 & $<$0.0001\\
 
 \begin{figure}[H]\centering
 \includegraphics[width=0.82\columnwidth]{fig2_operator_pool.pdf}
-\caption{Figure 2. Mean gap to the best observed solution by operator set.}\label{fig:op}
+\caption{Figure 5. Mean gap to the best observed solution by operator set.}\label{fig:op}
 \end{figure}
 
 
@@ -534,6 +606,32 @@ add SA acceptance + reheating & 45 & +0.036 & 0.0043\\
 \end{table}
 
 
+% R1-16: 병목 유도 연산자별 개별 ablation
+연산자별 개별 기여. 묶음 단위 비교로는 g1~g4 각각의 기여를 알 수 없으므로, 같은 설정에서
+각 연산자를 기본 집합에 하나씩 더하거나(단독 추가) 전체 집합에서 하나씩 빼는(전체 집합 내 추가)
+두 방향으로 비교하였다(<Table~\ref{tab:bind}>). 한 범위 안의 여덟 개 비교에는 Holm 보정을 적용한다.
+g1과 g2는 두 방향 모두에서 유의하여 다른 연산자가 대신할 수 없는 기여로 확인된다. g4는 단독 추가에서만
+유의하고, g3은 어느 방향에서도 유의하지 않다. 시간 제약이 없는 조건에서는 납기지연이 0이어서 g3, g4가
+g1, g2와 같은 이동으로 대체되므로(해당 75회 실행에서 목적값 차이 0), 두 연산자의 고유한 효과는 시간 제약
+조건에서만 판단할 수 있다. 다만 묶음 단위의 이득(<Table~\ref{tab:b1}>의 critical $\rightarrow$ full, $+0.034$\%p,
+$p=0.013$)은 유지되고, 시험 집합 결과를 보고 구성을 다시 고르면 시험 집합에 맞춘 선택이 되므로 최종 엔진은
+전체 집합을 그대로 사용한다.
+
+\begin{table}[H]\centering
+\caption{Table 8. Per-operator ablation on the six conditions with time constraints (5 instances $\times$ 5 replications per condition, 30 pairs; two-sided Wilcoxon on per-instance replication means with Holm correction). Adding alone compares generic$+g_N$ with generic; adding within the full set compares full$-g_N$ with full. A positive value means that the operator lowers the objective.}
+\label{tab:bind}\small
+\begin{tabular}{@{}lrlrl@{}}
+\toprule
+Operator & Adding alone(\%p) & Holm $p$ & Within full set(\%p) & Holm $p$\\
+\midrule
+g1 critical-door outbound relocate & +0.038 & 0.0062 & +0.035 & 0.0015\\
+g2 critical-truck destination swap & +0.064 & 0.0013 & +0.051 & 0.0060\\
+g3 tardy-truck relocate & $-$0.002 & 0.2694 & +0.015 & 0.2694\\
+g4 tardy-truck destination swap & +0.049 & 0.0412 & +0.048 & 0.2694\\
+\bottomrule
+\end{tabular}
+\end{table}
+
 \subsection{5.3 보조 분석: 학습 기반 연산자 선택}
 연산자 집합과 구성요소를 전체로 고정하고 선택 정책만 바꾸면(<Table~\ref{tab:sel}>), 어떤
 학습 정책도 균등 선택보다 좋지 않다. tabular Q-learning은 균등 선택보다 평균 0.040\%p, transfer DQN은
@@ -542,7 +640,7 @@ add SA acceptance + reheating & 45 & +0.036 & 0.0043\\
 이 결과는 무제약 조건만 따로 보아도 같게 나타난다(균등 선택 대비 tabular $-0.040$\%p, DQN $-0.124$\%p, 모두 $p<0.0001$).
 
 \begin{table}[H]\centering
-\caption{Table 8. Effect of the selection policy (20 instances $\times$ 5 replications per condition over 9 conditions, 1,000 iterations; two-sided Wilcoxon on per-instance replication means, hence at most 180 pairs, with zero differences excluded from $n$; positive mean favors the first method).}
+\caption{Table 9. Effect of the selection policy (20 instances $\times$ 5 replications per condition over 9 conditions, 1,000 iterations; two-sided Wilcoxon on per-instance replication means, hence at most 180 pairs, with zero differences excluded from $n$; positive mean favors the first method).}
 \label{tab:sel}\small
 \begin{tabular}{@{}lrrrl@{}}
 \toprule
@@ -569,10 +667,58 @@ $\sum_q T_q$는 여러 트럭의 합이므로 계수가 같다고 두 성분이 
 
 \begin{figure}[H]\centering
 \includegraphics[width=0.72\textwidth]{fig4_lambda_tradeoff.pdf}
-\caption{Figure 3. Normalized makespan-tardiness trade-off on tuning instances.}\label{fig:lam}
+\caption{Figure 6. Normalized makespan-tardiness trade-off on tuning instances.}\label{fig:lam}
 \end{figure}
 
+% R1-13: 도착 분산과 납기 여유를 분리한 요인실험
+\subsection{5.5 도착 분산과 납기 여유의 영향}
+4.2절의 세 수준은 $\rho$와 $\delta$를 함께 바꾸므로 두 요인의 영향을 분리할 수 없다. 이를 위해 같은 인스턴스에서
+$\rho$와 $\delta$만 바꾼 $4\times4$ 요인실험을 세 규모에 대해 수행하였다(48개 실험 조건, 조건당 20개 인스턴스,
+GILS와 Extended SA-RL5는 5회 반복, 총 10{,}560회 실행). <Table~\ref{tab:tweff}>는 한 요인의 수준별로 다른 요인과
+세 규모를 모두 평균한 주효과이다.
+
+$\rho$가 커지면 총 작업완료시간이 $H$ 대비 1.113에서 1.524로 늘어난다. 늦게 도착한 트럭이 자신의 작업뿐 아니라
+그 화물을 기다리는 운송 트럭의 적재까지 미루기 때문이다. 반면 $\delta$가 작아지면 총 작업완료시간은 1.277에서
+1.282로 거의 변하지 않고 납기지연만 0에서 12.043으로 커진다. 같은 일정이 더 많은 벌점을 받을 뿐이다.
+짝지은 비교에서도 $\rho$를 0에서 0.50으로 올리면 총 작업완료시간이 $+0.411$ 늘고($p<0.0001$), $\delta$를 $\infty$에서
+0.35로 줄이면 총 작업완료시간 변화는 $+0.005$에 그치는 반면 납기지연은 $+12.043$ 증가한다(모두 60쌍, $p<0.0001$).
+두 요인이 목적식의 서로 다른 성분을 키우므로 한 축으로 묶을 수 없다.
+
+제안 방법의 우위는 48개 실험 조건 전부에서 유지된다. Extended SA-RL5 대비 평균 격차는 $+1.60$\%(최소 $+0.48$\%,
+최대 $+4.52$\%)이고 모든 조건에서 $p<0.0001$이며, 960번의 인스턴스 비교 가운데 956번(99.6\%)에서 GILS가 좋았다.
+다만 격차는 두 요인이 세질수록 줄어든다($\rho$ 0$\rightarrow$0.50에서 $-0.296$, $\delta$ $\infty\rightarrow$0.35에서
+$-0.439$, 모두 $p<0.001$). 납기지연이 목적값의 대부분을 차지하면 분모가 커져 상대 격차가 작아지는 것이며,
+순위가 뒤집히는 조건은 없다. 48개 조건의 상세 결과는 부록에 둔다.
+
+\begin{table}[H]\centering
+\caption{Table 10. Main effects of the arrival spread $\rho$ and the due-date slack $\delta$ (4 levels each, 3 sizes, 20 instances per cell). Each row averages over the other factor and all three sizes; makespan and tardiness are divided by the horizon estimate $H$. The last two columns are the mean relative objective difference in favor of GILS-uniform.}
+\label{tab:tweff}\small
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+Level & Makespan$/H$ & Tardiness$/H$ & vs VAA(\%) & vs SA-RL5(\%)\\
+\midrule
+$\rho=0$ & 1.113 & 4.443 & +6.12 & +1.73\\
+$\rho=0.10$ & 1.179 & 4.614 & +5.71 & +1.72\\
+$\rho=0.25$ & 1.304 & 5.191 & +4.83 & +1.52\\
+$\rho=0.50$ & 1.524 & 6.413 & +3.67 & +1.44\\
+\midrule
+$\delta=\infty$ & 1.277 & 0.000 & +3.54 & +1.24\\
+$\delta=1.00$ & 1.279 & 1.326 & +11.62 & +3.17\\
+$\delta=0.60$ & 1.282 & 7.293 & +3.20 & +1.20\\
+$\delta=0.35$ & 1.282 & 12.043 & +1.97 & +0.80\\
+\bottomrule
+\end{tabular}
+\end{table}
+
 \section{6. 논의}
+% R2-11: 성능 차이의 실무적 의미와 유리한 인스턴스 특성 논의
+제안 방법과 비교 대상의 목적값 차이는 조건에 따라 0.5--2.7\%로 크지 않으나, 그 의미는 조건마다 다르다.
+정확해법이 제한시간 안에 좋은 해를 내지 못하는 조건에서 차이가 가장 뚜렷하다. 중형 시간 제약 조건에서
+균등 선택 GILS는 0.5초 안에 600초 CP-SAT 기준해와 같거나 더 좋은 해를 찾았다(<Table~\ref{tab:main}>의 M-medium
+$-$0.26\%, M-tight $-$0.12\%). 다만 이 조건의 인스턴스는 두 개뿐이고 기준해의 최적성이 증명되지 않았으므로
+절대적인 해 품질의 근거로 쓰기는 어렵다. 한편 납기지연이 목적값의 대부분을 차지하는 조건에서는 두 방법의
+상대 격차가 줄어드는데, 이는 납기지연이 커지면 분모가 함께 커지기 때문이며 순위가 뒤집히지는 않는다.
+
 학습 기반 선택 정책이 균등 선택 대비 이득을 주지 못한 데에는 본 논문의 탐색 구조가 크게 작용한 것으로 보인다. 후보 하나의 평가에 수십--백수십 마이크로초($\mu$s)밖에 들지
 않아 연산자를 잘 고르는 것보다 많이 시도하는 편이 유리하고, 모든 신규 최선해 뒤에
 결정론적 하강 탐색이 따라붙어 어떤 연산자로 그 지점에 이르렀는지의 차이를 상당 부분
@@ -589,19 +735,84 @@ VAA-GILS에서 제외하였다(3장, <Table~\ref{tab:b2}>).
 비싼 시뮬레이션 기반 모형에서는 판단이 달라질 수 있다. 따라서 본 결과를 학습 기반 선택 정책 전반으로 일반화하기는 어렵다. 다만 학습 기반 선택 정책을 평가할 때는 같은 엔진, 같은 반복 횟수 아래에서 균등 선택과 비교해야 하며, 그 통제가 없으면 하강 탐색과 재시작, 강한 연산자 집합의 이득이 정책의 성과로 잘못 귀속될 수 있다.
 
 \section{7. 결 론}
+% R1-1, R1-18: 결론의 실패 범위와 격차 범위 정정, 서술어 보완
 본 연구는 부분 하역된 병행 트럭이 출고 운송 트럭으로 전환된 뒤 다른 트럭에서 오는 이송 화물을 기다려야 하고,
 이 대기가 트럭별 도착 시각 및 연성 납기와 결합하면서 지연이 공유 목적지를 따라 전파되는 구조를, 저자가 아는 한 처음으로 MILP와 CP-SAT 모형으로 정식화하였다. CP-SAT
-기준해가 있는 실험 조건에서 VAA-GILS의 목적값은 해당 기준해 대비 평균 0.10--0.23\%였고(소형 무제약 조건의 20개 인스턴스는 CP-SAT가 모두 최적성을 증명하였으며 최적해 대비 평균 격차는 0.23\%였다), CP-SAT가 600초 안에 실행 가능해를 찾지 못한 대형 시간 제약
+기준해가 있는 실험 조건에서 VAA-GILS의 목적값은 해당 기준해 대비 평균 0.11--0.23\% 높았고(소형 무제약 조건의 20개 인스턴스는 CP-SAT가 모두 최적성을 증명하였으며 최적해 대비 평균 격차는 0.23\%였다), CP-SAT가 600초 안에 실행 가능해를 찾지 못한 대형
 조건에서도 약 2.5초 안에 VAA와 Extended SA-RL5보다 좋은 해를 제공하였다.
 실행 시간을 같게 맞춘 비교에서도 VAA-GILS는 SA-RL5보다 일관되게 우수하였다.
 ablation은 성능이 섭동 재시작, 유도 연산자, 하강 탐색이라는 결정론적
 구조에서 비롯되며, 학습 기반 연산자 선택과 확률적 수락 규칙은 이
-환경에서 실용적 이득을 주지 않아 최종 알고리즘은 greedy 수락 규칙을 사용한다. 향후에는 도착 정보가 실시간으로 공개되는 동적
+환경에서 실용적 이득을 주지 않아 최종 알고리즘은 greedy 수락 규칙을 사용한다. % R2-14: 한계의 내용과 원인을 구체화
+M 이상의 조건에서는 CP-SAT가 최적성을 증명하지 못하여 해 품질의 절대 수준을 알 수 없다. L에서는 본 연구의 CP-SAT 정식화가 약 700만 개의 제약을 가져 600초 안에 탐색을 시작하지 못하였다. 이는 본 정식화의 한계이며 더 작은 정식화나 분해 기법으로 완화될 수 있다. 향후에는 도착 정보가 실시간으로 공개되는 동적
 문제, 대형 시간 제약 조건에서 해 품질을 평가할 수 있는 강한 하한 기법, 산업 데이터를 활용한 사례 연구가 필요하다.
 
 \appendix
+% R1-13: 요인실험 48개 조건의 상세 결과
+\section*{부록 A. 도착 분산·납기 여유 요인실험의 조건별 결과}
+\begin{table}[H]\centering
+\caption{Table A1. Factorial experiment over the arrival spread $\rho$ and the due-date slack $\delta$ (20 instances per cell, 5 replications). Makespan, tardiness and objective are means for GILS-uniform; the share column is the percentage of the objective due to tardiness. The last two columns are the mean relative objective difference in favor of GILS-uniform and the number of instances on which it beats the time-matched Extended SA-RL5. Two-sided Wilcoxon on per-instance replication means gives $p<0.0001$ in every cell.}
+\label{tab:tweff-full}\footnotesize\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}llrrrrrrr@{}}
+\toprule
+Size & $\rho$ & $\delta$ & Makespan & Tardiness & Objective & Tard.(\%) & vs VAA(\%) & vs SA-RL5(\%) \\
+\midrule
+S & 0.00 & $\infty$ & 1,396.9 & 0.0 & 1,396.9 & 0.0 & +6.82 & +0.77\\
+S & 0.00 & 1.00 & 1,396.4 & 133.6 & 1,530.0 & 8.7 & +21.26 & +2.01\\
+S & 0.00 & 0.60 & 1,402.2 & 2,975.5 & 4,377.7 & 68.0 & +7.18 & +0.91\\
+S & 0.00 & 0.35 & 1,402.2 & 5,985.6 & 7,387.8 & 81.0 & +4.23 & +0.69\\
+S & 0.10 & $\infty$ & 1,491.5 & 0.0 & 1,491.5 & 0.0 & +6.42 & +0.81\\
+S & 0.10 & 1.00 & 1,494.8 & 188.5 & 1,683.2 & 11.2 & +19.42 & +1.75\\
+S & 0.10 & 0.60 & 1,497.5 & 3,202.9 & 4,700.4 & 68.1 & +6.68 & +1.20\\
+S & 0.10 & 0.35 & 1,497.6 & 6,213.4 & 7,711.0 & 80.6 & +3.96 & +0.74\\
+S & 0.25 & $\infty$ & 1,649.3 & 0.0 & 1,649.3 & 0.0 & +5.77 & +0.77\\
+S & 0.25 & 1.00 & 1,661.0 & 329.0 & 1,990.0 & 16.5 & +16.33 & +1.30\\
+S & 0.25 & 0.60 & 1,655.7 & 3,680.6 & 5,336.3 & 69.0 & +5.62 & +0.95\\
+S & 0.25 & 0.35 & 1,655.9 & 6,692.8 & 8,348.8 & 80.2 & +3.44 & +0.53\\
+S & 0.50 & $\infty$ & 1,934.6 & 0.0 & 1,934.6 & 0.0 & +4.67 & +0.67\\
+S & 0.50 & 1.00 & 1,951.2 & 825.6 & 2,776.8 & 29.7 & +11.94 & +1.65\\
+S & 0.50 & 0.60 & 1,943.5 & 4,661.1 & 6,604.6 & 70.6 & +3.69 & +0.66\\
+S & 0.50 & 0.35 & 1,943.7 & 7,673.3 & 9,617.0 & 79.8 & +2.45 & +0.48\\
+\midrule
+M & 0.00 & $\infty$ & 2,916.9 & 0.0 & 2,916.9 & 0.0 & +3.46 & +1.54\\
+M & 0.00 & 1.00 & 2,918.1 & 1,689.3 & 4,607.5 & 36.7 & +13.20 & +3.73\\
+M & 0.00 & 0.60 & 2,934.6 & 14,630.4 & 17,565.0 & 83.3 & +3.32 & +1.69\\
+M & 0.00 & 0.35 & 2,934.6 & 26,321.1 & 29,255.8 & 90.0 & +1.99 & +1.18\\
+M & 0.10 & $\infty$ & 3,071.5 & 0.0 & 3,071.5 & 0.0 & +3.33 & +1.70\\
+M & 0.10 & 1.00 & 3,073.5 & 1,868.1 & 4,941.6 & 37.8 & +12.55 & +3.58\\
+M & 0.10 & 0.60 & 3,089.7 & 15,141.1 & 18,230.8 & 83.1 & +3.30 & +1.88\\
+M & 0.10 & 0.35 & 3,089.7 & 26,831.7 & 29,921.4 & 89.7 & +2.00 & +1.25\\
+M & 0.25 & $\infty$ & 3,386.2 & 0.0 & 3,386.2 & 0.0 & +2.85 & +1.40\\
+M & 0.25 & 1.00 & 3,389.9 & 2,644.4 & 6,034.2 & 43.8 & +10.04 & +3.12\\
+M & 0.25 & 0.60 & 3,404.2 & 17,376.6 & 20,780.8 & 83.6 & +2.44 & +1.52\\
+M & 0.25 & 0.35 & 3,404.2 & 29,067.2 & 32,471.4 & 89.5 & +1.55 & +1.03\\
+M & 0.50 & $\infty$ & 3,943.5 & 0.0 & 3,943.5 & 0.0 & +2.24 & +1.24\\
+M & 0.50 & 1.00 & 3,958.6 & 5,230.1 & 9,188.7 & 56.9 & +8.66 & +3.57\\
+M & 0.50 & 0.60 & 3,959.4 & 21,683.6 & 25,643.0 & 84.6 & +1.48 & +1.15\\
+M & 0.50 & 0.35 & 3,959.4 & 33,374.1 & 37,333.5 & 89.4 & +1.02 & +0.75\\
+\midrule
+L & 0.00 & $\infty$ & 5,433.9 & 0.0 & 5,433.9 & 0.0 & +1.99 & +1.69\\
+L & 0.00 & 1.00 & 5,432.6 & 7,199.9 & 12,632.5 & 57.0 & +7.50 & +4.33\\
+L & 0.00 & 0.60 & 5,449.0 & 49,066.0 & 54,515.0 & 90.0 & +1.52 & +1.36\\
+L & 0.00 & 0.35 & 5,449.0 & 84,051.4 & 89,500.4 & 93.9 & +0.92 & +0.90\\
+L & 0.10 & $\infty$ & 5,756.0 & 0.0 & 5,756.0 & 0.0 & +1.88 & +1.56\\
+L & 0.10 & 1.00 & 5,757.6 & 8,154.5 & 13,912.1 & 58.6 & +6.70 & +4.00\\
+L & 0.10 & 0.60 & 5,775.3 & 51,710.5 & 57,485.8 & 90.0 & +1.40 & +1.32\\
+L & 0.10 & 0.35 & 5,775.3 & 86,695.9 & 92,471.2 & 93.8 & +0.87 & +0.85\\
+L & 0.25 & $\infty$ & 6,376.7 & 0.0 & 6,376.7 & 0.0 & +1.65 & +1.47\\
+L & 0.25 & 1.00 & 6,381.8 & 11,342.3 & 17,724.1 & 64.0 & +6.57 & +4.47\\
+L & 0.25 & 0.60 & 6,395.8 & 59,765.5 & 66,161.3 & 90.3 & +1.07 & +1.04\\
+L & 0.25 & 0.35 & 6,395.8 & 94,750.9 & 101,146.7 & 93.7 & +0.69 & +0.69\\
+L & 0.50 & $\infty$ & 7,445.8 & 0.0 & 7,445.8 & 0.0 & +1.40 & +1.26\\
+L & 0.50 & 1.00 & 7,453.6 & 22,344.8 & 29,798.4 & 75.0 & +5.22 & +4.52\\
+L & 0.50 & 0.60 & 7,464.0 & 74,244.2 & 81,708.2 & 90.9 & +0.76 & +0.76\\
+L & 0.50 & 0.35 & 7,464.0 & 109,229.6 & 116,693.6 & 93.6 & +0.53 & +0.53\\
+\bottomrule
+\end{tabular}
+\end{table}
+
 \section*{생성형 AI 활용 공개}
-본 논문의 작성 과정에서 저자는 생성형 AI 도구(GPT-5, Claude Opus 5 및 Claude Opus 5.5)를 원고의 오탈자, 문법 및 문장 표현을 점검하는 보조적 용도로 활용하였다. 생성형 AI는 연구의 기획, 방법론 개발, 분석 및 결과 해석에는 사용되지 않았으며, 저자는 원고의 모든 내용을 직접 검토하고 수정하였으며, 그 내용에 대한 책임을 진다.
+본 논문의 작성 과정에서 저자는 생성형 AI 도구(GPT-5, Claude Opus 5 및 Claude Opus 5.5)를 원고의 오탈자, 문법 및 문장 표현을 점검하는 보조적 용도로 활용하였다. 생성형 AI는 연구의 기획, 방법론 개발, 분석 및 결과 해석에는 사용되지 않았으며, 저자는 원고의 모든 내용을 직접 검토·수정하고 그 내용에 대한 책임을 진다.
 
 \section*{참고문헌}
 \begin{description}\small

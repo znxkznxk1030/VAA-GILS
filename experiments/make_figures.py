@@ -125,8 +125,8 @@ def fig2():
         "full":     [0.20, 0.12, 0.19, 0.19, 0.26, 0.12, 0.09, 0.09, 0.03],
     }
     labels = ["generic (7 ops)", "critical (+g1,g2)", "full (+g3,g4)"]
-    W, H = 640, 380
-    L, R, T, B = 60, 20, 40, 70
+    W, H = 640, 372
+    L, R, T, B = 72, 20, 20, 84
     pw, ph = W - L - R, H - T - B
     ymax = 0.7
     n = len(cells)
@@ -140,10 +140,10 @@ def fig2():
     for gy in [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7]:
         y = Y(gy)
         body += _line(L, y, L + pw, y, GRID, 1)
-        body += _txt(L - 10, y + 4, f"{gy:.1f}", 11, "end", AXIS)
+        body += _txt(L - 10, y + 4, f"{gy:.1f}", 14, "end", AXIS)
     body += _line(L, T, L, T + ph, AXIS, 1.2)
     body += _line(L, T + ph, L + pw, T + ph, AXIS, 1.2)
-    body += _txt(18, T + ph / 2, "Mean gap to best observed (%)", 13, "middle",
+    body += _txt(20, T + ph / 2, "Mean gap to best observed (%)", 16, "middle",
                  INK, rot=-90)
     for ci, cell in enumerate(cells):
         gx = L + ci * group_w + group_w / 2
@@ -153,15 +153,14 @@ def fig2():
             by = Y(v)
             body += (f'<rect x="{bx:.1f}" y="{by:.1f}" width="{bar_w:.1f}" '
                      f'height="{T + ph - by:.1f}" fill="{SEQ[k]}"/>\n')
-        body += _txt(gx, T + ph + 16, cell, 10.5, "middle", AXIS)
+        body += _txt(gx, T + ph + 16, cell, 13.5, "middle", AXIS)
     # legend
     for k, lab in enumerate(labels):
-        lx = L + 20 + k * 200
-        body += (f'<rect x="{lx}" y="{H - 34}" width="14" height="14" '
+        lx = L + k * 190
+        body += (f'<rect x="{lx}" y="{H - 30}" width="16" height="16" '
                  f'fill="{SEQ[k]}"/>\n')
-        body += _txt(lx + 20, H - 23, lab, 11.5, "start", INK)
-    body += _txt(L, T - 16, "Guided operators g1, g2 lower the gap in every "
-                 "cell; g3, g4 add little", 12, "start", "#555", weight="bold")
+        body += _txt(lx + 22, H - 17, lab, 14.5, "start", INK)
+    # No in-figure title: the message goes in the manuscript caption.
     with open(os.path.join(OUT, "fig2_operator_pool.svg"), "w") as f:
         f.write(_svg(W, H, body))
 
@@ -224,8 +223,8 @@ def fig4():
               "(run experiments/lambda_summary.py first)")
         return
     curve = json.load(open(src))["curve"]
-    W, H = 560, 400
-    L, R, T, B = 70, 30, 40, 60
+    W, H = 560, 392
+    L, R, T, B = 84, 30, 20, 70
     pw, ph = W - L - R, H - T - B
 
     def X(v):  # makespan_norm 0..1
@@ -237,14 +236,14 @@ def fig4():
     body = ""
     for g in [0.0, 0.25, 0.5, 0.75, 1.0]:
         body += _line(L, Y(g), L + pw, Y(g), GRID, 1)
-        body += _txt(L - 10, Y(g) + 4, f"{g:.2f}", 11, "end", AXIS)
+        body += _txt(L - 10, Y(g) + 4, f"{g:.2f}", 14, "end", AXIS)
         body += _line(X(g), T + ph, X(g), T + ph + 5, AXIS, 1)
-        body += _txt(X(g), T + ph + 20, f"{g:.2f}", 11, "middle", AXIS)
+        body += _txt(X(g), T + ph + 24, f"{g:.2f}", 14, "middle", AXIS)
     body += _line(L, T, L, T + ph, AXIS, 1.2)
     body += _line(L, T + ph, L + pw, T + ph, AXIS, 1.2)
     body += _txt(L + pw / 2, H - 10,
-                 "Makespan (normalised: 0 = min, 1 = max)", 13, "middle", INK)
-    body += _txt(18, T + ph / 2, "Total tardiness (normalised)", 13, "middle",
+                 "Makespan (normalised: 0 = min, 1 = max)", 16, "middle", INK)
+    body += _txt(20, T + ph / 2, "Total tardiness (normalised)", 16, "middle",
                  INK, rot=-90)
     pts = " ".join(f"{X(p['makespan_norm']):.1f},{Y(p['tardiness_norm']):.1f}"
                    for p in curve)
@@ -257,11 +256,10 @@ def fig4():
         col = C[1] if highlight else C[0]
         body += f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{r}" fill="{col}"/>\n'
         lab = f"λ={p['lam']:g}"
-        body += _txt(x + 8, y - 7, lab, 10.5, "start",
+        body += _txt(x + 8, y - 7, lab, 13.5, "start",
                      INK if highlight else "#333",
                      weight="bold" if highlight else "normal")
-    body += _txt(L, T - 16, "λ=1 keeps tardiness near-minimal at a moderate "
-                 "makespan cost", 11.5, "start", "#555", weight="bold")
+    # No in-figure title: the message goes in the manuscript caption.
     with open(os.path.join(OUT, "fig4_lambda_tradeoff.svg"), "w") as f:
         f.write(_svg(W, H, body))
     print("wrote", os.path.join("paper/figures", "fig4_lambda_tradeoff.svg"))

@@ -38,8 +38,8 @@
 
 
 \begin{abstract}
-% R1-1, R1-18: 초록의 CP-SAT 실패 범위 명확화와 격차 범위 정정
-\noindent This study addresses compound-truck scheduling in a multi-door cross-dock under truck-specific release times and soft due dates. Unlike conventional models with fixed inbound and outbound roles, a compound truck partially unloads freight, retains freight for one destination, and then serves as its outbound carrier, so late arrivals can delay other carriers waiting for transferred freight. We formulate the problem to minimize makespan and total tardiness using mixed-integer linear programming and constraint programming-satisfiability (CP-SAT) and propose a Vogel Approximation Algorithm--based Guided Iterated Local Search (VAA-GILS) that integrates Vogel-style initial construction, bottleneck-guided operators, best-improvement descent, and kick restarts. Computational results show that VAA-GILS achieves average gaps of 0.11--0.23\% from CP-SAT references in under 0.5 s on the small conditions and the medium condition without time constraints. For 20 small instances with proven optimality, the average gap is 0.23\%. VAA-GILS consistently outperforms benchmark heuristics under equal runtime budgets and finds high-quality solutions within seconds on large instances, for which CP-SAT returns no feasible solution within 600 s.
+% R1-1, R1-18: 초록의 CP-SAT 실패 범위 명확화와 격차 범위 정정; 투고 규정에 맞춰 150단어 이하로 축약
+\noindent This study schedules compound trucks in a multi-door cross-dock with truck-specific release times and soft due dates. A compound truck partially unloads, keeps the freight of one destination, and then carries it out, so a late arrival can delay other carriers waiting for transferred freight. We formulate mixed-integer linear programming and constraint programming-satisfiability (CP-SAT) models that minimize makespan and total tardiness, and propose a Vogel Approximation Algorithm--based Guided Iterated Local Search (VAA-GILS) with bottleneck-guided operators, best-improvement descent, and kick restarts. On small instances and unconstrained medium instances, VAA-GILS averages 0.11--0.23\% above CP-SAT references in under 0.5 s, and 0.23\% above the proven optima of 20 small instances. It outperforms benchmark heuristics under equal runtime and solves large instances within seconds, where CP-SAT returns no feasible solution within 600 s.
 
 \smallskip
 \noindent\textbf{Keywords:} Cross-Docking, Compound Truck, Release Time, Soft Due Date, Iterated Local Search, Constraint Programming
@@ -147,11 +147,11 @@ CP-SAT 모형을 제시한다. 제 3장에서 제안 알고리즘인 VAA-GILS를
 
 % R2-1, R2-2: 문제 구조도 추가 (기존 방식과 본 연구의 차이, 운영 가정 표시)
 \begin{figure}[H]\centering
-\includegraphics[width=0.86\columnwidth]{fig_problem_structure.pdf}
-\caption{Figure 1. Freight flow in (a) a conventional cross-dock, where every inbound truck is fully unloaded and separate outbound trucks carry the freight away, and (b) the setting of this study, where a compound truck retains the freight of one destination and becomes its outbound carrier. Assumptions: at most one compound truck per door in the first stage, and exactly one carrier per destination.}\label{fig:struct}
+\includegraphics[width=\columnwidth]{fig_problem_structure.pdf}
+\caption{Figure 1. Freight flow in (a) a conventional cross-dock and (b) the setting of this study. In (a), inbound trucks unload all freight, and a different outbound truck carries each destination's freight out. In (b), each compound truck keeps the freight of one destination, unloads the rest, and then loads the freight that other trucks unloaded for that destination. One feasible assignment is shown, and the door of outbound truck $f$ is a decision (door 2 here). Each truck $q$ has a release time $r_{q}$ and a soft due date $\bar{d}_{q}$, so a late $i_{2}$ delays $i_{1}$ and $f$. Assumptions: at most one compound truck per door in the first stage, and exactly one carrier per destination.}\label{fig:struct}
 \end{figure}
 
-<Figure~\ref{fig:struct}>는 기존 크로스도킹과 본 연구의 차이를 보인다. (a)에서는 입고트럭이 화물을 모두 하역하고
+<Figure~\ref{fig:struct}>은 기존 크로스도킹과 본 연구의 차이를 보인다. (a)에서는 입고트럭이 화물을 모두 하역하고
 별도의 출고트럭이 이를 싣고 나간다. (b)에서는 병행 트럭이 한 목적지의 화물을 트럭에 유지한 채 나머지만 하역하고,
 다른 트럭에서 오는 그 목적지행 이송 화물을 받은 뒤 운송 트럭으로 출발한다.
 
@@ -223,13 +223,13 @@ $S_f+DE_f+L_d+DL_f$이다. 즉 $S_f$는 적재 시작이 아니라 도어 작업
 
 \begin{figure}[tbp]\centering
 \includegraphics[width=0.92\columnwidth]{{fig0_compound_timeline.drawio}.pdf}
-\caption{Figure 2. Processing timelines for the two alternative carrier configurations: (a) a compound truck retaining destination $d$, and (b) a dedicated outbound truck assigned to destination $d$.}\label{fig:timeline}
+\caption{Figure 2. Processing timelines for the two alternative carrier configurations of destination $d$: (a) a compound truck retaining $d$, and (b) a dedicated outbound truck assigned $d$. For each destination, exactly one of the two is selected as the sole carrier.}\label{fig:timeline}
 \end{figure}
 
 % R2-3: 도어 간 직접 이송의 시간 계산 방식과 예시
 \begin{figure}[H]\centering
 \includegraphics[width=0.86\columnwidth]{fig_transfer_example.pdf}
-\caption{Figure 3. Direct door-to-door transfer. The transfer time $t_{mn}$ depends only on the door pair, not on the transferred volume; handling time is charged separately through $t_k$ per unit.}\label{fig:transfer}
+\caption{Figure 3. Direct door-to-door transfer of the freight for one destination $d$ (plan view; door coordinates in parentheses). The transfer time $t_{mn}$ is the Euclidean door distance divided by 10 and does not depend on the transferred volume; handling time is charged separately through $t_{k}$ per unit.}\label{fig:transfer}
 \end{figure}
 
 % R2-3: 이송시간이 물량과 무관함을 본문에 명시
@@ -336,8 +336,8 @@ SA 수락 규칙을 추가하면 해가 유의하게 나빠졌다(<Table~\ref{ta
 
 % R1-10, R2-9: 알고리즘 흐름도 추가
 \begin{figure}[H]\centering
-\includegraphics[width=0.60\columnwidth]{fig_algorithm_flow.pdf}
-\caption{Figure 4. Flow of one VAA-GILS iteration; the line numbers correspond to Algorithm 1.}\label{fig:flow}
+\includegraphics[width=0.98\columnwidth]{fig_algorithm_flow.pdf}
+\caption{Figure 4. Flow of VAA-GILS (cf. Algorithm 1). $s$ is the current solution, $s^{*}$ the best solution, and $c$ the number of iterations since $s^{*}$ was last updated. For g3, an outbound target truck is relocated to a feasible door and position, and a compound target truck swaps doors with another compound truck or moves to an unoccupied door.}\label{fig:flow}
 \end{figure}
 
 연산자 집합(operator pool). 기본 이웃 7종은 원 모델의 이웃 구조를 그대로 사용하며, 각각
@@ -580,7 +580,7 @@ generic → full (all guided) & 45 & +0.184 & $<$0.0001\\
 
 \begin{figure}[H]\centering
 \includegraphics[width=0.82\columnwidth]{fig2_operator_pool.pdf}
-\caption{Figure 5. Mean gap to the best observed solution by operator set.}\label{fig:op}
+\caption{Figure 5. Mean gap to the best observed solution by operator set. Adding the guided operators g1 and g2 lowers the gap in every condition, whereas adding g3 and g4 changes it little.}\label{fig:op}
 \end{figure}
 
 
@@ -667,14 +667,14 @@ $\sum_q T_q$는 여러 트럭의 합이므로 계수가 같다고 두 성분이 
 
 \begin{figure}[H]\centering
 \includegraphics[width=0.72\textwidth]{fig4_lambda_tradeoff.pdf}
-\caption{Figure 6. Normalized makespan-tardiness trade-off on tuning instances.}\label{fig:lam}
+\caption{Figure 6. Normalized makespan-tardiness trade-off on tuning instances. $\lambda = 1$ keeps tardiness near its minimum at a moderate makespan cost.}\label{fig:lam}
 \end{figure}
 
 % R1-13: 도착 분산과 납기 여유를 분리한 요인실험
 \subsection{5.5 도착 분산과 납기 여유의 영향}
 4.2절의 세 수준은 $\rho$와 $\delta$를 함께 바꾸므로 두 요인의 영향을 분리할 수 없다. 이를 위해 같은 인스턴스에서
 $\rho$와 $\delta$만 바꾼 $4\times4$ 요인실험을 세 규모에 대해 수행하였다(48개 실험 조건, 조건당 20개 인스턴스,
-GILS와 Extended SA-RL5는 5회 반복, 총 10{,}560회 실행). <Table~\ref{tab:tweff}>는 한 요인의 수준별로 다른 요인과
+GILS와 Extended SA-RL5는 5회 반복, 총 10{,}560회 실행). <Table~\ref{tab:tweff}>은 한 요인의 수준별로 다른 요인과
 세 규모를 모두 평균한 주효과이다.
 
 $\rho$가 커지면 총 작업완료시간이 $H$ 대비 1.113에서 1.524로 늘어난다. 늦게 도착한 트럭이 자신의 작업뿐 아니라
@@ -688,7 +688,7 @@ $\rho$가 커지면 총 작업완료시간이 $H$ 대비 1.113에서 1.524로 �
 최대 $+4.52$\%)이고 모든 조건에서 $p<0.0001$이며, 960번의 인스턴스 비교 가운데 956번(99.6\%)에서 GILS가 좋았다.
 다만 격차는 두 요인이 세질수록 줄어든다($\rho$ 0$\rightarrow$0.50에서 $-0.296$, $\delta$ $\infty\rightarrow$0.35에서
 $-0.439$, 모두 $p<0.001$). 납기지연이 목적값의 대부분을 차지하면 분모가 커져 상대 격차가 작아지는 것이며,
-순위가 뒤집히는 조건은 없다. 48개 조건의 상세 결과는 부록에 둔다.
+순위가 뒤집히는 조건은 없다. 48개 조건의 상세 결과는 부록 A에 둔다.
 
 \begin{table}[H]\centering
 \caption{Table 10. Main effects of the arrival spread $\rho$ and the due-date slack $\delta$ (4 levels each, 3 sizes, 20 instances per cell). Each row averages over the other factor and all three sizes; makespan and tardiness are divided by the horizon estimate $H$. The last two columns are the mean relative objective difference in favor of GILS-uniform.}
@@ -751,7 +751,7 @@ M 이상의 조건에서는 CP-SAT가 최적성을 증명하지 못하여 해 �
 % R1-13: 요인실험 48개 조건의 상세 결과
 \section*{부록 A. 도착 분산·납기 여유 요인실험의 조건별 결과}
 \begin{table}[H]\centering
-\caption{Table A1. Factorial experiment over the arrival spread $\rho$ and the due-date slack $\delta$ (20 instances per cell, 5 replications). Makespan, tardiness and objective are means for GILS-uniform; the share column is the percentage of the objective due to tardiness. The last two columns are the mean relative objective difference in favor of GILS-uniform and the number of instances on which it beats the time-matched Extended SA-RL5. Two-sided Wilcoxon on per-instance replication means gives $p<0.0001$ in every cell.}
+\caption{Table A1. Factorial experiment over the arrival spread $\rho$ and the due-date slack $\delta$ (20 instances per cell, 5 replications). Makespan, tardiness and objective are means for GILS-uniform; the share column is the percentage of the objective due to tardiness. The last two columns are the mean relative objective difference in favor of GILS-uniform. Two-sided Wilcoxon on per-instance replication means gives $p<0.0001$ in every cell.}
 \label{tab:tweff-full}\footnotesize\setlength{\tabcolsep}{4pt}
 \begin{tabular}{@{}llrrrrrrr@{}}
 \toprule

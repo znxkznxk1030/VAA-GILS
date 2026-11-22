@@ -48,7 +48,7 @@
 \section{1. 서 론}
 
 크로스도킹은 입고 화물을 창고에 보관하지 않고 곧바로 출고트럭으로 환적하여
-재고와 리드타임을 줄이는 물류 방식이다(Boysen and Fliedner, 2010; Van Belle et al., 2012). Joo와
+재고와 리드타임을 줄이는 물류 방식이다(Boysen and Fliedner, 2010; Van Belle 등, 2012). Joo와
 Kim(2013)이 도입한 병행 트럭(compound truck)은 한 대의 트럭이 입고와 출고 역할을 겸하는 형태이며,
 Shahmardan과 Sajadieh(2020)가 발전시킨 부분 하역 변형에서는 여러 목적지
 화물을 싣고 도착한 뒤 한 목적지의 화물은 유지하고 나머지만 부분적으로 하역하며,
@@ -64,7 +64,7 @@ Ladier and Alpan, 2016), 도착 정보를 얼마나 알고 있는지가 스케�
 부분 하역의 이점이 실제 도착 시각과 출발 일정 아래에서도 유지되는지 평가할 수 없으므로, 두 가정을 완화한 모형이 필요하다.
 
 도착 시각, 시간창, 납기지연은 일반 크로스도킹 스케줄링에서 이미
-연구되어 왔고(Van Belle et al., 2013; Assadi and Bagheri, 2016; Bodnar et al., 2017; Molavi et al., 2018; Rijal et al., 2019; Li et al., 2026),
+연구되어 왔고(Van Belle 등, 2013; Assadi and Bagheri, 2016; Bodnar 등, 2017; Molavi 등, 2018; Rijal 등, 2019; Li 등, 2026),
 전량 하역 후 다시 적재하는 병행 트럭에도 트럭별 도착 시각(Ozden and Saricicek, 2019; Abtahi, 2025)과
 연성 시간창(Ozden and Saricicek, 2019)이 도입되었다.
 그러나 부분 하역 병행 트럭에서는 시간 제약의 의미가 달라진다. 병행 트럭은
@@ -107,7 +107,8 @@ ready time과 조기완료 및 납기지연(Assadi and Bagheri, 2016), mixed-ser
 2013a, 2013b; Ladier and Alpan, 2016; Xi 등, 2020), 본 모형은 결정론적이며 각 도착 시각이 스케줄 구성
 시점에 알려져 있다고 본다.
 
-가장 가까운 연구는 Li 등(2026)으로, 무인 배송센터(distribution center)의 mixed service mode dock에서
+% R1-6: 가장 가까운 연구로 본 기준(시간 제약, 배정·스케줄링 통합, 운영 유연성)을 명시
+시간 제약(시간창과 납기지연)을 다루면서 트럭 배정과 스케줄링을 통합하고 운영상의 유연성을 모형에 포함한 연구 가운데 본 연구와 가장 가까운 것은 Li 등(2026)이다. 이 연구는 무인 배송센터(distribution center)의 mixed service mode dock에서
 통합 트럭 배정과 스케줄링을 Q-learning 기반 ALNS(adaptive large neighborhood search; Ropke and
 Pisinger, 2006)로 풀고 시간창과 납기지연, 총 작업완료시간을 함께 다룬다. 그러나 그 유연성은
 도어 수준에 있어 도어가 적재 전용, 하역 전용, 혼합 모드 중 하나를 고르고 트럭은 순수 입고트럭이나 출고트럭으로
@@ -200,6 +201,8 @@ $X_{im}$, $Z_{fm}$, $Z_{fd}$ & 배정 보조 변수, $X_{im}=\sum_d x_{idm}$, $Z
 $U_i$ & 병행 트럭 $i$의 하역 완료 시각 \\
 $C_i$ & 병행 트럭 $i$의 도어 작업 완료 시각 \\
 $S_f$ & 출고트럭 $f$의 도어 작업 시작 시각(적재 시작은 $S_f+DE_f$) \\
+% R1-9: S_f 계산에 쓰는 보조 시각
+$A_f$, $E_d$ & 출고트럭 $f$의 도어가 앞선 작업을 마치고 비는 시각과 목적지 $d$의 화물이 운송 트럭의 도어에 모두 도착하는 시각(2.2절의 시각 계산에 사용하며, 정식화에서는 식 (10), (11), (13), (14)가 같은 관계를 나타냄) \\
 $C_f$ & 출고트럭 $f$의 완료 시각 \\
 $C_{\max}$ & 총 작업완료시간(makespan), $\tau=C_{\max}$ \\
 $T_q$ & 트럭 $q$의 납기지연(tardiness), $T_q\ge\max\{0,\,C_q-\bar d_q\}$ \\
@@ -228,15 +231,18 @@ $T_q$ & 트럭 $q$의 납기지연(tardiness), $T_q\ge\max\{0,\,C_q-\bar d_q\}$ 
 
 각 트럭의 작업 시각은 다음과 같이 계산한다(<Figure~\ref{fig:timeline}>). 병행 트럭 $i$(목적지 $d$ 유지)의 하역은
 $r_i+DE_i+\sum_{d'\ne d}h_{id'}$에 끝난다. 운송 트럭은 화물을 보내는 모든 트럭의 하역과
-도어 간 이송이 끝나야 적재할 수 있다. 출고 운송 트럭 $f$는 추가로 자신의 도착 시각과 도어의 선행 점유가 끝나는 시점에 도어 작업을 시작하여
-$S_f=\max(\text{door available},\ \text{destination ready},\ r_f)$이며, 이후
+도어 간 이송이 끝나야 적재할 수 있다. 출고 운송 트럭 $f$는 추가로 자신의 도착 시각과 도어의 선행 점유가 끝나는 시점에 도어 작업을 시작한다.
+% R1-9: 수식 안의 영문 서술어(door available, destination ready)를 기호 A_f, E_d로 정의
+$f$가 배정된 도어가 앞선 작업을 마치고 비는 시각을 $A_f$, $f$가 맡은 목적지 $d$의 화물이 $f$의 도어에 모두 도착하는 시각을 $E_d$라 하면
+$S_f=\max(A_f,\ E_d,\ r_f)$이며, 이후
 진입($DE_f$), 적재, 출차($DL_f$)를 차례로 수행하므로 완료 시각은
 $S_f+DE_f+L_d+DL_f$이다. 즉 $S_f$는 적재 시작이 아니라 도어 작업 시작 시각이고,
 적재는 $S_f+DE_f$에 시작한다. 총 작업완료시간 $\tau=C_{\max}$는 최대 완료 시각이다.
 
 \begin{figure}[tbp]\centering
 \includegraphics[width=0.92\columnwidth]{{fig0_compound_timeline.drawio}.pdf}
-\caption{Figure 2. Processing timelines for the two alternative carrier configurations of destination $d$: (a) a compound truck retaining $d$, and (b) a dedicated outbound truck assigned $d$. For each destination, exactly one of the two is selected as the sole carrier.}\label{fig:timeline}
+\caption{Figure 2. Processing timelines for the two alternative carrier configurations of destination $d$: (a) a compound truck retaining $d$, and (b) a dedicated outbound truck assigned $d$. For each destination, exactly one of the two is selected as the sole carrier. $A_f$ and $E_d$ are the times at which the door of $f$ becomes free and at which all freight for $d$ has arrived at that door.}\label{fig:timeline}
+% R1-9: 그림 안의 영문 서술어(door available, destination ready)를 A_f, E_d로 바꾸고 캡션에 정의
 \end{figure}
 
 % R2-3: 도어 간 직접 이송의 시간 계산 방식과 예시
@@ -306,9 +312,10 @@ Vogel 근사법(Vogel's approximation method; Korukoğlu and Ballı, 2011)에 �
 트럭 $i$와 목적지 $d$의 후회도는 각각 두 번째로 작은 비용과 가장 작은 비용의 차이이다.
 \[R_i=\min^{(2)}_{d\in D'}c_{id}-\min_{d\in D'}c_{id},\qquad R_d=\min^{(2)}_{i\in I'}c_{id}-\min_{i\in I'}c_{id} \qquad (18)\]
 여기서 $\min^{(2)}$는 두 번째로 작은 값이며, 후보가 하나뿐이면 후회도는 0으로 둔다. 후회도는 최선의 짝을
-놓쳤을 때 늘어나는 비용이므로, 후회도가 가장 큰 트럭 또는 목적지를 먼저 처리한다.
-\[(i^*,d^*)=\text{후회도가 }\max\{\max_{i\in I'}R_i,\ \max_{d\in D'}R_d\}\text{인 행 또는 열의 최소 비용 짝} \qquad (19)\]
-$(i^*,d^*)$를 확정한 뒤 $I'$와 $D'$에서 각각 제거하고, $I'$가 빌 때까지 식 (18)--(19)를 반복한다. 후회도가 같으면
+놓쳤을 때 늘어나는 비용이므로, 트럭과 목적지를 함께 후보 $v\in I'\cup D'$로 보고 후회도 $R_v$가 가장 큰 후보를 먼저 처리한다.
+% R1-9: 식 (19) 안의 서술어를 없애고 기호로 표현
+\[v^*=\operatorname*{arg\,max}_{v\in I'\cup D'}R_v,\qquad (i^*,d^*)=\operatorname*{arg\,min}_{(i,d)\in I'\times D':\ v^*\in\{i,d\}}c_{id} \qquad (19)\]
+즉 $v^*$가 트럭이면 그 행에서, 목적지이면 그 열에서 비용이 가장 작은 짝을 고른다. $(i^*,d^*)$를 확정한 뒤 $I'$와 $D'$에서 각각 제거하고, $I'$가 빌 때까지 식 (18)--(19)를 반복한다. 후회도가 같으면
 최소 비용이 작은 쪽을 택한다. 병행 트럭은 목적지보다 적으므로($|I|<|D|$) 가상 트럭을 추가해 균형을 맞추지
 않으며, 병행 트럭이 맡지 않은 목적지는 출고트럭이 맡는다. 식 (17)에는 도착 시각, 납기, 도어 간 이송시간이
 들어가지 않으며 이들은 이후의 도어 배정과 순서 결정에서 반영한다. 예를 들어 병행 트럭 3대와 목적지 4개의
@@ -510,11 +517,21 @@ ablation(<Table~\ref{tab:b1}>, <Table~\ref{tab:b2}>)은 같은 엔진에서 구�
 반환한 해의 목적값이 증명된 하한과 일치하여 최적성이 증명된 해이다. 기준해(reference solution)는
 CP-SAT가 제한시간 안에 반환한 현재 최선해로, 최적성이 증명되지 않은 해를 포함하며 "최적"으로 부르지 않는다.
 관측 최선해(best observed solution)는 한 인스턴스에 대해 모든 방법, 모든 반복 횟수, CP-SAT 결과를
-통틀어 관측된 가장 좋은 해로, 최적성에 대한 보장이 없다. 주
-지표는 인스턴스별 격차 $\Delta_{bo}$이며, 해당 인스턴스에 대해 모든 방법과 모든 반복
-횟수, CP-SAT 결과까지 통틀어 관측된 가장 좋은 목적값을 기준으로 삼는다. % R1-1: M 조건의 기준해는 최적성이 증명되지 않음을 명시
+통틀어 관측된 가장 좋은 해로, 최적성에 대한 보장이 없다. % R2-12: Δbo를 식으로 정의
+주 지표는 관측 최선해 대비 격차 $\Delta_{bo}$이다. % R1-1: M 조건의 기준해는 최적성이 증명되지 않음을 명시
 대형 조건에서는
 CP-SAT 기준해가 없어 최적해 대비 갭을 쓸 수 없고, 중형 조건에서는 기준해가 있으나 최적성이 증명되지 않기 때문이다.
+한 실험 조건의 시험 인스턴스 집합을 $\Pi$, 방법 $\alpha$가 인스턴스 $\pi\in\Pi$에서 수행한 실행의 집합을
+$\mathcal{X}_\alpha(\pi)$, 실행 $x$에서 얻은 해의 목적값(식 (16))을 $J(x)$라 하면 관측 최선해의 목적값과
+방법 $\alpha$의 격차는 다음과 같다.
+\[J^{bo}(\pi)=\min_{\alpha'\in\mathcal{A}}\ \min_{x\in\mathcal{X}_{\alpha'}(\pi)}J(x) \qquad (20)\]
+\[\Delta_{bo}(\alpha)=\frac{100}{|\Pi|}\sum_{\pi\in\Pi}\frac{1}{|\mathcal{X}_\alpha(\pi)|}\sum_{x\in\mathcal{X}_\alpha(\pi)}\frac{J(x)-J^{bo}(\pi)}{J^{bo}(\pi)}\ (\%) \qquad (21)\]
+여기서 $\mathcal{A}$는 해당 인스턴스에서 실행한 모든 방법으로, 비교 방법과 CP-SAT, 그리고 선택 정책과 반복 횟수를
+달리한 GILS 실행(5.3절)을 모두 포함한다. 즉 $\Delta_{bo}$는 각 실행의 목적값이 관측 최선해보다 몇 \% 큰지를
+인스턴스별로 평균한 뒤 조건의 인스턴스에 대해 다시 평균한 값이다. 관측 최선해는 해당 방법의 실행도 포함한
+최솟값이므로 $\Delta_{bo}\ge0$이고, 0이면 모든 실행이 관측 최선해와 같다. 반복 실행은 5회($|\mathcal{X}_\alpha(\pi)|=5$)이며,
+결정론적인 VAA는 1회이다. <Table~\ref{tab:main}>의 vs CP-SAT 열은 식 (21)에서 $J^{bo}(\pi)$ 대신 CP-SAT 기준해의
+목적값을 쓰고 기준해가 있는 인스턴스에 대해서만 평균한 값이므로, 기준해보다 좋은 해를 찾으면 음수가 된다.
 
 Paper-SA-RL5와 Extended SA-RL5를 포함한 모든 메타휴리스틱의 종료 조건은 반복 횟수 1{,}000회로 통일한다.
 한 반복은 선택된 연산자 하나로 후보해를 생성하고 평가하는 단계이며, GILS는 여기에 개선 시 하강 탐색을 더 수행한다.
@@ -543,7 +560,7 @@ Extended SA-RL5)에 그대로 부여하고 시간이 다할 때까지 반복하�
 
 \begin{table}[H]\centering
 % R1-1: M 세 조건의 vs CP-SAT 열을 재실행 기준해로 채움
-\caption{Table 4. Test results over 20 instances per experimental condition (20 instances $\times$ 5 replications). $\Delta_{bo}$ is the mean gap to the best observed solution and time is the mean per run. The vs CP-SAT column is computed only on the subset for which CP-SAT returned a reference (20 instances per S condition, 2 per M condition); optimality was proven for all 20 S-none instances and one S-medium instance. On that subset the mean CP-SAT runtime is 178 s (S) and 603 s (M). A negative value means that the method is better than the CP-SAT reference, whose optimality is not proven.}
+\caption{Table 4. Test results over 20 instances per experimental condition (20 instances $\times$ 5 replications). $\Delta_{bo}$ is the mean relative gap (\%) to the best observed solution, Eq.~(21), and time is the mean per run; s.d. is the sample standard deviation over all runs (VAA is deterministic and run once per instance). The vs CP-SAT column applies Eq.~(21) with the CP-SAT reference in place of the best observed solution and is computed only on the subset for which CP-SAT returned a reference (20 instances per S condition, 2 per M condition); optimality was proven for all 20 S-none instances and one S-medium instance. On that subset the mean CP-SAT runtime is 178 s (S) and 603 s (M). A negative value means that the method is better than the CP-SAT reference, whose optimality is not proven.}
 \label{tab:main}\small
 \begin{tabular}{@{}llrrrr@{}}
 \toprule
@@ -606,6 +623,8 @@ All & 180 & 1.01 & 994 & +1.10 & +1.30 & 0\\
 전부에서 낮아지고(<Figure~\ref{fig:op}>) 짝지은 Wilcoxon(<Table~\ref{tab:b1}>)에서도 g1, g2 추가의
 효과가 뚜렷하다($p<0.0001$). 반면 g3, g4를 더한 효과는 $+0.034$\%p로 작고($p=0.013$), 시간 제약 유무로 나누면
 유의하지 않아($p=0.051$, $0.12$) 보조적인 효과로 본다. L-tight에서는 오히려 전체 집합의 $\Delta_{bo}$가 0.01\%p 높다.
+% R2-12: 이 실험의 관측 최선해 범위 명시
+이 실험의 $\Delta_{bo}$는 식 (21)로 계산하되, 관측 최선해는 세 연산자 집합의 실행 결과에서 구한다.
 
 \begin{table}[H]\centering
 \caption{Table 6. Operator-pool ablation (5 instances $\times$ 5 replications per condition over 9 conditions, the number of iterations fixed at 1,000; two-sided Wilcoxon on per-instance replication means, hence at most 45 pairs, with zero differences excluded from $n$; positive mean favors the richer operator set).}
@@ -623,7 +642,7 @@ generic → full (all guided) & 45 & +0.184 & $<$0.0001\\
 
 \begin{figure}[H]\centering
 \includegraphics[width=0.82\columnwidth]{fig2_operator_pool.pdf}
-\caption{Figure 5. Mean gap to the best observed solution by operator set. Adding the guided operators g1 and g2 lowers the gap in every condition, whereas adding g3 and g4 changes it little.}\label{fig:op}
+\caption{Figure 5. Mean gap to the best solution observed across the three operator sets, Eq.~(21). Adding the guided operators g1 and g2 lowers the gap in every condition, whereas adding g3 and g4 changes it little.}\label{fig:op}
 \end{figure}
 
 

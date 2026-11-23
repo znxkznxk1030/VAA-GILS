@@ -128,7 +128,9 @@ SCRIPT.update({'B': 'ℬ', 'E': 'ℰ', 'F': 'ℱ', 'H': 'ℋ', 'I': 'ℐ', 'L': 
 
 
 def _font(name):
-    return f'<w:rFonts w:ascii="{name}" w:hAnsi="{name}" w:cs="{name}"/>'
+    # All four slots: in this Korean document Word draws math operators (∈ ∼ ∑ …) and some Greek with the
+    # eastAsia slot. Leaving eastAsia empty falls back to 맑은 고딕 in Word even though LibreOffice looks right.
+    return f'<w:rFonts w:ascii="{name}" w:eastAsia="{name}" w:hAnsi="{name}" w:cs="{name}"/>'
 
 
 def latex_runs(expr, _script=False):

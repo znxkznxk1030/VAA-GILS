@@ -113,6 +113,9 @@ def main(path, show_all=False):
             prev_end = r.end()
             tnr = 'Times New Roman' in rr
             theme = 'asciiTheme="minorEastAsia"' in rr or '<w:rFonts' not in rr
+            fm = re.search(r'<w:rFonts ([^>]*)/>', rr)
+            if fm and 'w:ascii="Cambria' in fm.group(1) and 'w:eastAsia=' not in fm.group(1):
+                add('수식 글자 run에 eastAsia 글꼴이 없음(Word에서 맑은 고딕으로 그려짐)', rt[:20])
             if SCRIPT_CHARS.search(rt) and 'Cambria Math' not in rr:
                 add('수학 필기체(𝒳 등)가 Cambria Math가 아님', rt[:20])
             if not tnr and theme and not HANGUL.search(rt) and MATH_CHARS.search(rt) and len(rt) <= 20 and not intab:

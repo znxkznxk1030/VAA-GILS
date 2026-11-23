@@ -79,14 +79,16 @@
 |---|---|
 | 본문 글자 | `<w:rFonts w:asciiTheme="minorEastAsia" w:hAnsiTheme="minorEastAsia"/>` |
 | 표 셀·캡션 글자 (9pt) | 위 + `<w:sz w:val="18"/>` |
-| 수식 이탤릭 변수 | `<w:rFonts w:ascii="Cambria" w:hAnsi="Cambria" w:cs="Cambria"/><w:i/>` (+ 첨자면 `<w:vertAlign w:val="subscript"/>`) |
-| 수식 기호·대문자 그리스·첨자 숫자 | `<w:rFonts w:ascii="Cambria Math" w:hAnsi="Cambria Math" w:cs="Cambria Math"/>` |
+| 수식 이탤릭 변수 | `<w:rFonts w:ascii="Cambria" w:eastAsia="Cambria" w:hAnsi="Cambria" w:cs="Cambria"/><w:i/>` (+ 첨자면 `<w:vertAlign w:val="subscript"/>`) |
+| 수식 기호·대문자 그리스·첨자 숫자 | `<w:rFonts w:ascii="Cambria Math" w:eastAsia="Cambria Math" w:hAnsi="Cambria Math" w:cs="Cambria Math"/>` |
 | 수학 필기체 𝒳 𝒜 | Cambria Math, `<w:i/>` 없음 |
 | 대문자 그리스 **변수** (인스턴스 집합 Π 등) | Cambria + `<w:i/>`. tex는 `\varPi`, 별행 수식은 `m:sty p`를 두지 않음 |
 | 대문자 그리스 연산자·이름 (Δbo의 Δ, 연산자 집합 Ω) | Cambria Math, 곧은 글자 |
 | 기울임 (학술지명) | 본문 글꼴 + `<w:i/><w:iCs/>` |
 | 굵게 | `<w:b/><w:bCs/>` |
 | 수정 표시 | rPr 끝에 `<w:highlight w:val="yellow"/>` (vertAlign보다 앞에 둔다) |
+
+**글꼴 칸 네 개를 모두 지정한다.** 이 문서는 한국어 문서라 Word가 ∈ ∼ ∑ 같은 수학 기호와 일부 그리스 문자를 `eastAsia` 칸의 글꼴로 그린다. `ascii`·`hAnsi`만 Cambria로 두면 Word에서는 맑은 고딕으로 그려져 수정이 안 된 것처럼 보인다. LibreOffice는 `hAnsi`를 써서 맞게 보이므로 렌더링만으로는 이 문제를 잡을 수 없다. `check_format.py`가 이 경우를 점검한다.
 
 곧은 대문자 그리스 문자를 한글 문장 사이에 두면 "ㅍ" 같은 한글 자모처럼 보여 수식으로 읽히지 않는다는 지적이 있었다. 변수인 대문자 그리스 문자는 국제 표기 관례(ISO 80000-2)대로 이탤릭으로 쓴다.
 

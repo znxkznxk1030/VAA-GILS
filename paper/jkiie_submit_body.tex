@@ -521,11 +521,11 @@ CP-SAT가 제한시간 안에 반환한 현재 최선해로, 최적성이 증명
 주 지표는 관측 최선해 대비 격차 $\Delta_{bo}$이다. % R1-1: M 조건의 기준해는 최적성이 증명되지 않음을 명시
 대형 조건에서는
 CP-SAT 기준해가 없어 최적해 대비 갭을 쓸 수 없고, 중형 조건에서는 기준해가 있으나 최적성이 증명되지 않기 때문이다.
-한 실험 조건의 시험 인스턴스 집합을 $\Pi$, 방법 $\alpha$가 인스턴스 $\pi\in\Pi$에서 수행한 실행의 집합을
+한 실험 조건의 시험 인스턴스 집합을 $\varPi$, 방법 $\alpha$가 인스턴스 $\pi\in\varPi$에서 수행한 실행의 집합을
 $\mathcal{X}_\alpha(\pi)$, 실행 $x$에서 얻은 해의 목적값(식 (16))을 $J(x)$라 하면 관측 최선해의 목적값과
 방법 $\alpha$의 격차는 다음과 같다.
 \[J^{bo}(\pi)=\min_{\alpha'\in\mathcal{A}}\ \min_{x\in\mathcal{X}_{\alpha'}(\pi)}J(x) \qquad (20)\]
-\[\Delta_{bo}(\alpha)=\frac{100}{|\Pi|}\sum_{\pi\in\Pi}\frac{1}{|\mathcal{X}_\alpha(\pi)|}\sum_{x\in\mathcal{X}_\alpha(\pi)}\frac{J(x)-J^{bo}(\pi)}{J^{bo}(\pi)}\ (\%) \qquad (21)\]
+\[\Delta_{bo}(\alpha)=\frac{100}{|\varPi|}\sum_{\pi\in\varPi}\frac{1}{|\mathcal{X}_\alpha(\pi)|}\sum_{x\in\mathcal{X}_\alpha(\pi)}\frac{J(x)-J^{bo}(\pi)}{J^{bo}(\pi)}\ (\%) \qquad (21)\]
 여기서 $\mathcal{A}$는 해당 인스턴스에서 실행한 모든 방법으로, 비교 방법과 CP-SAT, 그리고 선택 정책과 반복 횟수를
 달리한 GILS 실행(5.3절)을 모두 포함한다. 즉 $\Delta_{bo}$는 각 실행의 목적값이 관측 최선해보다 몇 \% 큰지를
 인스턴스별로 평균한 뒤 조건의 인스턴스에 대해 다시 평균한 값이다. 관측 최선해는 해당 방법의 실행도 포함한

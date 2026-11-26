@@ -330,6 +330,96 @@ def replace_in_run(d, old, new, skip_tables=False, expect=1, highlight=True):
     return ''.join(out)
 
 
+_T1 = re.compile(r'^<w:r(?: [^>]*)?>(<w:rPr>(?:(?!</w:rPr>).)*</w:rPr>)?((?:<w:lastRenderedPageBreak/>)?)'
+                 r'<w:t(?: [^>]*)?>([^<]*)</w:t></w:r>$', re.S)
+_BARRIER = re.compile(r'<m:oMath|<w:drawing|<w:fldChar|<w:instrText|<w:tab/>|<w:br[ />]')
+
+
+def _unesc(s):
+    return s.replace('&lt;', '<').replace('&gt;', '>').replace('&quot;', '"').replace('&apos;', "'").replace('&amp;', '&')
+
+
+def _run(rpr, t):
+    return f'<w:r>{rpr}<w:t xml:space="preserve">{escape(t)}</w:t></w:r>' if t else ''
+
+
+def _parse_runs(p):
+    """Plain-text runs of paragraph XML: ([(xml_start, xml_end, rpr, marks, text, flat_start)], flat_text)."""
+    runs, flat, last_end = [], '', None
+    for m in RUN.finditer(p):
+        if last_end is not None and _BARRIER.search(p[last_end:m.start()]):
+            flat += '\0'
+        last_end = m.end()
+        t = _T1.match(m.group(0))
+        if not t:                                   # run with tabs, fields, drawings ...: a barrier
+            flat += '\0'
+            continue
+        txt = _unesc(t.group(3))
+        runs.append((m.start(), m.end(), t.group(1) or '<w:rPr></w:rPr>', t.group(2), txt, len(flat)))
+        flat += txt
+    return runs, flat
+
+
+def _replace_in_para(p, old, new, highlight):
+    """Replace every `old` in paragraph XML `p`, right to left; returns (new_p, count). See replace_text."""
+    pre = 0
+    while pre < min(len(old), len(new)) and old[pre] == new[pre]:
+        pre += 1
+    suf = 0
+    while suf < min(len(old), len(new)) - pre and old[-1 - suf] == new[-1 - suf]:
+        suf += 1
+    mid_new = new[pre:len(new) - suf]
+    count, bound = 0, None
+    while True:
+        runs, flat = _parse_runs(p)
+        a = flat.rfind(old, 0, len(flat) if bound is None else bound)
+        if a < 0:
+            return p, count
+        s, e = a + pre, a + len(old) - suf
+        if e > s:
+            cover = [r for r in runs if r[5] < e and r[5] + len(r[4]) > s]
+        else:                                        # pure insertion: attach to the run holding the previous char
+            cover = [r for r in runs if r[5] < s <= r[5] + len(r[4])][:1]
+        assert cover, (old, 'no run')
+        r0, r1 = cover[0], cover[-1]
+        left = r0[4][:max(0, s - r0[5])]
+        right = r1[4][e - r1[5]:]
+        keep = ''.join(re.findall(r'<w:bookmark(?:Start|End)[^>]*/>|<w:proofErr[^>]*/>', p[r0[0]:r1[1]]))
+        rpr_new = with_highlight(r0[2]) if highlight else r0[2]
+        x = (f'<w:r>{r0[2]}{r0[3]}</w:r>' if r0[3] and not left else '') \
+            + (f'<w:r>{r0[2]}{r0[3]}<w:t xml:space="preserve">{escape(left)}</w:t></w:r>' if left else '') \
+            + _run(rpr_new, mid_new) + _run(r1[2], right) + keep
+        p = p[:r0[0]] + x + p[r1[1]:]
+        count, bound = count + 1, a
+
+
+def replace_text(d, old, new, expect=1, highlight=True, korean_only=True, skip_tables=False):
+    """Replace `old` with `new` in paragraph text, even when `old` spans several runs.
+
+    Only the part that differs is rewritten: the common prefix and suffix of `old` and `new` stay in their
+    original runs, and the changed middle becomes one new run with the formatting of the run where the change
+    starts (highlighted). A pure deletion leaves nothing to highlight. Equations, tabs, fields and drawings are
+    barriers, so `old` never matches across them. With korean_only, only paragraphs containing Hangul are
+    edited (English captions and tables are left alone). Asserts the number of replacements equals `expect`.
+    """
+    spans = table_spans(d) if skip_tables else []
+    out, pos, n = [], 0, 0
+    for m in PARA.finditer(d):
+        para = m.group(0)
+        if korean_only and not re.search(r'[가-힣]', text(para)):
+            continue
+        if spans and in_table(m.start(), spans):
+            continue
+        newp, c = _replace_in_para(para, old, new, highlight)
+        if c:
+            out += [d[pos:m.start()], newp]
+            pos = m.end()
+            n += c
+    out.append(d[pos:])
+    assert n == expect, (n, expect, old[:50])
+    return ''.join(out)
+
+
 def replace_para(d, match, new_xml):
     return d[:match.start()] + new_xml + d[match.end():]
 

@@ -1,5 +1,7 @@
 # R1-11, R2-9 — Algorithm 1 의사코드 초안 (3장 "반복 탐색" 문단)
 
+> 반영 현황(2026-11-23): 주 절차는 Algorithm 1(3.3절)로 반영. Procedure Descent는 Algorithm 2로 반영(Algorithm 1의 2·8·21행에서 호출, 캡션에 이동 (i)–(iii) 정의). Procedure GuidedMove는 의사코드 대신 Figure 4의 GuidedMove 표와 3.4절 병목 정의 문단으로 반영. 참고: 실험 인스턴스는 모두 |M| = |I|여서 (ii)의 빈 도어 이동은 정의상만 존재한다. tex에서 알고리즘 캡션은 그림 번호를 쓰지 않도록 \caption*을 쓴다.
+
 - 대응 심사 의견: R1-11 (후보해 수락 여부, 하강 탐색 적용 조건, 최선해 갱신 순서를 의사코드로 구체화), R2-9 (구성요소가 어떤 순서와 조건으로 수행되는지, flow chart 또는 pseudocode), R1 총평 (재현성)
 - 반영 위치: 3장 "반복 탐색(iterated search)" 문단 바로 뒤. 흐름도(R1-10)는 이 의사코드의 줄 번호에 맞춰 그린다.
 - 근거 코드: `crossdock_solver/baselines/vaa_qrl.py`의 `run_vaa_qrl`(주 반복), `_descent`, `_descent_moves`. 최종 엔진의 설정은 균등 선택, 탐욕적 수락, 하강 탐색과 섭동 재시작 사용이다.
